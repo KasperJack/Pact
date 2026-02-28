@@ -37,8 +37,8 @@ def search_games(query: str):
                          """)
 
     for g in res2.json():
-        #print(g["name"])
-        pass
+        print(g["name"])
+
     print('==================')
 
 
@@ -63,4 +63,4 @@ def search_games(query: str):
 
 
 
-search_games("Genshin Impact")
+search_games("the witcher")

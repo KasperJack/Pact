@@ -1,0 +1,42 @@
+{
+  "name": "Ion Fury",
+  "realse_year": 2019,
+  "igdb_id": 54844,
+
+  "default": "steamunlocked-3.0.0.9",
+
+  "versions": [
+    {
+      "id": "fitgirl-2.05",
+      "version": "1.05",
+      "source": "fitgirl",
+      "size_mb": "92",
+      "notes": "None",
+      "downloads": [
+        {
+          "type": "torrent",
+          "url": "magnet:?xt=urn:btih:...",
+          "preferred": true
+        },
+        {
+          "type": "direct",
+          "url": "https://fitgirl-repacks.site/...",
+          "preferred": false
+        }
+      ]
+    },
+    {
+      "id": "steamunlocked-3.0.0.9",
+      "version": "3.0.0.9.10514",
+      "source": "steamunlocked",
+      "size_mb": 206.27,
+      "notes": "None",
+      "downloads": [
+        {
+          "type": "scrape",
+          "url": "https://steamunlocked.org/ion-fury-free-download/"
+        }
+      ]
+    }
+  ]
+}
