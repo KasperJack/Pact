@@ -1,10 +1,27 @@
 #from core.loader import load_package
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from core import load_package, InvalidManifestError, PackageNotFoundError
+if TYPE_CHECKING:
+    from core.models import Package, Download,Version
+
+
+from core import load_package, download_package, InvalidManifestError, PackageNotFoundError
 import sys
 
-def show_package_info(package_name: str):
-    pass
+
+
+
+
+
+
+
+def show_package_info(pkg: Package):
+    print(pkg.name)
+    print(pkg.igdb_id)
+    print(pkg.release_year)
+
+
 
 
 def install_package(package_name: str):
@@ -19,6 +36,7 @@ def install_package(package_name: str):
         print(e)
         sys.exit(2)
 
-    print(pkg.igdb_id)
-
+    show_package_info(pkg)
+    download_package(pkg)
+    
 install_package("ion-fury")
