@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 @dataclass
 class Download:
@@ -14,7 +14,7 @@ class Version:
     source: str
     size_mb: float
     notes: str
-    downloads: List[Download]
+    downloads: dict[str,Download]
 
 @dataclass
 class Package:
@@ -22,4 +22,4 @@ class Package:
     release_year: int
     igdb_id: int
     default: str
-    versions: List[Version]
+    versions: dict[str, Version]
