@@ -1,0 +1,44 @@
+{
+  "name": "Elden ring",
+  "release_year": 2022,
+  "igdb_id": 119133,
+  "default": "fitgirl-1.3",
+
+
+  "versions": [
+    {
+      "id": "fitgirl-1.3",
+      "version": "1.3.0",
+      "source": "fitgirl",
+      "size_mb": 45200,
+      "notes": "Initial repack",
+      "downloads": {
+        "direct": [
+          "https://mega.nz/file/abc",
+          "https://mega.nz/file/def"
+        ],
+        "torrent": [
+          "magnet:?xt=urn:btih:..."
+        ]
+      }
+    },
+
+    {
+      "id": "steamrip-1.6",
+      "version": "1.6.3",
+      "source": "steam-rip",
+      "size_mb": 45200,
+      "notes": "None",
+      "downloads": {
+        "mega": [
+          "https://mega.nz/file/abc",
+          "https://mega.nz/file/def"
+        ],
+        "gdrive": [
+          "https://drive.google.com/file/xyz"
+        ]
+      }
+    }
+
+  ]
+}

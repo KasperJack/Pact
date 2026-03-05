@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from .models import Package, Version, Download
+from .models import Package, Version
 from .exceptions import PackageNotFoundError,InvalidManifestError
 
 BUCKET_PATH = Path.cwd() / "bucket"
@@ -25,23 +25,18 @@ def load_package(package_name: str) -> Package:
 
     versions = {}
     for v in data["versions"]:
-        downloads = {d["type"]: Download(**d) for d in v["downloads"]}
         versions[v["id"]] = Version(
-
             id=v["id"],
             version=v["version"],
             source=v["source"],
             size_mb=float(v["size_mb"]),
             notes=v["notes"],
-            downloads=downloads
-
-
+            downloads=v["downloads"]
         )
-
 
     return Package(
         name=data["name"],
-        release_year=data["realse_year"],  
+        release_year=data["release_year"],
         igdb_id=data["igdb_id"],
         default=data["default"],
         versions=versions

@@ -1,10 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional
 
+
+"""
 @dataclass
 class Download:
     type: str
     url: str
+    
+"""
+
 
 
 @dataclass
@@ -14,7 +18,8 @@ class Version:
     source: str
     size_mb: float
     notes: str
-    downloads: dict[str,Download]
+    downloads: dict[str, list[str]]
+
 
 @dataclass
 class Package:

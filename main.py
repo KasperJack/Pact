@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from core.models import Package, Download,Version
+    from core.models import Package,Version
 
 
 from core import load_package, download_package, InvalidManifestError, PackageNotFoundError
@@ -36,6 +36,7 @@ def show_version_info(pkg: Package):
 def install_package(package_name: str):
 
     try:
+        # try to check of defult version is defined porpely 
         pkg = load_package(package_name)
     except PackageNotFoundError as e:
         print(e)
@@ -49,4 +50,4 @@ def install_package(package_name: str):
     show_version_info(pkg)
     download_package(pkg)
     
-install_package("ion-fury")
+install_package("elden-ring")
