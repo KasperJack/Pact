@@ -37,6 +37,7 @@ def install_package(package_name: str):
 
     try:
         # try to check of defult version is defined porpely 
+        # check missing keys errors 
         pkg = load_package(package_name)
     except PackageNotFoundError as e:
         print(e)
@@ -50,4 +51,4 @@ def install_package(package_name: str):
     show_version_info(pkg)
     download_package(pkg)
     
-install_package("elden-ring")
+install_package("ion-fury")
