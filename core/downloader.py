@@ -13,13 +13,13 @@ DOWNLOAD_PRIORITY = ["direct", "torrent", "scrape"]
 def download_package(pkg: Package):
     version: Version = pkg.versions[pkg.default]
 
-    download_type = None
-    download_links: list[str] = []
+    #download_type = None
+    #download_links: list[str] = []
 
     for dt in DOWNLOAD_PRIORITY:
-        if dt in version.downloads and version.downloads[dt]:
-            download_type = dt
-            download_links = version.downloads[dt]
+        if dt in version.downloads:
+         
+            download_links: list[str] = version.downloads[dt]
             break
 
     if not download_links: ## dev check 
