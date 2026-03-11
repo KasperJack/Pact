@@ -4,19 +4,6 @@ size_gb = 1.4
 
 
 
-
-[torrent]
-file = "1.torrent"
-hash = "abc123..."
-
-[[torrent.select]]
-feature = "bonus-ost"
-files = ["fg-optional-bonus-ost.bin"]
-
-
-
-
-
 [[part]]
 url = "https://fuckingfast.co/s0xma28488fx#Dead_Cells_--_fitgirl-repacks.site_--_.part1.rar"
 sha256 = "hash1"
@@ -28,7 +15,6 @@ sha256 = "hash2"
 [[part]]
 url = "https://fuckingfast.co/4c0bargr35iz#Dead_Cells_--_fitgirl-repacks.site_--_.part3.rar"
 sha256 = "hash3"
-
 
 
 [[feature]]

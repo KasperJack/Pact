@@ -1,5 +1,10 @@
 
 name = "Dead Cell"
-release_year = "2018"
-igdb_id = "26855"
+
 default_version = "fitgirl/35"
+
+
+[ids]
+igdb = 26855
+steam = 588650
+gog = 1237807960
