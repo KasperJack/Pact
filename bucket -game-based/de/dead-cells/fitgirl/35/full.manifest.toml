@@ -18,15 +18,19 @@ files = ["fg-optional-bonus-ost.bin"]
 
 
 [[part]]
-url = "https://fuckingfast.co/s0xma28488fx#Dead_Cells_--_fitgirl-repacks.site_--_.part1.rar"
+urls = ["https://fuckingfast.co/s0xma28488fx#Dead_Cells_--_fitgirl-repacks.site_--_.part1.rar",
+        "https://datanodes.to/58gzkvpu3edg/Dead_Cells_--_fitgirl-repacks.site_--_.part1.rar"]
 sha256 = "hash1"
 
+
 [[part]]
-url = "https://fuckingfast.co/2rm7m8o9ki0c#Dead_Cells_--_fitgirl-repacks.site_--_.part2.rar"
+urls = ["https://fuckingfast.co/2rm7m8o9ki0c#Dead_Cells_--_fitgirl-repacks.site_--_.part2.rar",
+        "https://datanodes.to/gz7kfky4ukw2/Dead_Cells_--_fitgirl-repacks.site_--_.part2.rar"]
 sha256 = "hash2"
 
 [[part]]
-url = "https://fuckingfast.co/4c0bargr35iz#Dead_Cells_--_fitgirl-repacks.site_--_.part3.rar"
+urls = ["https://fuckingfast.co/4c0bargr35iz#Dead_Cells_--_fitgirl-repacks.site_--_.part3.rar",
+        "https://datanodes.to/30ovyf9q9rne/Dead_Cells_--_fitgirl-repacks.site_--_.part3.rar"]
 sha256 = "hash3"
 
 
@@ -35,11 +39,14 @@ sha256 = "hash3"
 name = "bonus-ost"
 
 [[feature.part]]
-url = "https://fuckingfast.co/9d6k3ilh58ik#fg-optional-bonus-ost.part1.rar"
+urls = ["https://fuckingfast.co/9d6k3ilh58ik#fg-optional-bonus-ost.part1.rar",
+        "https://datanodes.to/gz713e4rzjco/fg-optional-bonus-ost.part1.rar"]
 sha256 = "hash1"
 
+
 [[feature.part]]
-url = "https://fuckingfast.co/b9ya4b5d7ory#fg-optional-bonus-ost.part2.rar"
+urls = ["https://fuckingfast.co/b9ya4b5d7ory#fg-optional-bonus-ost.part2.rar",
+        "https://datanodes.to/1rfol13m5f3r/fg-optional-bonus-ost.part2.rar"]
 sha256 = "hash1"
 
 

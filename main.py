@@ -47,8 +47,8 @@ def install_package(package_name: str):
         print(e)
         sys.exit(2)
 
-    show_package_info(pkg)
-    show_version_info(pkg)
-    download_package(pkg)
+    #show_package_info(pkg)
+    #show_version_info(pkg)
+    #download_package(pkg)
     
-install_package("ion-fury")
+install_package("dead-cells")
