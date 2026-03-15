@@ -1,0 +1,10 @@
+
+name = "Ion Fury"
+
+default_version = "fitgirl/35"
+
+
+[ids]
+igdb = 54844
+steam = 562860
+gog = 2130382962

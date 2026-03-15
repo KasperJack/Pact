@@ -1,0 +1,11 @@
+
+
+download_gb = 0.072
+
+
+[torrent]
+file = "1.torrent"
+hash = "abc123..."
+
+
+

@@ -1,0 +1,47 @@
+
+released = "2022-07-15"
+size_gb = 46.5
+
+
+
+
+[torrent]
+file = "1.torrent"
+hash = "abc123..."
+
+[[torrent.select]]
+feature = "french"
+files = ["fg-selective-french-1.bin", "fg-selective-french-2.bin"]
+
+[[torrent.select]]
+feature = "4k_textures"
+files = ["fg-selective-4k-1.bin", "fg-selective-4k-2.bin"]
+
+
+
+
+[[part]]
+url = "https://mega.nz/core.part1"
+sha256 = "hash1"
+
+[[part]]
+url = "https://mega.nz/core.part2"
+sha256 = "hash2"
+
+[[feature]]
+name = "french"
+
+[[feature.part]]
+url = "https://mega.nz/fr.part1"
+sha256 = "hash3"
+
+[[feature]]
+name = "4k_textures"
+
+[[feature.part]]
+url = "https://mega.nz/4k.part1"
+sha256 = "hash4"
+
+[[feature.part]]
+url = "https://mega.nz/4k.part2"
+sha256 = "hash5"
