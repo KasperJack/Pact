@@ -30,7 +30,8 @@ def load_package(package_name: str, source: str | None = None, version: str | No
     #required keys
     validate_keys_index(index_data,package_name)
 
-
+    # call resover here 
+    
 
 
     if version is None:
@@ -109,18 +110,51 @@ def validate_keys_version(data: dict, package_name: str):
 
 
 def resolve(package_path,index_data, source, version, method) -> InstallTarget:
-    if source and version:
-        if method:
-            return InstallTarget(source=source,version=version,method=method)
-        # check avalable sources pick one against the prio array 
-        return
-    
-    if source:
-        ## resolve a version and a mthod 
-        pass
+    # SOURCE
+    sources = get_sources(package_path)
 
-    if index_data["default_version"]:
-        pass
+    if source:
+        if source not in sources:
+            raise SourceNotFound(source, sources)
+    else:
+        source = auto_select_source(index_data, sources)
+
+    # VERSION
+    versions = get_versions(package_path, source)
+
+    if version:
+        if version not in versions:
+            raise VersionNotFound(version, versions)
+    else:
+        version = auto_select_version(index_data, source, versions)
+
+    # METHOD
+    methods = get_methods(package_path, source, version)
+
+    if method:
+        if method not in methods:
+            raise MethodNotFound(method, methods)
+    else:
+        method = select_method(methods)
+
+
+
+def get_sources(package_path: str) -> list[str]:
+    package_path = Path(package_path)
+
+    return [
+        p.name
+        for p in package_path.iterdir()
+        if p.is_dir() and p.name != "steam_builds"
+    ]
+
+def get_versions(package_path, source)-> list[str]:
+    source_path = package_path / source
+    return [
+        p.name
+        for p in source_path.iterdir()
+        if p.is_dir()
+    ]
 
 
 
@@ -130,3 +164,5 @@ class InstallTarget:
     source: str
     version: str
     method: str
+
+#print(get_sources("C:\\Users\\Aya\\Desktop\\game-get\\bucket -game-based\\io\\ion-fury"))
