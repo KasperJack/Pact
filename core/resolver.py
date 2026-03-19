@@ -9,7 +9,7 @@ class resolver:
         self.package_name = package_name
         self.package_path = package_path
         self.index_data = index_data
-        
+
         # User input (can be None)
         self.target_source = source
         self.target_version = version
@@ -58,12 +58,23 @@ class resolver:
         default = self.index_data.get("default_version")
 
         if default:
-            source, _ = default.split("/", 1) #!? 
-            return source
-        
+            if "/" in default:
+                source = default.split("/", 1)[0] 
+                if source in self.available_sources:
+                    self.target_source = source
+                    return
+                else:
+                    pass 
+                    #maybe log or warn
+
+
         for s in pref_sources:
-            if s in sources:
-                return s
+            if s in self.available_sources:
+                self.target_source = s
+                return
+
+        self.target_source = self.available_sources[0]
+
 
    
 
