@@ -5,8 +5,8 @@ from .exceptions import UserInputError, PackageEmptyError
 
 
 class resolver:
-    def __init__(self, package_name: str, package_path: str, index_data: dict[str, Any], source: str, version: str, method: str):
-        self.package_name = package_name
+    def __init__(self, loader: Any, package_path: str, index_data: dict[str, Any], source: str, version: str, method: str):
+        self.loader = loader # loader instance 
         self.package_path = package_path
         self.index_data = index_data
 
@@ -16,9 +16,9 @@ class resolver:
         self.target_method = method
 
         #list[str]
-        self.available_sources = []
-        self.available_versions = []
-        self.available_methods = []
+        #self.available_sources = []
+        #self.available_versions = []
+        #self.available_methods = []
 
         self.resolve()
 
@@ -26,7 +26,7 @@ class resolver:
 
     def resolve(self):
 
-        self.get_available_sources() ##throws an error no avalbale sources  
+        self.loader.get_available_sources() ##throws an error no avalbale sources  
 
         if self.target_source:
             if self.target_source not in self.available_sources:
@@ -35,7 +35,7 @@ class resolver:
             self.auto_select_source()
 
 
-        self.get_available_versions()
+        self.loader.get_available_versions()
 
         if self.target_version:
             if self.target_version not in self.available_versions:

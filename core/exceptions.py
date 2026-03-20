@@ -93,7 +93,6 @@ class InvalidManifestError(LoaderError, FileSystemError):
         self.path = path
         self.manifest_type = manifest_type
 
-
 class MissingKeyError(LoaderError, ValidationError):
     exit_code = 5
     def __init__(self, key: str, package_name: str, path: str, manifest_type: str = "package"):
