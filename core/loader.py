@@ -33,7 +33,7 @@ class Loader:
         package__index_data = self._get_package__index(package_path, package_name)
 
         r = resolver(self, package_path,package__index_data,source,version,method)
-        
+
         # call resover here ??
         target: InstallTarget = resolve(package_path,index_data,source,version,method)
         
@@ -115,8 +115,41 @@ class Loader:
 
 
 
+    ## used by resolver ?
+    def get_available_sources(self, package_path: str) -> list[str]:
 
-    def validate_keys_index(data: dict, package_name: str):
+        package_path = Path(package_path)
+        available_sources = [
+        p.name
+        for p in package_path.iterdir()
+        if p.is_dir() and p.name != "steam_builds"
+        ]
+
+        if len(available_sources) == 0:
+            raise PackageEmptyError("source","package_name")
+        
+        return available_sources
+
+
+    def get_available_versions(self, package_path: str, source: str) -> list[str]:
+        versions_path = package_path / source
+
+        available_versions = [
+        d.name for d in versions_path.iterdir() if d.is_dir()
+    ]
+
+        if len(available_versions) == 0:
+            raise PackageEmptyError("version","package_name")
+        
+        return available_versions
+
+
+
+
+
+
+
+    def validate_keys_index(self,data: dict, package_name: str):
         required_keys = ["name", "default_version"]
         for key in required_keys:
             if key not in data:
@@ -170,15 +203,6 @@ class Loader:
             method = select_method(methods)
 
 
-    ## error no avalable sources for the package
-    def get_sources(package_path: str) -> list[str]:
-        package_path = Path(package_path)
-
-        return [
-            p.name
-            for p in package_path.iterdir()
-            if p.is_dir() and p.name != "steam_builds"
-        ]
 
 
 

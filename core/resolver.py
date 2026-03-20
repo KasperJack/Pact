@@ -26,50 +26,34 @@ class resolver:
 
     def resolve(self):
 
-        self.loader.get_available_sources() ##throws an error no avalbale sources  
+        available_sources = self.loader.get_available_sources(self.package_path)  
 
         if self.target_source:
-            if self.target_source not in self.available_sources:
-                raise UserInputError("source", self.target_source, self.available_sources)
+            if self.target_source not in available_sources:
+                raise UserInputError("source", self.target_source, available_sources)
         else:
-            self.auto_select_source()
+            self.auto_select_source(available_sources)
 
 
-        self.loader.get_available_versions()
+
+        available_versions = self.loader.get_available_versions(self.package_path, self.target_version)
 
         if self.target_version:
-            if self.target_version not in self.available_versions:
-                raise UserInputError("version",self.target_version,self.available_versions)
+            if self.target_version not in available_versions:
+                raise UserInputError("version",self.target_version, available_versions)
 
         else:
-            self.auto_select_version()
+            self.auto_select_version(available_versions)
 
 
 
 
 
-
-
-
-    def get_available_sources(self):
-
-        package_path = Path(self.package_path)
-        self.available_sources = [
-        p.name
-        for p in package_path.iterdir()
-        if p.is_dir() and p.name != "steam_builds"
-        ]
-
-        if len(self.available_sources) == 0:
-            raise PackageEmptyError("source",self.package_name)
-
-
-
-    def auto_select_source(self):
+    def auto_select_source(self, available_sources: list[str]):
         pref_sources = ["a","b","c"]
 
-        if len(self.available_sources) == 1:
-            self.target_source = self.available_sources[0]
+        if len(available_sources) == 1:
+            self.target_source = available_sources[0]
             return
 
         default = self.index_data.get("default_version")
@@ -77,46 +61,44 @@ class resolver:
         if default:
             if "/" in default:
                 source = default.split("/", 1)[0] 
-                if source in self.available_sources:
+                if source in available_sources:
                     self.target_source = source
                     return
                 else:
                     pass 
                     #maybe log or warn
 
-
         for s in pref_sources:
-            if s in self.available_sources:
+            if s in available_sources:
                 self.target_source = s
                 return
 
-        self.target_source = self.available_sources[0]
+        self.target_source = available_sources[0]
 
-
-   
-
-
-
-
-
-    def get_available_versions(self):
-        versions_path = self.package_path / self.target_source
-
-        self.available_versions = [
-        d.name for d in versions_path.iterdir() if d.is_dir()
-    ]
-
-        if len(self.available_versions) == 0:
-            raise PackageEmptyError("version",self.package_name)
-        
+       
     
-    def auto_select_version(self):
 
-        if len(self.available_versions) == 1:
-            self.target_version = self.available_versions[0]
+    def auto_select_version(self, available_versions: list[str]):
+
+        if len(available_versions) == 1:
+            self.target_version = available_versions[0]
             return
 
         default = self.index_data.get("default_version")
+
+        if default:
+            if "/" in default:
+                version = default.split("/", 1)[1] 
+                if version in available_versions:
+                    self.target_version = version
+                    return
+                else:
+                    pass 
+                    #maybe log or warn
+
+
+
+
 
         
 
