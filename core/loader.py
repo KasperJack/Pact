@@ -3,7 +3,6 @@ from pathlib import Path
 from .models import Package, Version
 from.resolver import resolver
 from .exceptions import MissingManifestError,InvalidManifestError,MissingKeyError,PackageNotFoundError, PackageEmptyError
-from dataclasses import dataclass
 from typing import Any
 
 
@@ -29,15 +28,14 @@ class Loader:
 
         package_path = self._find_package(package_name) ##raise package not found error 
 
-        package__index_data = self._get_package__index(package_path) ##raise 
+        package__manifest = self._load_package_manifest(package_path) ##raises an error "package not found"
 
-        print(package__index_data)
+        #print(package__index_data)
 
-        r = resolver(self, package_path,package__index_data,source,version,method)
+        r = resolver(self, package_path, package__manifest, source, version, method)
 
-        # call resover here ??
-        #target: InstallTarget = resolve(package_path,index_data,source,version,method)
-        print(r.target_source,r.target_version,r.target_method)
+   
+        #print(r.target_source,r.target_version,r.target_method)
         #return
     
         ## TODO: remove all this part later *
@@ -46,54 +44,10 @@ class Loader:
         ## figure out how to get metadata without building a full package instance 
         ##  add type checking for mainfest data 
 
-        if version is None:
-            version = index_data["default_version"]
-        else:
-            pass
-
-
-        
-
-        version_file_path = package_path / version / "manifest.json"
-
-
-        if not version_file_path.is_file():
-            raise VersionManifestNotFoundError(package_name)
-
-
-        try:
-            with open(version_file_path, "r", encoding="utf-8") as f:
-                version_data = json.load(f)
-        except json.JSONDecodeError:
-            raise InvalidVersionManifestError(package_name)
-
-
-        validate_keys_version(version_data,package_name)
-
-
-        versions = {}
-        for v in data["versions"]:
-            versions[v["id"]] = Version(
-                id=v["id"],
-                version=v["version"],
-                source=v["source"],
-                size_mb=float(v["size_mb"]),
-                notes=v["notes"],
-                downloads=v["downloads"]
-            )
-
-        return Package(
-            name=data["name"],
-            release_year=data["release_year"],
-            igdb_id=data["igdb_id"],
-            default=data["default"],
-            versions=versions
-        )
 
 
 
-
-    def _find_package(self, package_name: str) -> str:
+    def _find_package(self, package_name: str) -> Path:
 
         prefix = package_name[:2]
         package_path = self.bucket_path / prefix / package_name
@@ -105,27 +59,26 @@ class Loader:
             raise PackageNotFoundError
 
 
-    def _get_package__index(self, package_path: str) -> dict[str, Any]:
-        index_file_path = package_path / "index.toml"
+    def _load_package_manifest(self, package_path: Path) -> dict[str, Any]:
+        package_file_path = package_path / "game.toml"
 
-        if not index_file_path.is_file():
-            raise MissingManifestError(self.package_name,package_path,"index")
+        if not package_file_path.is_file():
+            raise MissingManifestError(self.package_name,package_path,"game")
 
 
         try:
-            with open(index_file_path, "rb") as f:  #bytes
-                index_data = tomllib.load(f)
+            with open(package_file_path, "rb") as f:  #bytes
+                manifest_data = tomllib.load(f)
         except tomllib.TOMLDecodeError:
-            raise InvalidManifestError(self.package_name,index_file_path,"index")
+            raise InvalidManifestError(self.package_name,package_file_path,"game")
 
         #required keys
-        self.validate_keys_index(index_data,index_file_path)
+        self.validate_keys_index(manifest_data,package_file_path)
         
-        return index_data
+        return manifest_data
 
 
 
-    ## used by resolver ?
     def get_available_sources(self, package_path: str) -> list[str]:
 
         package_path = Path(package_path)
@@ -154,6 +107,7 @@ class Loader:
         return available_versions
 
 
+
     def get_available_methods(self, package_path: str, source: str, version: str) -> list[str]:
         meathods_path = package_path / source / version
 
@@ -165,6 +119,28 @@ class Loader:
             raise PackageEmptyError(self.package_name,meathods_path,"method")
         
         return available_methods
+
+
+
+
+    def load_registry_manifest(self, package_path: str, source: str) -> dict[str, Any]:
+
+        registry_file_path = package_path / source / "registry.toml"
+
+        if not registry_file_path.is_file():
+            raise MissingManifestError(self.package_name, registry_file_path, "registry")
+
+
+        try:
+            with open(registry_file_path, "rb") as f:  #bytes
+                index_data = tomllib.load(f)
+        except tomllib.TOMLDecodeError:
+            raise InvalidManifestError(self.package_name,registry_file_path,"index")
+
+        #required keys
+        self.validate_keys_index(index_data,registry_file_path)
+        
+        return index_data
 
 
 

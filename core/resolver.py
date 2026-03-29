@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .loader import Loader
+    from pathlib import Path
+
 
 from typing import Any # duck typing
 from .exceptions import UserInputError
@@ -11,12 +14,12 @@ from .exceptions import UserInputError
 
 
 class resolver:
-    def __init__(self, loader: Loader, package_path: str ,index_data: dict[str, Any], source: str, version: str, method: str):
+    def __init__(self, loader: Loader, package_path: Path, package__manifest: dict[str, Any], source: str, version: str, method: str):
         self.loader = loader # loader instance 
         self.package_path = package_path
-        self.index_data = index_data
+        self.package__manifest = package__manifest
 
-        # User input (can be None)
+        # args can be None 
         self.target_source = source
         self.target_version = version
         self.target_method = method
@@ -36,7 +39,7 @@ class resolver:
 
         available_sources = self.loader.get_available_sources(self.package_path)  
 
-        if self.target_source:
+        if self.target_source: # is not None
             if self.target_source not in available_sources:
                 raise UserInputError("source", self.target_source, available_sources)
         else:
@@ -64,7 +67,7 @@ class resolver:
             self.target_source = available_sources[0]
             return
 
-        default_source = self.index_data.get("preferred_s")
+        default_source = self.package__manifest.get("preferred_s")
 
         if default_source:
             if default_source in available_sources:
@@ -90,7 +93,7 @@ class resolver:
             self.target_version = available_versions[0]
             return
 
-        default_version = self.index_data.get("default_version")
+        default_version = self.package__manifest.get("default_version")
 
         if default:
             if "/" in default:
