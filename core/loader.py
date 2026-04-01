@@ -1,6 +1,9 @@
 import tomllib
 from pathlib import Path
-from .models import PackageManifest
+
+from pydantic import BaseModel, ValidationError
+from .models import PackageManifest, RegistryManifest, ReleaseManifest, DownloadManifest
+
 from .resolver import resolver
 from .exceptions import MissingManifestError,InvalidManifestError,MissingKeyError,PackageNotFoundError, PackageEmptyError
 from typing import Any, Callable, cast
@@ -21,7 +24,17 @@ class ManifestType(Enum):
         return f"{self.value}.toml"
 
 
-
+    @property
+    def model(self) -> type[BaseModel]:
+        match self:
+            case ManifestType.PACKAGE:
+                return PackageManifest
+            case ManifestType.REGISTRY:
+                return RegistryManifest
+            case ManifestType.RELEASE:
+                return ReleaseManifest
+            case ManifestType.DOWNLOAD:
+                return DownloadManifest
 
 
 
@@ -64,35 +77,35 @@ class BaseLoader:
 
 
 
-    def load_package_manifest(self) -> dict[str, Any]:
+    def load_package_manifest(self) -> PackageManifest:
 
         package_file_path = self.package_path / ManifestType.PACKAGE.filename
-        return self._load_manifest(package_file_path, ManifestType.PACKAGE)
+        return cast(PackageManifest, self._load_manifest(package_file_path, ManifestType.PACKAGE))
     
 
 
 
 
-    def load_registry_manifest(self, source: str) -> dict[str, Any]:
+    def load_registry_manifest(self, source: str) -> RegistryManifest:
 
         registry_file_path = self.package_path / source / ManifestType.REGISTRY.filename
-        return self._load_manifest(registry_file_path, ManifestType.REGISTRY)
+        return cast(RegistryManifest, self._load_manifest(registry_file_path, ManifestType.REGISTRY))
 
 
 
 
-    def load_release_manifest(self, source: str, version: str) -> dict[str, Any]:
+    def load_release_manifest(self, source: str, version: str) -> ReleaseManifest:
 
         release_file_path = self.package_path / source / version / ManifestType.RELEASE.filename
-        return self._load_manifest(release_file_path, ManifestType.RELEASE)
+        return cast(ReleaseManifest, self._load_manifest(release_file_path, ManifestType.RELEASE))
 
     
 
 
-    def load_download_manifest(self, source: str, version: str, method: str) -> dict[str, Any]:
+    def load_download_manifest(self, source: str, version: str, method: str) -> DownloadManifest:
 
         download_file_path = self.package_path / source / version / method / ManifestType.DOWNLOAD.filename
-        return self._load_manifest(download_file_path, ManifestType.DOWNLOAD)
+        return cast(DownloadManifest, self._load_manifest(download_file_path, ManifestType.DOWNLOAD))
 
 
 
@@ -146,7 +159,7 @@ class BaseLoader:
         file_path: Path,
         manifest_type: ManifestType,
         #validator: Callable[[dict[str, Any], Path], None],
-    ) -> dict[str, Any]:
+    ) -> BaseModel:
         
 
         if not file_path.is_file():
@@ -159,39 +172,14 @@ class BaseLoader:
             raise InvalidManifestError(file_path, manifest_type)
 
         #validator(data, manifest_type)
-        self._validate_keys(data,manifest_type)
+        #self._validate_keys(data,manifest_type)
 
-        return data
-
-
-
-    def _validate_keys(self, data: dict[str, Any], manifest_type: ManifestType):
-        match manifest_type:
-            case ManifestType.PACKAGE:
-                raise NotImplementedError("package validator")
-            case ManifestType.REGISTRY:
-                ...
-            case ManifestType.RELEASE:
-                ...
-            case ManifestType.DOWNLOAD:
-                ...
-            case _:
-                raise RuntimeError(f"unhandled manifest type: {manifest_type}")
-
-
-
-
-    def validate_keys_package(self,data: dict[str, Any], package_manifest_file_path: Path):
-        required_keys = ["name", "default_version","release_year"]
-        for key in required_keys:
-            if key not in data:
-                raise MissingKeyError(key,package_manifest_file_path, ManifestType.PACKAGE)
+        try:
+            return manifest_type.model.model_validate(data)
         
-        ids = data.get("ids", {})
-        if "igdb" not in ids:
-            raise MissingKeyError("igdb",package_manifest_file_path, ManifestType.PACKAGE)
-
-
+        except ValidationError:
+            #raise InvalidManifestError(file_path, manifest_type)
+            raise
 
 
 
@@ -235,12 +223,12 @@ class TargetLoader(BaseLoader):
         package__manifest = self.load_package_manifest() ##raises an error "package not found"
 
 
-        r = resolver(self, package__manifest, self.source, self.version, self.method)
-
-   
-        print(r.target_source,r.target_version,r.target_method)
-        #return
+        #r = resolver(self, package__manifest, self.source, self.version, self.method)
+        #print(r.target_source,r.target_version,r.target_method)
+     
+        print(package__manifest.preferred_source)
         
+
         ## TODO: remove all this part later *
         ## build the data class that holds the resolved pacakge 
         ## figure out how to get metadata without building a full package instance 

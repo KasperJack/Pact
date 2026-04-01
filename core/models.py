@@ -12,3 +12,12 @@ class PackageManifest(BaseModel):
     release_year: int   # required
     preferred_source: str | None = None
     ids: IdsModel
+
+class RegistryManifest(BaseModel):
+    pass
+
+class ReleaseManifest(BaseModel):
+    pass
+
+class DownloadManifest(BaseModel):
+    pass
