@@ -2,7 +2,6 @@ from pydantic import BaseModel, field_validator #ValidationError
 from datetime import date
 
 
-
 class IdsModel(BaseModel):
     igdb: int          
     steam: int | None = None

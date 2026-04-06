@@ -1,8 +1,0 @@
-
-download_gb = 0.068
-
-
-[[part]]
-urls = ["https://www.worldsrc.net/games/detalis?Ty=1473"]
-sha256 = "hash1"
-

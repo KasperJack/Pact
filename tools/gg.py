@@ -1,5 +1,5 @@
 
-from core_tools import Builder
+from core_tools import BaseBuilder
 
 
 

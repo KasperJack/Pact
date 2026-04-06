@@ -1,0 +1,13 @@
+[sources]
+fitgirl = [
+    "release_fitgirl_23",
+]
+official = [
+    "release_off_16",
+]
+steamrip = [
+    "release_steamrip_24",
+]
+unix = [
+    "release_unix_24",
+]

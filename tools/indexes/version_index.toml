@@ -1,0 +1,11 @@
+[versions]
+"2.3" = [
+    "release_fitgirl_23",
+]
+"1.6" = [
+    "release_off_16",
+]
+"2.4" = [
+    "release_steamrip_24",
+    "release_unix_24",
+]
