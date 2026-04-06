@@ -1,5 +1,0 @@
-preferred = "2.0.0.1"
-
-[versions]
-"2.0.0.1" = { released = 2023-11-02 }
-"2.0.0.2" = { released = 2024-08-19 }
