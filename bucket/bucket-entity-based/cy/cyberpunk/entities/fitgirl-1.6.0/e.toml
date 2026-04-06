@@ -1,0 +1,22 @@
+id = "release_off_140"
+source = "official"
+
+
+released = 2024-08-19
+version = "1.4.0"
+
+
+
+
+[content]
+size_gb = 0.092
+languages = ["en", "fr", "de", "es", "ru"]
+dlcs = []  # No DLCs, base game
+is_repack = true
+
+
+
+[quality]
+install_time_minutes = 2
+trust_rating = 5.0  # Official source, fully trusted
+verified_signature = true
