@@ -1,5 +1,5 @@
-# libtree/package.toml
+
 [namespace.download]
 type = "bool"
-description = "How to fetch the binaries"
-reserved_flags = ["ssh", "https","torrent"]
+description = "Download protocol settifdngs"
+reserved_flags = ["ssh", "https", "ftp"]

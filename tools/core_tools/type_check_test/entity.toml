@@ -1,12 +1,11 @@
-id = "release_off_16"
-source = "official"
 
-released = 2022-08-19
+id = "official_16"
+source = "official"
+released = 2024-01-15
 version = "1.6"
 
+[interface.download.protocol]
 
 
 
-[interface.download.protocol.ass]
-flags = ["ssh", "https"]
-default = "sd"
+

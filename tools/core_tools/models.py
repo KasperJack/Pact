@@ -112,6 +112,14 @@ def load_entity(path: str | Path, registry: NamespaceRegistry) -> Entity:
                     f"[interface.{namespace_name}.{local_var}] is too deep — "
                     f"expected [interface.<namespace>.<local_var>] but got extra nesting"
                 )
+            
+            if not data:
+                print("expected data in here ")
+
+            expected_keys = ["default","flags"]
+            for k in data:
+                if k not in expected_keys:
+                    raise ValueError
 
             bad_flags = set(data["flags"]) - set(ns.reserved_flags)
             if bad_flags:
