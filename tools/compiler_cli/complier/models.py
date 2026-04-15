@@ -115,3 +115,37 @@ class BoolInterfaceBlock(BaseModel):
                 raise ValueError("default must be one of the flags")
 
         return self
+    
+
+
+
+
+class EnumInterfaceBlock(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    keys: list[str]
+    default: Union[str, bool, None] = None
+
+    @model_validator(mode="after")
+    def validate_default(self):
+        keys = self.keys
+        default = self.default
+
+        if len(keys) == 0:
+            raise ValueError("no flags defineddd")
+
+
+        if default is None:
+            return self
+
+        if len(keys) == 1:
+            if not isinstance(default, bool):
+                raise ValueError("default must be a boolean when only one flag is defined")
+
+        else:
+            if not isinstance(default, str):
+                raise ValueError("default must be a string when multiple flags are defined")
+            if default not in keys:
+                raise ValueError("default must be one of the flags")
+
+        return self

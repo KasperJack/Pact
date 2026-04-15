@@ -1,13 +1,56 @@
+# namespaces.toml
+
 [namespace.download]
 type = "bool"
 description = "How to fetch the binaries"
-reserved_flags = ["ssh", "https","torrent"]
-
-
-[namespace.channel]
-type = "enum"
-description = "The release stability"
+reserved_flags = ["ssh", "https", "torrent"]
 
 
 
 
+
+
+########
+
+[namespace.dlc]
+type = "bool"
+mode = "cumulative" # Logic: A release can implement as many as it wants.
+description = "Included content packs"
+reserved_flags = ["map_pack_1", "expansion_v1", "skin_bundle"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[option.compiler] ##only one option 
+description = "what compiler backend you want to use "
+reserved_flags = ["gcc", "llvm", "msvc"]
+
+
+[selection.languages] ## can select one or more 
+description = "what langues you want"
+flags = ["en", "fr", "ar", "jp"]

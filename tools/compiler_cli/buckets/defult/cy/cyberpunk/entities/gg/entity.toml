@@ -6,9 +6,56 @@ released = 2022-08-19
 version = "1.6"
 
 
-[interface.download.protocol]   
-flags = []
+# release A 
+[interface.download.download_type]   
+flags = ["torrent", "https"]
+default = "https"
+
+# release B
+[interface.download._]   
+flags = ["torrent"]
 
 
 
 
+[interface.channel.channel]   
+keys = ["stable", "dev"]
+default = "stable"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## this match against --gcc and --llvm 
+[option.compiler.local_var] 
+flags = ["gcc", "llvm"]
+default = "gcc" # undeclaring a wimm promt the user for one of the two options
+
+
+[feature.option.compiler]
+flags = "llvm"
+
+
+
+
+
+
+[selection.languages.local_var]
+flags = ["en", "ar"]
+default = ["en"] ## not declaring will promt user to slect wich langues want to include 
+
+
+
+[feature.selection.languages]
+flags = ["en", "ar","jp"]

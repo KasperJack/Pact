@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -132,21 +132,56 @@ class Checker:
                 namespace_name = key
                 ns = self.namespace_registry.get(namespace_name)
     
-                match ns:
+                if ns is None:
+                    raise ValueError(f"Unknown namespace: '{namespace_name}'")
 
-                    case BoolNamespace():
-                        bool_interafce = self.check_public_bool_interface(namespace_name,ns,group)        
-                        public_bool[bool_interafce.local_var] = bool_interafce
-
-
-                    case EnumNamespace():
-                        raise NotImplementedError("not enum namespace yet")
-                    
-                    
-                    case None:
-                        raise ValueError(f"Unknown namespace: '{namespace_name}'")
+                if ns.type != "bool":
+                    continue  # string/enum handled later
 
 
+
+                if len(group) > 1:
+                    raise ValueError(
+                        f"Namespace '{namespace_name}' used {len(group)} times — "
+                        f"only one interface per namespace is allowed. "
+                        f"Found: {list(group.keys())}"
+                    )
+
+                local_var, data = next(iter(group.items()))  # safe single unpack
+
+
+                if any(isinstance(v, dict) for v in data.values()):
+                    raise ValueError(
+                        f"[interface.{namespace_name}.{local_var}] is too deep — "
+                        f"expected [interface.<namespace>.<local_var>] but got extra nesting"
+                    )
+                
+                #if not data:
+                #    raise Exception(f"[interface.{namespace_name}.{local_var}] is empty — expected flags and default") #E: raise InvalidEntitySchema
+
+
+                bi = BoolInterfaceBlock.model_validate(data)
+
+
+
+
+                bad_flags = set(bi.flags) - set(ns.reserved_flags)
+                if bad_flags:
+                    raise ValueError(
+                        f"[interface.{namespace_name}.{local_var}] uses "
+                        f"undeclared flags: {bad_flags}"
+                    )
+
+
+
+
+                public_bool[local_var] = BoolInterface(
+                    namespace=namespace_name,
+                    local_var=local_var,
+                    flags=data["flags"],
+                    default=data.get("default"),
+                    description=ns.description,
+                )
 
             # ── PRIVATE: [interface.<var_name>] ──────────────────────────────────
             else:
@@ -154,9 +189,7 @@ class Checker:
                 # coming later
                 pass
 
-
-
-        raise NotImplementedError("final entity build satge")
+        raise NotImplementedError("bop")
         return Entity(
             id=path.parent.name,
             meta=meta,
