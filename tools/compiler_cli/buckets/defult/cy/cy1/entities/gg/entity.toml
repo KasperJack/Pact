@@ -1,0 +1,76 @@
+
+[meta]                          
+#id = "gg"
+source = "official"
+released = 2022-08-19
+version = "1.6"
+
+
+
+
+
+
+
+
+
+## this match against --gcc or --llvm 
+[option.compiler.local_var] 
+flags = ["gcc", "llvm"]
+default = "gcc" 
+
+[feature.option.compiler]
+flags = "llvm"
+
+
+
+
+
+
+[selection.languages.local_var]
+flags = ["en", "ar"]
+default = [] 
+
+
+[feature.selection.languages]
+flags = ["en", "ar","jp"]
+
+
+
+
+
+[config.network]
+keys = ["port", "host"]
+types = ["int", "string"]
+# Compiler knows: These aren't for discovery, they are for tuning.
+
+
+
+
+
+
+
+
+
+[feature]
+tpye = "selection"
+parent = "languages"
+flags = ["en", "ar","jp"]
+
+
+
+
+
+
+
+[selection]
+parent = "languages"
+local_var = "local_var"
+flags = ["en", "ar"]
+default = [] 
+
+
+[option]
+parent = "compiler"
+local_var = "backend"
+flags = ["gcc", "llvm"]
+default = "gcc" 

@@ -1,0 +1,27 @@
+# namespaces.toml
+
+
+
+
+
+
+
+[option.download] 
+description = "how you want to download the bainary "
+reserved_flags = ["http", "ssh"]
+
+
+
+[option.compiler] 
+description = "what compiler backend you want to use "
+reserved_flags = ["gcc", "llvm", "msvc"]
+
+
+[selection.languages] ## can select one or more 
+description = "what langues you want"
+reserved_flags = ["en", "fr", "ar", "jp"]
+
+
+[selection.extra] ## can select one or more 
+description = "what extrea content you want"
+reserved_flags = ["patch-01", "patch-02", "patch-03", "patch-04"]

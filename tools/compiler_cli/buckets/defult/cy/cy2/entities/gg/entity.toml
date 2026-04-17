@@ -1,0 +1,37 @@
+
+[meta]                          
+#id = "gg"
+source = "official"
+released = 2022-08-19
+version = "1.6"
+
+
+
+
+
+
+[option.compiler.local_var] 
+flags = ["gcc", "llvm"]
+default = "gcc" 
+
+[option.download._]
+flags = "http"
+
+
+
+
+
+[selection.compiler.gg]
+flags = ["en", "ar"]
+default = [] 
+
+
+[selection.extra._]
+flags = ["patch-01", "patch-02", "patch-03", "patch-04"]
+
+
+
+
+
+
+

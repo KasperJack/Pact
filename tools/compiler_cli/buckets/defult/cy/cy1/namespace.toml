@@ -53,4 +53,4 @@ reserved_flags = ["gcc", "llvm", "msvc"]
 
 [selection.languages] ## can select one or more 
 description = "what langues you want"
-flags = ["en", "fr", "ar", "jp"]
+reserved_flags = ["en", "fr", "ar", "jp"]

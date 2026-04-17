@@ -49,12 +49,14 @@ class Compiler:
 
     def run(self):
 
-        namespace_raw = self.get_namespace_data()
+        #namespace_raw = self.get_namespace_data()
+        #print(namespace_raw)
+
         entities_raw = self.get_entities_data()
 
-        checker = Checker(namespace_raw)
+        #checker = Checker(namespace_raw)
 
-        checker.check_entities(entities_raw)
+        #checker.check_entities(entities_raw)
 
 
 
