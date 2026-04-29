@@ -6,16 +6,34 @@ from pydantic import BaseModel,ConfigDict,model_validator,field_validator,Field
 
 
 
-class OSBlock(BaseModel):
+class ConfigDef(BaseModel):
     model_config = ConfigDict(extra="forbid")  
 
-    kind: Literal["Option", "Selection"]
-    description: str
-    reserved_flags: Annotated[List[str], Field(min_length=2, max_length=10)]
+    pacakge: NewPacakgeDef | None = None
+    release: NewReleaseDef
 
-    @field_validator("reserved_flags")
-    @classmethod
-    def check_unique(cls, v):
-        if len(v) != len(set(v)):
-            raise ValueError("reserved_flags must contain unique items")
-        return v
+
+
+
+
+
+class NewReleaseDef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    target_package: str | None = None
+    url : str
+    version: str
+    hash: str
+
+
+class NewPacakgeDef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str 
+    slug: str
+    versioning: str
+
+    license: str | None = None
+    homepage: str | None = None
+    description: str | None = None
+

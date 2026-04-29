@@ -9,11 +9,11 @@ from enum import Enum
 
 
 class Folder(Enum):
-    ENTITIES = "entities"
+    RELEASES = "releases"
 
 
 class File(Enum):
-    NAMESPACE = "namespace"
+    PACKAGE = "package"
 
 
 
@@ -23,15 +23,15 @@ class PackagePaths:
 
     # folders
     @property
-    def entities_folder(self) -> Path:
-        return self.root / Folder.ENTITIES.value
+    def releases_folder(self) -> Path:
+        return self.root / Folder.RELEASES.value
 
 
 
     # files
     @property
-    def namespace_file(self) -> Path:
-        return self.root / f"{File.NAMESPACE.value}.conf"
+    def package_file(self) -> Path:
+        return self.root / f"{File.PACKAGE.value}.conf"
 
 
 
@@ -49,13 +49,14 @@ class Compiler:
 
     def run(self):
 
-        namespace_raw = self.get_namespace_data()
+        pacakge_raw = self.get_package_data()
+
+        checker = Checker(pacakge_raw)
+        
+
         #print(namespace_raw)
         
-        releases_raw = self.get_releases_data()
-
-        
-        checker = Checker(namespace_raw)
+        #releases_raw = self.get_releases_data()
 
         #checker.check_entities(entities_raw)
 
@@ -78,9 +79,9 @@ class Compiler:
 
 
 
-    def get_namespace_data(self) -> dict[str,Any]:
+    def get_package_data(self) -> dict[str,Any]:
         
-        name_space_file = self.paths.namespace_file
+        name_space_file = self.paths.package_file
 
         return load_namespace_file(name_space_file)
 
@@ -88,7 +89,7 @@ class Compiler:
 
     def get_releases_data(self) -> dict[Path, dict]:
 
-        releases_folder = self.paths.entities_folder
+        releases_folder = self.paths.releases_folder
         paths =  [f / "release.conf" for f in releases_folder.iterdir() if f.is_dir()]
 
         return load_releases(paths)

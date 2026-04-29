@@ -43,7 +43,7 @@ def main():
 
 def get_curent_working_bucket() -> Path:
 
-    return Path.cwd() / "buckets" / "defult"
+    return Path.cwd() / "test-buckets" / "defult"
 
 
 
