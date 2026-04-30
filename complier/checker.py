@@ -1,18 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, cast
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-from pydantic import ValidationError
+from typing import TYPE_CHECKING, Any
 
 
 
-from .models import (
-    ConfigDef,
+from .errors import ConfigValidationError
+
+from pact_core.models import NewPackageConfig,NewVersionConfig,ValidationError
 
 
-)
+
+
+
 
 
 
@@ -25,15 +23,35 @@ class Checker:
 
         self.configdef = self._check_configdef(configdef_raw)
 
-  
+        #print("gg")
  
-    def _check_configdef(self, configdef_raw: dict) -> ConfigDef:
+
+
+
+
+    def _check_configdef(self, configdef_raw: dict) -> NewPackageConfig | NewVersionConfig:
+
+
+        if "package" in configdef_raw:
+
+            self._validate_new_package(configdef_raw)
+        else:
+            self._validate_new_version(configdef_raw)
+
+        try:
        
-        cd = ConfigDef.model_validate(configdef_raw)
+            cd = ConfigDef.model_validate(configdef_raw)
+        except ValidationError as e:
+
+            #raise ConfigValidationError.from_exception_data(str(e))
+            #raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))
+            raise ConfigValidationError(e.errors(include_url=False))
+
+
 
         if cd.package == None:
             print(" this should be a release only defntion")
-            # check thtat key target_package exists 
+            # check thtat key target_package exists (new remote/local repo status moduel in core_lib )
             # check that the target package exists in the remote/local repo
             # check the version against what is defined in the existing pacakge def 
             # check that the version does not exist already 
@@ -51,3 +69,31 @@ class Checker:
 
 
 
+
+
+    def _validate_new_package(self,config: dict):
+
+        try:
+       
+            np_config = NewPackageConfig.model_validate(config)
+        except ValidationError as e:
+
+            #raise ConfigValidationError.from_exception_data(str(e))
+            #raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))
+            raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))
+
+
+
+
+
+    def _validate_new_version(self,config:dict):
+
+
+        try:
+       
+            np_config = NewVersionConfig.model_validate(config)
+        except ValidationError as e:
+
+            #raise ConfigValidationError.from_exception_data(str(e))
+            #raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))
+            raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))

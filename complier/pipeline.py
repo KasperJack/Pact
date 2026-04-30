@@ -1,5 +1,4 @@
 
-#from pathlib import Path
 from .loader import load_config
 
 from .checker import Checker
@@ -14,9 +13,8 @@ class Pipeline:
 
 
     def run(self):
-        pass
-
-        #checker = Checker(pacakge_raw)
+        
+        checker = Checker(self.config)
 
    
 

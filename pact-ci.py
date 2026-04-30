@@ -3,7 +3,7 @@ from complier.pipeline import Pipeline
 #from pathlib import Path
 import argparse
 import sys
-from complier.errors import LoadError
+from complier.errors import LoadError,ConfigValidationError
 
 
 def main():
@@ -37,12 +37,20 @@ def build_cmd(path: str):
 
     except Exception as e:
         print("an uanexpacted error ecoured")
-        # create a log file 
+        # add to error log file 
         print(e)
-        sys.exit(88)
+        sys.exit(19)
 
-    pipeline.run()
 
+    try:
+        pipeline.run()
+    except ConfigValidationError as e:
+        print(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        print("an uanexpacted error ecoured")
+        print(e)
+        sys.exit(29)
 
 
 
