@@ -1,8 +1,10 @@
 # cli.py
-from complier.pipeline import Compiler
-from complier.errors import PackageNotFoundError
+from complier.pipeline import Pipeline
 from pathlib import Path
 import argparse
+import sys
+from pact_core.models.package import PackageModel
+
 
 def main():
     parser = argparse.ArgumentParser(prog="pact")
@@ -16,16 +18,21 @@ def main():
 
     if args.command == "build":
 
-        #print(f"building {args.name}...")
-        try:
-            compiler = Compiler(get_curent_working_bucket(),args.name)
-            compiler.run()
+        full_path = Path(args.name).resolve()
+        
+        if not full_path.exists():
+            print(f"Error: file not found: {full_path}")
+            sys.exit(1)
 
-        except PackageNotFoundError as e:
-            print(e)
-        except Exception as e:
-            print(f"faild to complile pacakge {args.name}")
-            print(e)
+
+        if not full_path.is_file():
+            print(f"Error: expected a file, got a directory: {full_path}")
+            sys.exit(1)
+
+
+        #print(full_path)
+        pipeline = Pipeline(full_path)
+        pipeline.run()
 
 
     else:

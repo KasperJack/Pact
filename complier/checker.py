@@ -31,7 +31,7 @@ class Checker:
        
         cd = ConfigDef.model_validate(configdef_raw)
 
-        if cd.pacakge == None:
+        if cd.package == None:
             print(" this should be a release only defntion")
             # check thtat key target_package exists 
             # check that the target package exists in the remote/local repo
@@ -51,26 +51,3 @@ class Checker:
 
 
 
-    # remove
-    def validate_root_namespace(self,namespace_raw: dict):
-        if "namespace" not in namespace_raw:
-            raise ValueError("Missing 'namespace' key")
-
-        if not isinstance(namespace_raw["namespace"], dict):
-            raise TypeError("'namespace' must be a dictionary")
-
-    # remove
-    def validate_namespace_entries(self,namespace: dict):
-        for name, value in namespace.items():
-            if not isinstance(value, dict):
-                raise TypeError(f"{name} must be a dictionary")
-
-
-    # remove
-    def validate_global_flags(self,objects: dict[str, OSBlock]):
-        seen = set()
-        for name, osb in objects.items():
-            for flag in osb.reserved_flags:
-                if flag in seen:
-                    raise ValueError(f"Flag '{flag}' is duplicated across objects (found in {name})")
-                seen.add(flag)

@@ -9,7 +9,7 @@ from pydantic import BaseModel,ConfigDict,model_validator,field_validator,Field
 class ConfigDef(BaseModel):
     model_config = ConfigDict(extra="forbid")  
 
-    pacakge: NewPacakgeDef | None = None
+    package: NewPackageDef | None = None
     release: NewReleaseDef
 
 
@@ -20,17 +20,17 @@ class ConfigDef(BaseModel):
 class NewReleaseDef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    target_package: str | None = None
+    package_identifier: str | None = None
     url : str
     version: str
     hash: str
 
 
-class NewPacakgeDef(BaseModel):
+class NewPackageDef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str 
-    slug: str
+    package_identifier: str
     versioning: str
 
     license: str | None = None
