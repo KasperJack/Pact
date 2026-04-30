@@ -1,9 +1,9 @@
 # cli.py
 from complier.pipeline import Pipeline
-from pathlib import Path
+#from pathlib import Path
 import argparse
 import sys
-from pact_core.models.package import PackageModel
+from complier.errors import LoadError
 
 
 def main():
@@ -18,22 +18,8 @@ def main():
 
     if args.command == "build":
 
-        full_path = Path(args.name).resolve()
-        
-        if not full_path.exists():
-            print(f"Error: file not found: {full_path}")
-            sys.exit(1)
-
-
-        if not full_path.is_file():
-            print(f"Error: expected a file, got a directory: {full_path}")
-            sys.exit(1)
-
-
-        #print(full_path)
-        pipeline = Pipeline(full_path)
-        pipeline.run()
-
+        build_cmd(args.name)
+    
 
     else:
         parser.print_help()
@@ -41,16 +27,27 @@ def main():
 
 
 
+def build_cmd(path: str):
+
+    try:
+        pipeline = Pipeline(path)
+    except LoadError as e:
+        print(e)
+        sys.exit(e.exit_code)
+
+    except Exception as e:
+        print("an uanexpacted error ecoured")
+        # create a log file 
+        print(e)
+        sys.exit(88)
+
+    pipeline.run()
 
 
 
 
 
 
-
-def get_curent_working_bucket() -> Path:
-
-    return Path.cwd() / "test-buckets" / "defult"
 
 
 

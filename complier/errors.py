@@ -6,14 +6,21 @@ if TYPE_CHECKING:
 
 
 
+class LoadError(Exception):
+    pass
+
+
+class ConfigNotFoundError(LoadError):
+    exit_code = 11
+    def __init__(self, message: str):
+        super().__init__(message)
+  
 
 
 
-class PackageNotFoundError(Exception):
-    exit_code = 4
-    def __init__(self, path: str):
-        super().__init__(f"pact: error: pacakge not found")
-        self.path = path
+
+
+
 
 
 
@@ -54,37 +61,3 @@ class BaseError(Exception):
 
 
 
-class NamespaceFileNotFound(BaseError):
-    def __init__(self, path:str):
-        super().__init__(
-            message = "Namespace file not found",
-            path=path,
-  
-        )
-
-class ReleaseFileNotFound(BaseError):
-    def __init__(self, path:str):
-        super().__init__(
-            message = "release file not found",
-            path=path,
-  
-        )
-
-
-class ConfigParseError(BaseError):
-    pass
-
-class ConfigConversionError(BaseError):
-    pass
-
-
-
-class ErrorGroup(Exception):
-    def __init__(self, errors: list[Exception]):
-        self.errors = errors
-
-    def __str__(self):
-        lines = []
-        for i, e in enumerate(self.errors, 1):
-            lines.append(f"[{i}]-{e}")
-        return "\n" + "\n".join(lines)

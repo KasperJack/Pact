@@ -2,7 +2,7 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 from typing import Any
-from .parser import load_many,load_one
+from .loader import load_many,load_one
 
 from .models import (
     Entity,
