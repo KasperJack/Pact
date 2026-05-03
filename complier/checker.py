@@ -51,8 +51,8 @@ class Checker:
 
         if cd.package == None:
             print(" this should be a release only defntion")
-            # check thtat key target_package exists (new remote/local repo status moduel in core_lib )
-            # check that the target package exists in the remote/local repo
+            # check thtat key target_package exists 
+            # check that the target package exists in the remote/local repo (new remote/local repo status moduel in core_lib )
             # check the version against what is defined in the existing pacakge def 
             # check that the version does not exist already 
 

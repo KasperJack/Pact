@@ -1,1 +1,1 @@
-# Pact-ci
+pact-ci is the build and publishing pipeline for the PACT package registry. It is the source of truth generator for the entire package ecosystem — no manifest, index, or signature enters the registry without passing through it.

@@ -5,6 +5,9 @@ import argparse
 import sys
 from complier.errors import LoadError,ConfigValidationError
 
+UNEXPECTED_LOAD_ERROR = 19
+UNEXPECTED_CHECK_ERROR = 29
+
 
 def main():
     parser = argparse.ArgumentParser(prog="pact")
@@ -39,7 +42,7 @@ def build_cmd(path: str):
         print("an uanexpacted error ecoured")
         # add to error log file 
         print(e)
-        sys.exit(19)
+        sys.exit(UNEXPECTED_LOAD_ERROR)
 
 
     try:
@@ -50,7 +53,7 @@ def build_cmd(path: str):
     except Exception as e:
         print("an uanexpacted error ecoured")
         print(e)
-        sys.exit(29)
+        sys.exit(UNEXPECTED_CHECK_ERROR)
 
 
 
