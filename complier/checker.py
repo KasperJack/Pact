@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-
+from pathlib import Path
 
 from .errors import ConfigValidationError
 
 from pact_core.models import NewPackageConfig,NewVersionConfig,ValidationError
-
+from pact_core.repo_client import LocalFSTransport,RepoClient
 
 
 
@@ -38,26 +38,20 @@ class Checker:
         else:
             self._validate_new_version(configdef_raw)
 
-        try:
-       
-            cd = ConfigDef.model_validate(configdef_raw)
-        except ValidationError as e:
 
-            #raise ConfigValidationError.from_exception_data(str(e))
-            #raise ConfigValidationError.from_pydantic_errors(e.errors(include_url=False))
-            raise ConfigValidationError(e.errors(include_url=False))
+        rc = RepoClient(LocalFSTransport(Path("C:\\Users\\Aya\\Documents\\projects\\pact\\Pact-ci\\test-buckets\\defult\\cy\\cy2")))
 
+        rc.test_check_file(Path("ts"))
 
-
-        if cd.package == None:
-            print(" this should be a release only defntion")
+      
+            #print(" this should be a release only defntion")
             # check thtat key target_package exists 
             # check that the target package exists in the remote/local repo (new remote/local repo status moduel in core_lib )
             # check the version against what is defined in the existing pacakge def 
             # check that the version does not exist already 
 
-        else:
-            print(" this should be a package and an intial release defention")
+  
+            #print(" this should be a package and an intial release defention")
             # check package does not already exsit 
             # check init release def does not contain a target pacakge 
             # check versioning supported 
@@ -65,8 +59,7 @@ class Checker:
 
 
 
-        return cd
-
+        return 
 
 
 
