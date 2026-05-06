@@ -1,1 +1,3 @@
-pact-ci is the build and publishing pipeline for the PACT package registry. It is the source of truth generator for the entire package ecosystem — no manifest, index, or signature enters the registry without passing through it.
+Pact Tools is a collection of core utilities for the Pact package ecosystem.
+
+It provides the build, validation, and publishing infrastructure used to manage packages in the Pact registry. All packages, manifests, indexes, and signatures are processed through these tools
