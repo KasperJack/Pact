@@ -6,3 +6,5 @@ dist/
 *.out
 *.log
 test-buckets/
+*.toml
+*.hcl
