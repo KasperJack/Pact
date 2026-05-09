@@ -6,6 +6,8 @@ import (
 	"strings"
 	"url"
 	"fmt"
+	"io"
+	"net/http"
 
 )
 
@@ -30,6 +32,7 @@ func NewGithubSource(repoURL string, branch string) (*GithubSource, error) {
         return nil, fmt.Errorf("cannot parse user/repo from URL: %s", repoURL)
     }
 
+	// check if valid gh repo ? 
     if branch == "" {
         branch = "main"
     }
@@ -44,9 +47,23 @@ func NewGithubSource(repoURL string, branch string) (*GithubSource, error) {
 
 
 func (gs *GithubSource) Fetch(path string) ([]byte, error) {
-		_, rawUrl := gs.buildRawURL(path)
-}
+    rawURL, err := gs.buildRawURL(path)
+    if err != nil {
+        return nil, err
+    }
 
+    resp, err := http.Get(rawURL)
+    if err != nil {
+        return nil, fmt.Errorf("failed to fetch %s: %w", rawURL, err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("unexpected status %d for %s", resp.StatusCode, rawURL)
+    }
+
+    return io.ReadAll(resp.Body)
+}
 
 func (gs *GithubSource) buildRawURL(path string) (string, error) {
     if !strings.HasPrefix(path, "/") {

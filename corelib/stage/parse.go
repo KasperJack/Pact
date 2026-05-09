@@ -30,9 +30,22 @@ func ParseConfig(raw []byte) (Processor, error) {
     }
 
     
-    fs := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools")
-    rc := client.NewRepoClient(fs)
+    gs,err := client.NewGithubSource("https://github.com/KasperJack/pact","")
+
+    if err != nil {
+        return nil,err
+    }
+
+
+
+    rc := client.NewRepoClient(gs)
     rc.CheckFile("test.tomll")
+
+
+
+
+
+
 
     switch {
     case config.Package != nil && config.Release != nil:
