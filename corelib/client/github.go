@@ -4,7 +4,7 @@ import (
 	//"path/filepath"
 	//"os"
 	"strings"
-	"url"
+	"net/url"
 	"fmt"
 	"io"
 	"net/http"
@@ -66,9 +66,14 @@ func (gs *GithubSource) Fetch(path string) ([]byte, error) {
 }
 
 func (gs *GithubSource) buildRawURL(path string) (string, error) {
+
     if !strings.HasPrefix(path, "/") {
         return "", fmt.Errorf("path must be absolute: %s", path)
     }
+	// path must not be a dir 
+
+
+
 
     clean := strings.TrimLeft(path, "/")
 

@@ -30,7 +30,7 @@ func ParseConfig(raw []byte) (Processor, error) {
     }
 
     
-    gs,err := client.NewGithubSource("https://github.com/KasperJack/pact","")
+    gs,err := client.NewGithubSource("https://github.com/KasperJack/fact","")
 
     if err != nil {
         return nil,err
@@ -39,7 +39,7 @@ func ParseConfig(raw []byte) (Processor, error) {
 
 
     rc := client.NewRepoClient(gs)
-    rc.CheckFile("test.tomll")
+    rc.CheckFile("/.gitignore")
 
 
 
