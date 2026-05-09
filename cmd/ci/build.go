@@ -13,12 +13,12 @@ func build(path string) error{
 		return err
 	}
 
-	_,err = stage.ParseConfig(raw)
+	p,err := stage.ParseConfig(raw)
 
 	if err != nil {
 		return err
 	}
-
+	p.Validate()
 
 
 

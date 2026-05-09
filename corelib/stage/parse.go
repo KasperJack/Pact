@@ -8,44 +8,36 @@ import (
 
 )
 
-type Dependency struct {
-	Name    string `hcl:"name,label"`
-	Version string `hcl:"version"`
+type Processor interface {
+    Validate() error
 }
 
-type Package struct {
-	Name    string `hcl:"name"`
-	Version string `hcl:"version"`
-}
+type Config struct {
+  Release  *Release  `hcl:"release,block"`
+  Package  *Package  `hcl:"package,block"`
 
-type Manifest struct {
-	Package      Package      `hcl:"package,block"`
-	Dependencies []Dependency `hcl:"dependency,block"`
 }
 
 
-func ParseConfig(raw []byte) (*Manifest, error) {
-    var manifest Manifest
 
+func ParseConfig(raw []byte) (Processor, error) {
+    var config Config
 
+    err := hclsimple.Decode("package.hcl", raw, nil, &config)
+    if err != nil {
+        return nil, err
+    }
 
-    err := hclsimple.Decode("package.hcl", raw, nil,&manifest)
-	if err != nil {
-		return nil,err
-	}
-
-	fmt.Println("Package:", manifest.Package.Name, manifest.Package.Version)
-
-	for _, dep := range manifest.Dependencies {
-		fmt.Printf("Dependency: %s @ %s\n", dep.Name, dep.Version)
-	}
-
-
-
-
-
-
-    return &manifest, nil
+    switch {
+    case config.Package != nil && config.Release != nil:
+        return nil, fmt.Errorf("you can only define a Package or a Release")
+    case config.Package != nil:
+        return config.Package, nil
+    case config.Release != nil:
+        return config.Release, nil
+    default:
+        return nil, fmt.Errorf("nothing was defined")
+    }
 }
 
 
