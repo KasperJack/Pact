@@ -7,11 +7,15 @@ import (
 
 )
 
+func NewLFilesystemSource(rootdir string) *FilesystemSource {
+    return &FilesystemSource{RootDir: rootdir}
+}
+
 
 type FilesystemSource struct {
 	RootDir string
 }
-// methods here 
+
 
 func (fss* FilesystemSource) Fetch (path string) ([]byte, error) {
 

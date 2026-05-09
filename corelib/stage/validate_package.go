@@ -15,6 +15,6 @@ type InitRelease struct {
 }
 
 func (r *Package) Validate () error {
-    fmt.Println("validating package")
+    //fmt.Println("validating package")
     return nil
 }  

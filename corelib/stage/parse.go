@@ -5,6 +5,7 @@ import (
 	//"github.com/BurntSushi/toml"
     //"slices"
     "github.com/hashicorp/hcl/v2/hclsimple"
+    "Pact/corelib/client"
 
 )
 
@@ -27,6 +28,11 @@ func ParseConfig(raw []byte) (Processor, error) {
     if err != nil {
         return nil, err
     }
+
+    
+    fs := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools")
+    rc := client.NewRepoClient(fs)
+    rc.CheckFile("test.tomll")
 
     switch {
     case config.Package != nil && config.Release != nil:
