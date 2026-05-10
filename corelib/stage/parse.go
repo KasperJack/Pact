@@ -1,16 +1,17 @@
 package stage
 
 import (
-	"fmt"
+	//"fmt"
 	//"github.com/BurntSushi/toml"
-    //"slices"
-    "github.com/hashicorp/hcl/v2/hclsimple"
-    "Pact/corelib/client"
+	//"slices"
+	"Pact/corelib/client"
+	"fmt"
 
+	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
 type Processor interface {
-    Validate() error
+    Validate(mode string) error
 }
 
 type Config struct {
@@ -30,7 +31,7 @@ func ParseConfig(raw []byte) (Processor, error) {
     }
 
     
-    gs,err := client.NewGithubSource("https://github.com/KasperJack/fact","")
+    gs,err := client.NewGithubSource("https://github.com/KasperJack/pact","")
 
     if err != nil {
         return nil,err
@@ -48,15 +49,9 @@ func ParseConfig(raw []byte) (Processor, error) {
 
 
     switch {
-    case config.Package != nil && config.Release != nil:
-        return nil, fmt.Errorf("you can only define a Package or a Release")
-    case config.Package != nil:
-        return config.Package, nil
-    case config.Release != nil:
-        return config.Release, nil
-    default:
-        return nil, fmt.Errorf("nothing was defined")
+
     }
+    return nil,fmt.Errorf("not vimplamted validation checks")
 }
 
 

@@ -14,7 +14,7 @@ type InitRelease struct {
     Hash string `hcl:"hash"`
 }
 
-func (r *Package) Validate () error {
+func (r *Package) Validate (mode string) error {
     //fmt.Println("validating package")
     return nil
 }  

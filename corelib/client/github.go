@@ -21,7 +21,7 @@ type GithubSource struct {
 
 }
 
-func NewGithubSource(repoURL string, branch string) (*GithubSource, error) {
+func NewGithubSource(repoURL string, branch string) (RepositorySource, error) {
     parsed, err := url.Parse(strings.TrimRight(repoURL, "/"))
     if err != nil {
         return nil, fmt.Errorf("invalid url: %s", repoURL)
