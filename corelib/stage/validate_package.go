@@ -5,7 +5,7 @@ type Package struct {
     Name string `hcl:"name"`
     PackageIdentifier string `hcl:"package_identifier"`
     Description string `hcl:"description"`
-    InitRelease *InitRelease `hcl:"release,block"`
+    InitRelease InitRelease `hcl:"release,block"`
 }
 
 type InitRelease struct {

@@ -4,7 +4,7 @@ import (
 	//"fmt"
 	//"github.com/BurntSushi/toml"
 	//"slices"
-	"Pact/corelib/client"
+	//"Pact/corelib/client"
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
@@ -30,28 +30,24 @@ func ParseConfig(raw []byte) (Processor, error) {
         return nil, err
     }
 
-    
-    gs,err := client.NewGithubSource("https://github.com/KasperJack/pact","")
-
-    if err != nil {
-        return nil,err
-    }
-
-
-
-    rc := client.NewRepoClient(gs)
-    rc.CheckFile("/.gitignore")
-
-
-
-
-
-
 
     switch {
+    case config.Package == nil && config.Release == nil:
+        return nil,fmt.Errorf("mssing def")
+
+    case config.Package != nil && config.Release != nil:
+        return nil,fmt.Errorf("can't have a package and a release def at the same time")
+
+    case config.Package != nil:
+        return config.Package,nil
+
+    default:
+        return config.Release,nil
 
     }
-    return nil,fmt.Errorf("not vimplamted validation checks")
+
+
+    //return nil,fmt.Errorf("unexpected error happend")
 }
 
 

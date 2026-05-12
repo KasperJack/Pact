@@ -8,3 +8,5 @@ dist/
 test-buckets/
 *.toml
 *.hcl
+.env
+*.pact
