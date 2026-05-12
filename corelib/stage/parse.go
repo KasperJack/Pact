@@ -11,6 +11,9 @@ import (
 )
 
 type Processor interface {
+    // Validate checks the input data based on the specified mode.
+    // Valid modes are "strict", "loose", and "none".
+    // Returns an error if the data is invalid for the given mode.
     Validate(mode string) error
 }
 
