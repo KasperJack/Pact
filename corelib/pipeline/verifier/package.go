@@ -1,23 +1,24 @@
 package verifier
 
-
  import (
     "Pact/corelib/model"
 	"Pact/corelib/client"
+	"Pact/corelib/validate"
 )
 
-func NewPackage(p *model.Package) Pipeline {
-	return &PackagePipe{Model: p}
+
+func NewPackage(pacakge *model.Package, client *client.RepoClient) Pipeline {
+	return &Package{Model: pacakge, Client: client}
 }
 
-type PackagePipe struct {
+type Package struct {
 	Model *model.Package
 	Client *client.RepoClient
 }
 
 
 
-func (p *PackagePipe) Validate() error {
-	return nil
+func (p *Package) Validate() error {
+	return validate.Package(p.Model,p.Client)
 }
 

@@ -4,20 +4,21 @@ package verifier
  import (
     "Pact/corelib/model"
 	"Pact/corelib/client"
+	"Pact/corelib/validate"
 )
 
-func NewRelease(r *model.Release) Pipeline {
-	return &ReleasePipe{Model: r}
+
+func NewRelease(release  *model.Release, client *client.RepoClient ) Pipeline {
+	return &Release{Model: release, Client: client}
 }
 
-type ReleasePipe struct {
+type Release struct {
 	Model *model.Release
 	Client *client.RepoClient
 }
 
 
 
-func (r *ReleasePipe) Validate() error {
-	
-	return nil
+func (r *Release) Validate() error {
+	return validate.Release(r.Model,r.Client)
 }

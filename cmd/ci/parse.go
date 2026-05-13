@@ -5,10 +5,16 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
     "Pact/corelib/model"
     "Pact/corelib/pipeline/publisher"
+	"Pact/corelib/client"
 
 )
 
 func parseConfig(raw []byte) (publisher.Pipeline, error) {
+
+	s := client.NewLFilesystemSource(".")
+
+	client := client.NewRepoClient(s)
+
     var config model.Config
 
     err := hclsimple.Decode("package.hcl", raw, nil, &config)
@@ -25,10 +31,10 @@ func parseConfig(raw []byte) (publisher.Pipeline, error) {
         return nil,fmt.Errorf("can't have a package and a release def at the same time")
 
     case config.Package != nil:
-        return publisher.NewPackage(config.Package),nil 
+        return publisher.NewPackage(config.Package,client),nil 
 
     default:
-        return publisher.NewRelease(config.Release),nil 
+        return publisher.NewRelease(config.Release,client),nil 
 
     }
 

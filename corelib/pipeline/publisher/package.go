@@ -7,22 +7,22 @@ package publisher
 	"Pact/corelib/validate"
 )
 
-func NewPackage(p *model.Package, c *client.RepoClient) Pipeline {
-	return &PackagePipe{Model: p, Client: c}
+func NewPackage(pacakge *model.Package, client *client.RepoClient) Pipeline {
+	return &Package{Model: pacakge, Client: client}
 }
 
-type PackagePipe struct {
+type Package struct {
 	Model *model.Package
 	Client *client.RepoClient
 }
 
 
 
-func (p *PackagePipe) Validate() error {
+func (p *Package) Validate() error {
 	return validate.Package(p.Model,p.Client)
 }
 
 
-func (p *PackagePipe) Build() error {
+func (p *Package) Build() error {
 	return nil
 }
