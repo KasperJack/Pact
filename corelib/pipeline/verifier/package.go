@@ -3,6 +3,7 @@ package verifier
 
  import (
     "Pact/corelib/model"
+	"Pact/corelib/client"
 )
 
 func NewPackage(p *model.Package) Pipeline {
@@ -11,6 +12,7 @@ func NewPackage(p *model.Package) Pipeline {
 
 type PackagePipe struct {
 	Model *model.Package
+	Client *client.RepoClient
 }
 
 

@@ -2,8 +2,8 @@ package verifier
 
 
  import (
-	"fmt"
     "Pact/corelib/model"
+	"Pact/corelib/client"
 )
 
 func NewRelease(r *model.Release) Pipeline {
@@ -12,11 +12,12 @@ func NewRelease(r *model.Release) Pipeline {
 
 type ReleasePipe struct {
 	Model *model.Release
+	Client *client.RepoClient
 }
 
 
 
 func (r *ReleasePipe) Validate() error {
-	fmt.Printf("validationg relase %s",r.Model.Version)
+	
 	return nil
 }

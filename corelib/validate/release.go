@@ -1,32 +1,17 @@
-package stage
+package validate
 
 import (
-	"fmt"
+    "fmt"
     "Pact/corelib/client"
-
+    "Pact/corelib/model"
 )
 
 
 
 
-func (r *Release) Validate (mode string) error {
 
-    var s client.RepositorySource
+func Release(p *model.Release, c *client.RepoClient) error {
 
-    switch mode {
-
-    case "l":
-        s = client.NewLFilesystemSource("/somewhere")
-    case "r":
-        s,_ = client.NewGithubSource("kasperjack/pact","main")
-    default:
-        panic("ass")
-
-    }
-
-    rc := client.NewRepoClient(s)
-    ok := rc.PackageExists(r.PackageIdentifier)
-
-    fmt.Println("validating release")
-    return nil
-}  
+    fmt.Println("validating releace")
+	return nil
+}
