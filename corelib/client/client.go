@@ -16,8 +16,9 @@ type RepoClient struct {
 
 func (rc *RepoClient) PackageExists(packageName string) bool {
 
-	b,err := rc.source.Fetch(path)
+	b,err := rc.source.Fetch(packageName)
 		if err != nil {panic(err)}
 
 	print(string(b))
+	return true
 }

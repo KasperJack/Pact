@@ -3,25 +3,13 @@ package stage
 import (
     "fmt"
     "Pact/corelib/client"
+    "Pact/corelib/model"
 )
 
-type Package struct {
-	Name              string      `hcl:"name"`
-	PackageIdentifier string      `hcl:"package_identifier"`
-	Description       string      `hcl:"description"`
-	InitRelease       InitRelease `hcl:"release,block"`
-    Versioning        string      `hcl:"Versioning"` 
-}
-
-type InitRelease struct {
-	Url     string `hcl:"url"`
-	Version string `hcl:"version"`
-	Hash    string `hcl:"hash"`
-}
 
 
 
-func (p *Package) Validate(mode string) error {
+func (p *model.Package) Validate(mode string) error {
 
     switch p.Versioning {
     case "semver":
@@ -71,5 +59,3 @@ func (p *Package) Validate(mode string) error {
 	return nil
 }
 
-
-de

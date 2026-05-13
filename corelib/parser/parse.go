@@ -1,32 +1,17 @@
-package stage
+package parser
 
 import (
-	//"fmt"
-	//"github.com/BurntSushi/toml"
-	//"slices"
-	//"Pact/corelib/client"
 	"fmt"
-
 	"github.com/hashicorp/hcl/v2/hclsimple"
+    "Pact/corelib/model"
+    "Pact/corelib/pipeline"
+
 )
 
-type Processor interface {
-    // Validate checks the input data based on the specified mode.
-    // Valid modes are "strict", "loose", and "none".
-    // Returns an error if the data is invalid for the given mode.
-    Validate(mode string) error
-}
-
-type Config struct {
-  Release  *Release  `hcl:"release,block"`
-  Package  *Package  `hcl:"package,block"`
-
-}
 
 
-
-func ParseConfig(raw []byte) (Processor, error) {
-    var config Config
+func ParseConfig(raw []byte) (pipeline.Pipeline, error) {
+    var config model.Config
 
     err := hclsimple.Decode("package.hcl", raw, nil, &config)
     if err != nil {
@@ -42,18 +27,43 @@ func ParseConfig(raw []byte) (Processor, error) {
         return nil,fmt.Errorf("can't have a package and a release def at the same time")
 
     case config.Package != nil:
-        return config.Package,nil
+        return pipeline.NewPackage(config.Package),nil 
 
     default:
-        return config.Release,nil
+        return pipeline.NewRelease(config.Release),nil 
 
     }
 
 
-    //return nil,fmt.Errorf("unexpected error happend")
 }
 
+func ParseConfigCheck(raw []byte) (pipeline.Checker, error) {
+    var config model.Config
 
+    err := hclsimple.Decode("package.hcl", raw, nil, &config)
+    if err != nil {
+        return nil, err
+    }
+
+    // checks
+
+        switch {
+    case config.Package == nil && config.Release == nil:
+        return nil,fmt.Errorf("mssing def")
+
+    case config.Package != nil && config.Release != nil:
+        return nil,fmt.Errorf("can't have a package and a release def at the same time")
+
+    case config.Package != nil:
+        return pipeline.NewPackage(config.Package),nil 
+
+    default:
+        return pipeline.NewRelease(config.Release),nil 
+
+    }
+
+    
+}
 
 
 
