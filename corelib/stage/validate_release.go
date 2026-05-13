@@ -29,7 +29,8 @@ func (r *Release) Validate (mode string) error {
     }
 
     rc := client.NewRepoClient(s)
-    rc.CheckFile("/test")
+    ok := rc.PackageExists(r.PackageIdentifier)
+
     fmt.Println("validating release")
     return nil
 }  

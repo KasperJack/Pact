@@ -14,7 +14,7 @@ type RepoClient struct {
 	source RepositorySource
 }
 
-func (rc *RepoClient) CheckFile(path string) {
+func (rc *RepoClient) PackageExists(packageName string) bool {
 
 	b,err := rc.source.Fetch(path)
 		if err != nil {panic(err)}

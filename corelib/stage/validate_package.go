@@ -20,9 +20,24 @@ type InitRelease struct {
 }
 
 
-// Validate interprets a string s in the given base (0, 2 to 36) and bit size
-// (0 to 64) and returns the corresponding value i.
+
 func (p *Package) Validate(mode string) error {
+
+    switch p.Versioning {
+    case "semver":
+       //p.InitRelease.Version == "1.2.3"
+    case "date":
+        //
+    case "custom":
+        //
+
+    default:
+        return fmt.Errorf("invalid Versioning: %s", p.Versioning)
+    }
+
+
+
+
 
     var rs client.RepositorySource
 
@@ -41,6 +56,12 @@ func (p *Package) Validate(mode string) error {
     
     repo := client.NewRepoClient(rs)
 
+    ok := repo.PackageExists(p.PackageIdentifier)
+    if ok {
+        return fmt.Errorf(fmt.Sprintf("package %s already exists",p.PackageIdentifier))
+    }
+
+
     // check package does not already exsit 
     // check versioning supported 
     // check init release uses samme versioning defined by pacakge 
@@ -49,3 +70,6 @@ func (p *Package) Validate(mode string) error {
 
 	return nil
 }
+
+
+de
