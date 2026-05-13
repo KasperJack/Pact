@@ -1,24 +1,24 @@
 package main
 
 import(
-	"Pact/corelib/stage"
+	
 )
 
 
 func build(path string) error{
 
-	raw,err := stage.LoadFile(path)
+	raw,err := loadFile(path)
 
 	if err != nil {
 		return err
 	}
 
-	p,err := stage.ParseConfig(raw)
+	p,err := parseConfig(raw)
 
 	if err != nil {
 		return err
 	}
-	p.Validate("local")
+	p.Validate()
 
 
 

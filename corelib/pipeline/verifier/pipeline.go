@@ -1,12 +1,9 @@
- package pipeline
+ package verifier
 
 
-type Checker interface {
-    Validate() error
-}
 
 type Pipeline interface {
-    Checker
+    Validate() error
     Build()  error
     //Hashes() error
     //Stage()  error
