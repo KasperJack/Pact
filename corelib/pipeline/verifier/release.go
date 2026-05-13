@@ -20,8 +20,3 @@ func (r *ReleasePipe) Validate() error {
 	fmt.Printf("validationg relase %s",r.Model.Version)
 	return nil
 }
-
-func (r *ReleasePipe) Build() error {
-	fmt.Printf("building relase %s",r.Model.Version)
-	return nil
-}

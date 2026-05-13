@@ -2,7 +2,6 @@ package verifier
 
 
  import (
-
     "Pact/corelib/model"
 )
 
@@ -20,6 +19,3 @@ func (p *PackagePipe) Validate() error {
 	return nil
 }
 
-func (p *PackagePipe) Build() error {
-	return nil
-}
