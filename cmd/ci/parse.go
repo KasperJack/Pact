@@ -11,7 +11,7 @@ import (
 
 func parseConfig(raw []byte) (publisher.Pipeline, error) {
 
-	s := client.NewLFilesystemSource(".")
+	s := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult")
 
 	client := client.NewRepoClient(s)
 

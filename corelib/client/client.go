@@ -1,5 +1,8 @@
 package client
-
+import (
+    "errors"
+	"path/filepath"
+)
 
 type RepositorySource interface {
 	Fetch (path string) ([]byte, error) 
@@ -16,9 +19,18 @@ type RepoClient struct {
 
 func (rc *RepoClient) PackageExists(packageName string) bool {
 
-	b,err := rc.source.Fetch(packageName)
-		if err != nil {panic(err)}
+	//  /pa/packageName/package.toml
+		path := filepath.Join("/", packageName[:2], packageName, "package.toml")
 
-	print(string(b))
+	_,err := rc.source.Fetch(path)
+		if err != nil {
+
+			if errors.Is(err,ErrNotFound) {
+				return false
+			}
+			panic(err)	
+		}
+
+	
 	return true
 }

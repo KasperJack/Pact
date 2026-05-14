@@ -18,9 +18,8 @@ func build(path string) error{
 	if err != nil {
 		return err
 	}
+
 	p.Validate()
-
-
 
 
 
