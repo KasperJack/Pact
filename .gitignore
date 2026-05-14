@@ -11,3 +11,4 @@ test-buckets/
 .env
 *.pact
 *.conf
+bench.ps1

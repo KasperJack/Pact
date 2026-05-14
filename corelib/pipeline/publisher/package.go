@@ -11,13 +11,13 @@ func NewPackage(pacakge *model.Package, client *client.RepoClient) Pipeline {
 	return &Package{Model: pacakge, Client: client}
 }
 
-type Package struct {
+type Package struct {  // Context ? change name 
 	Model *model.Package
 	Client *client.RepoClient
 }
 
 
-
+// Package
 func (p *Package) Validate() error {
 	return validate.Package(p.Model,p.Client)
 }
