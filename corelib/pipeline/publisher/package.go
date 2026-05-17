@@ -5,24 +5,25 @@ package publisher
     "Pact/corelib/model"
 	"Pact/corelib/client"
 	"Pact/corelib/validate"
+	"Pact/corelib/pipeline"
 )
 
-func NewPackage(pacakge *model.Package, client *client.RepoClient) Pipeline {
-	return &Package{Model: pacakge, Client: client}
+func NewPackage(pacakge *model.Package, client *client.RepoClient) pipeline.PublisherPackage {
+	return &PackageContext{Model: pacakge, Client: client}
 }
 
-type Package struct {  // Context ? change name 
+type PackageContext struct {  // Context ? change name 
 	Model *model.Package
 	Client *client.RepoClient
 }
 
 
 // Package
-func (p *Package) Validate() error {
+func (p *PackageContext) Validate() error {
 	return validate.Package(p.Model,p.Client)
 }
 
 
-func (p *Package) Build() error {
+func (p *PackageContext) Build() error {
 	return nil
 }

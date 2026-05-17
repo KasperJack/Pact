@@ -1,29 +1,28 @@
 package publisher
 
-
- import (
-    "Pact/corelib/model"
+import (
 	"Pact/corelib/client"
+	"Pact/corelib/model"
+	"Pact/corelib/pipeline"
 	"Pact/corelib/validate"
-
 )
 
 
-func NewRelease(release  *model.Release, client *client.RepoClient ) Pipeline {
-	return &Release{Model: release, Client: client}
+func NewRelease(release  *model.Release, client *client.RepoClient ) pipeline.PublisherRelease {
+	return &ReleaseContext{Model: release, Client: client}
 }
 
-type Release struct {
+type ReleaseContext  struct {
 	Model *model.Release
 	Client *client.RepoClient
 }
 
 
 
-func (r *Release) Validate() error {
-	return validate.Release(r.Model,r.Client)
+func (rc *ReleaseContext) Validate() error {
+	return validate.Release(rc.Model,rc.Client)
 }
 
-func (r *Release) Build() error {
+func (rc *ReleaseContext) Build() error {
 	return nil
 }

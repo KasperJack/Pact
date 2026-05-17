@@ -20,7 +20,7 @@ type RepoClient struct {
 func (rc *RepoClient) PackageExists(packageName string) bool {
 
 	//  /pa/packageName/package.toml
-		path := filepath.Join("/", packageName[:2], packageName, "package.toml")
+		path := filepath.Join(packageName[:2], packageName, "package.toml")
 
 	_,err := rc.source.Fetch(path)
 		if err != nil {

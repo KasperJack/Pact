@@ -2,12 +2,14 @@ package verifier
 
  import (
     "Pact/corelib/model"
+	"Pact/corelib/pipeline"
 	"Pact/corelib/client"
 	"Pact/corelib/validate"
+
 )
 
 
-func NewPackage(pacakge *model.Package, client *client.RepoClient) Pipeline {
+func NewPackage(pacakge *model.Package, client *client.RepoClient) pipeline.VerifierPackage {
 	return &Package{Model: pacakge, Client: client}
 }
 
