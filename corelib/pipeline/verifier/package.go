@@ -10,17 +10,17 @@ package verifier
 
 
 func NewPackage(pacakge *model.Package, client *client.RepoClient) pipeline.VerifierPackage {
-	return &Package{Model: pacakge, Client: client}
+	return &PackageContext{Model: pacakge, Client: client}
 }
 
-type Package struct {
+type PackageContext struct {
 	Model *model.Package
 	Client *client.RepoClient
 }
 
 
 
-func (p *Package) Validate() error {
+func (p *PackageContext) Validate() error {
 	return validate.Package(p.Model,p.Client)
 }
 
