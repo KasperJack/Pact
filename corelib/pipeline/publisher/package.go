@@ -5,6 +5,7 @@ package publisher
     "Pact/corelib/model"
 	"Pact/corelib/client"
 	"Pact/corelib/validate"
+	"Pact/corelib/build"
 	"Pact/corelib/pipeline"
 )
 
@@ -25,5 +26,5 @@ func (p *PackageContext) Validate() error {
 
 
 func (p *PackageContext) Build() error {
-	return nil
+	return build.Package(p.Model)
 }

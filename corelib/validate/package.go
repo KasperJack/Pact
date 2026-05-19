@@ -33,7 +33,7 @@ func Package(p *model.Package, c *client.RepoClient) error {
     }
     
 
-    fmt.Println("validating pcakge")
+    fmt.Println("package validated ok satus")
     //fmt.Println(c.PackageExists("windirstat"))
 	return nil
 }

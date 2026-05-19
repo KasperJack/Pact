@@ -9,7 +9,7 @@ import (
 
 )
 
-func parseConfig(raw []byte) (publisher.Pipeline, error) {
+func parseConfig(raw []byte) error {
 
 	s := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult")
 
@@ -19,22 +19,38 @@ func parseConfig(raw []byte) (publisher.Pipeline, error) {
 
     err := hclsimple.Decode("package.hcl", raw, nil, &config)
     if err != nil {
-        return nil, err
+        return  err
     }
 
 
     switch {
     case config.Package == nil && config.Release == nil:
-        return nil,fmt.Errorf("mssing def")
+        return fmt.Errorf("mssing def")
 
     case config.Package != nil && config.Release != nil:
-        return nil,fmt.Errorf("can't have a package and a release def at the same time")
+        return fmt.Errorf("can't have a package and a release def at the same time")
 
     case config.Package != nil:
-        return publisher.NewPackage(config.Package,client),nil 
+        p := publisher.NewPackage(config.Package,client)
+
+        err := p.Validate()
+
+        if err != nil {
+            return  err
+        }
+
+        err = p.Build()
+
+        if err != nil {
+            return  err
+        }
+        return nil
+
+
+
 
     default:
-        return publisher.NewRelease(config.Release,client),nil 
+        return fmt.Errorf("pacakge not implmanted yet") 
 
     }
 

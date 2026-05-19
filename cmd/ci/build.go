@@ -13,14 +13,11 @@ func build(path string) error{
 		return err
 	}
 
-	p,err := parseConfig(raw)
+	err = parseConfig(raw)
 
 	if err != nil {
 		return err
 	}
-
-	p.Validate()
-
 
 
 	return nil
