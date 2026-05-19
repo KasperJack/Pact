@@ -2,7 +2,10 @@ module Pact
 
 go 1.26.2
 
-require github.com/hashicorp/hcl/v2 v2.24.0
+require (
+	github.com/BurntSushi/toml v1.6.0
+	github.com/hashicorp/hcl/v2 v2.24.0
+)
 
 require (
 	github.com/agext/levenshtein v1.2.1 // indirect

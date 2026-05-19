@@ -10,10 +10,19 @@ import (
 
 
 func Package(p *model.Package, c *client.RepoClient) error {
-    /*
+
+    ok := c.PackageExists(p.PackageIdentifier)
+
+    if ok {
+        // error packag already exists
+        return fmt.Errorf("Package already exists: %s", p.PackageIdentifier)
+    }
+
     switch p.Versioning {
+
     case "semver":
-       //p.InitRelease.Version == "1.2.3"
+        if !isValidSemver(p.InitRelease.Version) {
+            return fmt.Errorf("invalid semver version: %s", p.InitRelease.Version) }
     case "date":
         //
     case "custom":
@@ -22,10 +31,10 @@ func Package(p *model.Package, c *client.RepoClient) error {
     default:
         return fmt.Errorf("invalid Versioning: %s", p.Versioning)
     }
-    */
+    
 
     fmt.Println("validating pcakge")
-    fmt.Println(c.PackageExists("windirstat"))
+    //fmt.Println(c.PackageExists("windirstat"))
 	return nil
 }
 
