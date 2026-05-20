@@ -10,7 +10,7 @@ type Package struct {
 }
 
 
-func (p *Package) ValidateTomlRead() error {
+func (p *Package) ValidateOnRead() error {
     	
     if p.Name == "" {
 		return fmt.Errorf("name is required")
@@ -32,4 +32,3 @@ type InitRelease struct {
     Version string `hcl:"version" toml:"version"`
     Hash    string `hcl:"hash" toml:"hash"`
 }
-

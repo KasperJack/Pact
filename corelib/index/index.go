@@ -28,7 +28,7 @@ func LoadToml() {
 		log.Fatal(err)
 	}
 
-	err = pk.ValidateTomlRead()
+	err = pk.ValidateOnRead()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,6 +39,13 @@ func LoadToml() {
 	fmt.Println(pk.PackageIdentifier)
 
 
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+    if err != nil {
+        panic(err)
+    }
+
+	db.AutoMigrate(&model.Package{})
+	db.Create(&pk) // error ? 
 }
 
 
