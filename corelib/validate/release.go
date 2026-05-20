@@ -1,7 +1,7 @@
 package validate
 
 import (
-    //"fmt"
+    "fmt"
     "Pact/corelib/client"
     "Pact/corelib/model"
 )
@@ -13,8 +13,9 @@ import (
 func Release(r *model.Release, c *client.RepoClient) error {
 
     ok := c.PackageExists(r.PackageIdentifier)
-    if ok == false {
-        // error the target pcakge does not exist 
+    if !ok {
+        // error the target pcakge does not exist
+        return fmt.Errorf("Package does not exists: %s", r.PackageIdentifier) 
     }
     // get versining schema of the pcakge 
     // make sure r.Version is a valid secema
