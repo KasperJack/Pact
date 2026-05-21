@@ -19,9 +19,9 @@ type User struct {
     Age  int
 }
 
-func LoadToml() {
+func Rebuild() {
 
-	var pk model.Package
+	var pk model.PackageT
 
 	_, err := toml.DecodeFile("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult\\as\\asshoe\\package.toml", &pk)
 	if err != nil {
@@ -38,7 +38,7 @@ func LoadToml() {
 	fmt.Println(pk.Description)
 	fmt.Println(pk.PackageIdentifier)
 
-
+/*
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
     if err != nil {
         panic(err)
@@ -46,6 +46,7 @@ func LoadToml() {
 
 	db.AutoMigrate(&model.Package{})
 	db.Create(&pk) // error ? 
+	*/
 }
 
 

@@ -5,7 +5,7 @@ import (
 
 
 	"os"
-	"Pact/corelib/index"
+	//"Pact/corelib/index"
 	"fmt"
 
 )
@@ -35,19 +35,19 @@ func main(){
 
 func build_cmd (path string){
 
-	index.LoadToml()
+	//index.LoadToml()
 	
 	//index.Ass()
-	/*
+	
 	err := build(path)
 
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-*/
+
 
 	fmt.Println("ok")
-	fmt.Println(path)
+	
 
 }

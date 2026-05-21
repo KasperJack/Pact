@@ -18,12 +18,14 @@ func Package(p *model.Package) error {
 	packageFilePath := filepath.Join(packageDir, "package.toml")
 	releaseFilePath := filepath.Join(packageDir,"releases",p.InitRelease.Version,"release.toml")
 
-	err := writeToml(packageFilePath,p)
+	pkg,release := p.ToDomain()
+
+	err := writeToml(packageFilePath,pkg) //p
 	if err != nil {
 		return err
 	}
 
-	err = writeToml(releaseFilePath,p.InitRelease)
+	err = writeToml(releaseFilePath,release) //p.InitRelease
 	if err != nil {
 		return err
 	}

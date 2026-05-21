@@ -10,7 +10,16 @@ type Package struct {
 }
 
 
+func (p *Package) ToDomain() (PackageT,ReleaseT) {
 
+    pt := PackageT{
+        Name: p.Name,
+        PackageIdentifier: p.PackageIdentifier,
+        Description: p.Description,
+        Versioning: p.Versioning,
+    }
+    return pt,p.InitRelease
+}
 
 
 
@@ -23,17 +32,7 @@ type PackageT struct {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-func (p *Package) ValidateOnRead() error {
+func (p PackageT) ValidateOnRead() error {
     	
     if p.Name == "" {
 		return fmt.Errorf("name is required")
@@ -50,3 +49,12 @@ func (p *Package) ValidateOnRead() error {
 	return nil
 }
 
+
+type PackageDB struct {
+    PackageIdentifier string    `gorm:"primaryKey"`
+    Name              string    `gorm:"not null"`
+    Description       string
+    Versioning        string    `gorm:"not null"`
+    Releases          []ReleaseDB `gorm:"foreignKey:PackageIdentifier"`
+}
+func (PackageDB) TableName() string { return "packages" }
