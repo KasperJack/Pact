@@ -9,3 +9,10 @@ type Release struct {
     Hash string `hcl:"hash"`
 }
 
+
+
+type ReleaseT struct {
+	Url    string `hcl:"url" toml:"url"`
+	Version string `hcl:"version" toml:"version"`
+    Hash string `hcl:"hash" toml:"hash"`
+}

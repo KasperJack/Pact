@@ -5,9 +5,32 @@ type Package struct {
     Name              string      `hcl:"name" toml:"name" gorm:"not null"`
     PackageIdentifier string      `hcl:"package_identifier" toml:"package_identifier" gorm:"primaryKey"`
     Description       string      `hcl:"description,optional" toml:"description,omitempty"`
-    Versioning        string     `hcl:"Versioning" toml:"versioning" gorm:"not null"`
-    InitRelease       InitRelease `hcl:"release,block" toml:"-" gorm:"-"`
+    Versioning        string      `hcl:"versioning" toml:"versioning" gorm:"not null"`
+    InitRelease       ReleaseT     `hcl:"release,block" toml:"-" gorm:"-"`
 }
+
+
+
+
+
+
+type PackageT struct {
+    Name              string     `toml:"name"`
+    PackageIdentifier string     `toml:"package_identifier"`
+    Description       string     `toml:"description,omitempty"`
+    Versioning        string     `toml:"versioning"`
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 func (p *Package) ValidateOnRead() error {
@@ -27,8 +50,3 @@ func (p *Package) ValidateOnRead() error {
 	return nil
 }
 
-type InitRelease struct {
-    Url     string `hcl:"url" toml:"url"`
-    Version string `hcl:"version" toml:"version"`
-    Hash    string `hcl:"hash" toml:"hash"`
-}
