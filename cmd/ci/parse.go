@@ -44,6 +44,8 @@ func parseConfig(raw []byte) error {
         if err != nil {
             return  err
         }
+
+        p.RebuildIndex()
         return nil
 
 

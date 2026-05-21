@@ -7,6 +7,7 @@ package publisher
 	"Pact/corelib/validate"
 	"Pact/corelib/build"
 	"Pact/corelib/pipeline"
+	"Pact/corelib/index"
 )
 
 func NewPackage(pacakge *model.Package, client *client.RepoClient) pipeline.PublisherPackage {
@@ -27,4 +28,8 @@ func (p *PackageContext) Validate() error {
 
 func (p *PackageContext) Build() error {
 	return build.Package(p.Model)
+}
+
+func (p *PackageContext) RebuildIndex() error {
+	return index.Rebuild()
 }

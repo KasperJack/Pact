@@ -32,7 +32,7 @@ func (r ReleaseT) ValidateOnRead () error {
 
 
 type ReleaseDB struct {
-    PackageIdentifier string `gorm:"primaryKey;not null;references:package_identifier"`
+    PackageIdentifier string `gorm:"primaryKey"`
     Version           string `gorm:"primaryKey"`
     Hash              string `gorm:"not null"`
     URL               string `gorm:"not null"`
