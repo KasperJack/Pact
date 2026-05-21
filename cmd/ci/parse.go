@@ -14,7 +14,7 @@ func parseConfig(raw []byte) error {
 	s := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult")
 
 	client := client.NewRepoClient(s)
-
+    
     var config model.Config
 
     err := hclsimple.Decode("package.hcl", raw, nil, &config)

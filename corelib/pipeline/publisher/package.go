@@ -22,12 +22,13 @@ type PackageContext struct {  // Context ? change name
 
 // Package
 func (p *PackageContext) Validate() error {
+	
 	return validate.Package(p.Model,p.Client)
 }
 
 
 func (p *PackageContext) Build() error {
-	return build.Package(p.Model)
+	return build.Package(p.Model,p.Client.GetRoot())
 }
 
 func (p *PackageContext) RebuildIndex() error {

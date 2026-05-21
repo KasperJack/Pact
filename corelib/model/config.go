@@ -7,3 +7,7 @@ type Config struct {
 
 }
 
+type PackageContent struct {
+    Package   PackageT
+    Releases []ReleaseT
+}

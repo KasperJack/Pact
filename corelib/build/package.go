@@ -9,9 +9,9 @@ import (
 
 
 
-func Package(p *model.Package) error {
+func Package(p *model.Package, bucketPath string) error {
 
-	var bucketPath string = "C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult"
+	//var bucketPath string = "C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult"
 
 	packageDir := filepath.Join(bucketPath,p.PackageIdentifier[:2], p.PackageIdentifier) // needs to be created 
 

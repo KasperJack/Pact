@@ -36,3 +36,4 @@ func (fss* FilesystemSource) Fetch (path string) ([]byte, error) {
 
     return data, nil
 }
+func (fss* FilesystemSource) Root() string { return fss.RootDir}

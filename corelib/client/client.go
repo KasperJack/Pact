@@ -6,6 +6,7 @@ import (
 
 type RepositorySource interface {
 	Fetch (path string) ([]byte, error) 
+	Root () string
 }
 
 
@@ -33,4 +34,8 @@ func (rc *RepoClient) PackageExists(packageName string) bool {
 
 	
 	return true
+}
+
+func (rc *RepoClient) GetRoot() string{
+	return rc.source.Root()
 }

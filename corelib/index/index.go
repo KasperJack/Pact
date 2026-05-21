@@ -24,6 +24,9 @@ type User struct {
 func Rebuild() error {
 
 	var pacakges []model.PackageDB
+
+
+	
 /*
 	var pk model.PackageT
 

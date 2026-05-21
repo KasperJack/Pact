@@ -45,6 +45,7 @@ func NewGithubSource(repoURL string, branch string) (RepositorySource, error) {
     }, nil
 }
 
+func (gs *GithubSource) Root() string { return gs.RepoURL}
 
 func (gs *GithubSource) Fetch(path string) ([]byte, error) {
     rawURL, err := gs.buildRawURL(path)
