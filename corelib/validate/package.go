@@ -12,26 +12,19 @@ import (
 func Package(p *model.Package, c *client.RepoClient) error {
 
     ok := c.PackageExists(p.PackageIdentifier)
-
     if ok {
-        // error packag already exists
-        return fmt.Errorf("Package already exists: %s", p.PackageIdentifier)
+        return fmt.Errorf("package %q already exists", p.PackageIdentifier)
     }
 
-    switch p.Versioning {
-
-    case "semver":
-        if !isValidSemver(p.InitRelease.Version) {
-            return fmt.Errorf("invalid semver version: %s", p.InitRelease.Version) }
-    case "date":
-        //
-    case "custom":
-        //
-
-    default:
-        return fmt.Errorf("invalid Versioning: %s", p.Versioning)
+    ok = isValidVersioningSchema(p.Versioning)
+    if !ok {
+        return fmt.Errorf("invalid versioning schema %q", p.Versioning)
     }
-    
+
+    ok = isValidVersion(p.Versioning, p.InitRelease.Version)
+    if !ok {
+        return fmt.Errorf("invalid version %q for versioning schema %q", p.InitRelease.Version, p.Versioning)
+    }
 
     fmt.Println("package validated ok satus")
     //fmt.Println(c.PackageExists("windirstat"))
