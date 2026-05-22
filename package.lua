@@ -1,7 +1,9 @@
-packaghe {
-    package_identifier = "ffd",
+
+package {
+    
+    package_identifier = "55",
     name               = "Python",
-    versioning         = "semver",
+    versioning         = "this" .. "that" ,
 
     description = "Python programming language",
     homepage    = "https://python.org",

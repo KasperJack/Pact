@@ -5,7 +5,7 @@ import (
     //"Pact/corelib/model"
     "Pact/corelib/pipeline/publisher"
 	"Pact/corelib/client"
-    "github.com/yuin/gopher-lua"
+    //"github.com/yuin/gopher-lua"
 
 )
 
@@ -81,10 +81,3 @@ func parseluaConfig(data []byte) error {
 
 
 
-func mustString(tbl *lua.LTable, key string) string {
-    v := tbl.RawGetString(key)
-    if v == lua.LNil {
-        panic("missing required field: " + key)
-    }
-    return v.String()
-}
