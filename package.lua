@@ -1,4 +1,4 @@
-package {
+packaghe {
     package_identifier = "ffd",
     name               = "Python",
     versioning         = "semver",
