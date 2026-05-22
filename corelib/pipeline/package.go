@@ -8,5 +8,5 @@ type VerifierPackage interface {
 type PublisherPackage interface {
     VerifierPackage
     Build() error
-    RebuildIndex () error
+    RebuildIndex() error
 }
