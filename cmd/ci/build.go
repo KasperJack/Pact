@@ -6,7 +6,7 @@ import(
 
 
 func build(path string) error{
-
+	/*
 	raw,err := loadFile(path)
 
 	if err != nil {
@@ -17,8 +17,9 @@ func build(path string) error{
 
 	if err != nil {
 		return err
-	}
+	}*/
 
+	parseluaConfig(path)
 
 	return nil
 }

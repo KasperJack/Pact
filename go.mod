@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/yuin/gopher-lua v1.1.2
 	gorm.io/gorm v1.31.1
 )
 
