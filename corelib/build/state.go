@@ -4,16 +4,16 @@ import (
 
     //"fmt"
     //"Pact/corelib/client"
-    "Pact/corelib/model"
-	"path/filepath"
-	"github.com/BurntSushi/toml"
-	"log"
-	"os"
-	"fmt"
-	"strings"
+    //"Pact/corelib/model"
+	//"path/filepath"
+	//"github.com/BurntSushi/toml"
+	//"log"
+	//"os"
+	//"fmt"
+	//"strings"
 )
 
-
+/*
 func ReadPackages(rootDir string) ([]model.PackageContent, error) {
     var result []model.PackageContent
 
@@ -122,4 +122,4 @@ func loadPackage(path string) (model.PackageContent,error){
 
 
 	return model.PackageContent{Package: pkg, Releases: releases}, nil
-}
+}*/

@@ -4,13 +4,13 @@ import (
     //"fmt"
     //"Pact/corelib/client"
     "Pact/corelib/model"
-	"path/filepath"
+	//"path/filepath"
 )
 
 
 
 func Package(p *model.Package, bucketPath string) error {
-
+/*
 	//var bucketPath string = "C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult"
 
 	packageDir := filepath.Join(bucketPath,p.PackageIdentifier[:2], p.PackageIdentifier) // needs to be created 
@@ -29,5 +29,7 @@ func Package(p *model.Package, bucketPath string) error {
 	if err != nil {
 		return err
 	}
+
+*/
 	return nil
 }

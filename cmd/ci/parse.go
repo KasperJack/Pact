@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	//"github.com/hashicorp/hcl/v2/hclsimple"
     //"Pact/corelib/model"
-    //"Pact/corelib/pipeline/publisher"
-	//"Pact/corelib/client"
+    "Pact/corelib/pipeline/publisher"
+	"Pact/corelib/client"
     "github.com/yuin/gopher-lua"
 
 )
@@ -61,51 +60,26 @@ func parseConfig(raw []byte) error {
 
 }
 */
-type Package struct {
-	PackageIdentifier string
-	Name              string
-	Versioning        string
-	Description       string
-	Homepage          string
-	License           string
-}
 
-func parseluaConfig(path string) error {
-	L := lua.NewState()
-	defer L.Close()
 
-	var result Package
+func parseluaConfig(data []byte) error {
 
-	// We define the "package" function in Lua
-	L.SetGlobal("package", L.NewFunction(func(L *lua.LState) int {
 
-		// first argument is the table passed to package { ... }
-		tbl := L.CheckTable(1)
+	s := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult")
 
-		result = Package{
-			PackageIdentifier: tbl.RawGetString("package_identifier").String(),
-			Name:              mustString(tbl, "name"),
-			Versioning:        tbl.RawGetString("versioning").String(),
-			Description:       tbl.RawGetString("description").String(),
-			Homepage:          tbl.RawGetString("homepage").String(),
-			License:           tbl.RawGetString("license").String(),
-		}
+	client := client.NewRepoClient(s)
 
-		return 0
-	}))
+	_ , err := publisher.NewPackage(data,client)
 
-	// run lua file
-	if err := L.DoFile(path); err != nil {
-		panic(err)
+	if err != nil {
+		return err
 	}
 
-	// use result in Go
-	fmt.Printf("%+v\n", result)
-
-  
-
-    return nil
+	
+	return nil
 }
+
+
 
 func mustString(tbl *lua.LTable, key string) string {
     v := tbl.RawGetString(key)

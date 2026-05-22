@@ -21,9 +21,9 @@ func Package(p *model.Package, c *client.RepoClient) error {
         return fmt.Errorf("invalid versioning schema %q", p.Versioning)
     }
 
-    ok = isValidVersion(p.Versioning, p.InitRelease.Version)
+    ok = isValidVersion(p.Versioning, p.Versioning) //??????
     if !ok {
-        return fmt.Errorf("invalid version %q for versioning schema %q", p.InitRelease.Version, p.Versioning)
+        return fmt.Errorf("invalid version %q for versioning schema %q", p.Versioning, p.Versioning) //??????
     }
 
     fmt.Println("package validated ok satus")
