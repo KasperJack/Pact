@@ -6,7 +6,7 @@ import (
 	"Pact/corelib/model"
 	"Pact/corelib/pipeline"
 	"Pact/corelib/validate"
-	"fmt"
+	//"fmt"
 	//"Pact/corelib/index"
 	"Pact/corelib/luautil"
 )
@@ -23,13 +23,13 @@ func NewPackage(luaData []byte, client *client.RepoClient) (pipeline.PublisherPa
     }
 
 	
-	fmt.Println(pacakge.PackageIdentifier)
-	fmt.Println(pacakge.Name)
-	fmt.Println(pacakge.Versioning)
+	//fmt.Println(pacakge.PackageIdentifier)
+	//fmt.Println(pacakge.Name)
+	//fmt.Println(pacakge.Versioning)
 
-	fmt.Println(pacakge.Description)
-	fmt.Println(pacakge.Homepage)
-	fmt.Println(pacakge.License)
+	//fmt.Println(pacakge.Description)
+	//fmt.Println(pacakge.Homepage)
+	//fmt.Println(pacakge.License)
 
     return &PackageContext{Model: &pacakge, Client: client}, nil
 }
