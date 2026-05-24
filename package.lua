@@ -10,22 +10,14 @@ package {
     homepage    = "https://python.org",
     license     = "PSF",
     
-    
 
-    install = function()
-        printFrlomGo("fd")
-  
-    end,
+    persist = {
+        "data/",
+        "config/"
+    }
 
-    function sayHello()
-        print("Hello, World!")
-    end
+
+
 }
 
 
-install = function()
-    print("gg")
-    printFromGo("hello fdsdsds")
-    printFromGs("hello fdsdsds")
-    print("gg")
-end

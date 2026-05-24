@@ -44,3 +44,48 @@ L.SetGlobal("loadfile",  lua.LNil)
 L.SetGlobal("load",      lua.LNil)
 L.SetGlobal("loadstring",lua.LNil)
 L.SetGlobal("require",   lua.LNil)
+
+
+
+
+
+
+
+
+
+
+hash the install directory for version tracking 
+
+
+⚠ python: expected 3.12.0, found 3.12.4
+   package may have been modified outside of your tool
+   run 'yourpm sync python' to update records
+
+portable ? 
+has auto update ? 
+
+track version ? 
+
+can be installed in any dir ? 
+
+needs admin install ? 
+
+can multiple versions be installed side by side ? 
+
+
+migrate = {
+    from = "1.x",
+    move = {
+        {"/etc/app", "/var/lib/app/config"}
+    }
+}
+
+
+    migrate = function()
+        -- move old config
+    end
+
+
+scoop packages  →  test suite for the API
+if i can express every scoop package in the Lua DSL
+i've won
