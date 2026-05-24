@@ -9,14 +9,13 @@ package {
     homepage    = "https://python.org",
     license     = "PSF",
 
-  
 
 }
 
 package {
     
-    package_identifier = "python",
-    name               = "Python",
+    package_identifier = "otherpcakge",
+    name               = "other package",
     versioning         = "this" .. "that" ,
 
     description = "Python programming language",
@@ -26,5 +25,3 @@ package {
 
 
 }
-print("gg")
-foo("bar","bar2")

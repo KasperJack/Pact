@@ -20,14 +20,13 @@ func NewPackageEvalContext(pkg *model.Package) *PackageEvalContext {
         pkg: pkg,
     }
     ctx.l.SetGlobal("package", ctx.l.NewFunction(ctx.fnPackage))
-	//fmt.Println(allowedKeysFromStruct(&model.Package{}))
     return ctx
 }
 
 func (ctx *PackageEvalContext) fnPackage(L *lua.LState) int {
     tbl := L.CheckTable(1)
 
-	checkNoExtraKeys(L,tbl,allowedKeysFromStruct(&model.Package{}))
+	checkNoExtraKeys(L,tbl,allowedKeysFromStruct(&model.Package{})) // rasies an lua error 
 
     ctx.pkg.PackageIdentifier = requiredString(L, tbl, "package_identifier")
     ctx.pkg.Name              = requiredString(L, tbl, "name")
@@ -40,8 +39,8 @@ func (ctx *PackageEvalContext) fnPackage(L *lua.LState) int {
 }
 
 func (ctx *PackageEvalContext) Eval(luaData []byte) error {
-    //return ctx.l.DoString(string(luaData))
-    return parceLua(luaData)
+    return ctx.l.DoString(string(luaData))
+    //return parceLua(luaData)
 }     
 
 func (ctx *PackageEvalContext) Close() {
