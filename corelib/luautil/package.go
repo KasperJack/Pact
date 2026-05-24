@@ -55,13 +55,59 @@ func parceLua (LuaData []byte) error {
         return  err
     }
 
-    for _, stmt := range chunk {
-    if fs, ok := stmt.(*ast.FuncDefStmt); ok {
-        if ident, ok := fs.Name.Func.(*ast.IdentExpr); ok {
-            fmt.Println(ident.Value)
-            }
+    findCalls(chunk)
+    return nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+func findCalls(stmts []ast.Stmt) {
+    for _, stmt := range stmts {
+        walkStmt(stmt)
+    }
+}
+
+func walkStmt(stmt ast.Stmt) {
+    switch s := stmt.(type) {
+    case *ast.FuncCallStmt:
+        walkExpr(s.Expr)
+    case *ast.FuncDefStmt:
+        findCalls(s.Func.Stmts)
+    case *ast.IfStmt:
+        findCalls(s.Then)
+        findCalls(s.Else)
+    case *ast.ReturnStmt:
+        for _, e := range s.Exprs {
+            walkExpr(e)
+        }
+    // add more cases as needed...
+    }
+}
+
+func walkExpr(expr ast.Expr) {
+    switch e := expr.(type) {
+    case *ast.FuncCallExpr:
+        fmt.Printf("called: %v, args: %d\n", e.Func, len(e.Args))
+        // recurse into args too
+        for _, arg := range e.Args {
+            walkExpr(arg)
         }
     }
-
-    return nil
 }

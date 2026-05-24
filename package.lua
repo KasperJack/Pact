@@ -1,4 +1,4 @@
-do
+
 package {
     
     package_identifier = "python",
@@ -9,11 +9,11 @@ package {
     homepage    = "https://python.org",
     license     = "PSF",
 
-
+  
 
 }
-end
-package = {
+
+package {
     
     package_identifier = "python",
     name               = "Python",
@@ -26,3 +26,5 @@ package = {
 
 
 }
+print("gg")
+foo("bar","bar2")
