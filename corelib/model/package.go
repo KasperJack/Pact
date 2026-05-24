@@ -1,5 +1,5 @@
 package model
-
+import ("github.com/yuin/gopher-lua")
 
 type Package struct {
 	PackageIdentifier string `lua:"package_identifier"`
@@ -8,6 +8,7 @@ type Package struct {
 	Description       string `lua:"description"`
 	Homepage          string `lua:"homepage"`
 	License           string `lua:"license"`
+	InstallFn         *lua.LFunction `lua:"install"`
 }
 
 

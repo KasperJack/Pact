@@ -16,17 +16,18 @@ type PackageEvalContext struct {
 
 func NewPackageEvalContext(pkg *model.Package) *PackageEvalContext {
     ctx := &PackageEvalContext{
-        l:   lua.NewState(),
+        l:   lua.NewState(lua.Options{SkipOpenLibs: true}), // no open libs
         pkg: pkg,
     }
     ctx.l.SetGlobal("package", ctx.l.NewFunction(ctx.fnPackage))
+    ctx.l.SetGlobal("printFromGo", ctx.l.NewFunction(ctx.fnPrintFromGo))
     return ctx
 }
 
 func (ctx *PackageEvalContext) fnPackage(L *lua.LState) int {
     tbl := L.CheckTable(1)
 
-	checkNoExtraKeys(L,tbl,allowedKeysFromStruct(&model.Package{})) // rasies an lua error 
+	checkNoExtraKeys(L,tbl,allowedKeysFromStruct(&model.Package{})) // rasies a lua error 
 
     ctx.pkg.PackageIdentifier = requiredString(L, tbl, "package_identifier")
     ctx.pkg.Name              = requiredString(L, tbl, "name")
@@ -35,8 +36,21 @@ func (ctx *PackageEvalContext) fnPackage(L *lua.LState) int {
     ctx.pkg.Homepage          = optionalString(L, tbl,"homepage","deflt")
     ctx.pkg.License           = optionalString(L, tbl,"license","deflt")
 
+
+    installFn, ok := L.GetField(tbl, "install").(*lua.LFunction)
+    if ok {
+        ctx.pkg.InstallFn = installFn
+
+    }
+
+
+
+
     return 0
 }
+
+
+
 
 func (ctx *PackageEvalContext) Eval(luaData []byte) error {
     return ctx.l.DoString(string(luaData))
@@ -58,10 +72,23 @@ func parceLua (LuaData []byte) error {
     return nil
 }
 
+func (ctx *PackageEvalContext) fnPrintFromGo(l *lua.LState) int {
+    arg := l.CheckString(1) // get the first argument from Lua
+    fmt.Println(arg)
+    return 0 // number of return values pushed onto the stack
+}
 
 
-
-
+func (ctx *PackageEvalContext) RunInstall() error {
+    if ctx.pkg.InstallFn == nil {
+        return fmt.Errorf("no install function defined")
+    }
+    return ctx.l.CallByParam(lua.P{
+        Fn:      ctx.pkg.InstallFn,
+        NRet:    0,
+        Protect: true,
+    })
+}
 
 
 
