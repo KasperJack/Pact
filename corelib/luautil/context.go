@@ -62,15 +62,7 @@ func (ctx *PackageEvalContext) Close() {
 }
 
 
-func parceLua (LuaData []byte) error {
-    chunk, err := parse.Parse(strings.NewReader(string(LuaData)), "<string>")
-    if err != nil {
-        return  err
-    }
 
-    findCalls(chunk)
-    return nil
-}
 
 func (ctx *PackageEvalContext) fnPrintFromGo(l *lua.LState) int {
     arg := l.CheckString(1) // get the first argument from Lua
@@ -100,6 +92,16 @@ func (ctx *PackageEvalContext) RunInstall() error {
 
 
 
+
+func parceLua (LuaData []byte) error {
+    chunk, err := parse.Parse(strings.NewReader(string(LuaData)), "<string>")
+    if err != nil {
+        return  err
+    }
+
+    findCalls(chunk)
+    return nil
+}
 
 
 

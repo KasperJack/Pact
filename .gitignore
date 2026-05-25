@@ -12,4 +12,5 @@ test-buckets/
 *.pact
 *.conf
 bench.ps1
+bench.py
 *.db
