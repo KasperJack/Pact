@@ -105,8 +105,8 @@ print()
 
 
 
-wtf is this man 
-PS C:\Users\Aya> Measure-Command {scoop search google}
+
+PS > Measure-Command {scoop search google}
 Results from local buckets...
 
 
