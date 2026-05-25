@@ -79,7 +79,7 @@ func (ctx *PackageEvalContext) RunInstall() error {
         Fn:      ctx.pkg.InstallFn,
         NRet:    0,
         Protect: true,
-    })
+    },ctx.buildCtxTable())
 }
 
 
