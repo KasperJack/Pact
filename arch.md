@@ -89,3 +89,59 @@ migrate = {
 scoop packages  →  test suite for the API
 if i can express every scoop package in the Lua DSL
 i've won
+low barrier, high readability
+
+
+
+
+verify final build with a global hash ? 
+
+
+pause() pause lua code resumed by go cli ?
+assert()
+print()
+
+
+
+
+
+wtf is this man 
+PS C:\Users\Aya> Measure-Command {scoop search google}
+Results from local buckets...
+
+
+Days              : 0
+Hours             : 0
+Minutes           : 0
+Seconds           : 26
+Milliseconds      : 289
+Ticks             : 262892443
+TotalDays         : 0.00030427366087963
+TotalHours        : 0.00730256786111111
+TotalMinutes      : 0.438154071666667
+TotalSeconds      : 26.2892443
+TotalMilliseconds : 26289.2443
+
+
+clone/pull git repo     ???
+read every single JSON  ???
+grep through them all   ???
+
+
+
+
+
+
+winget      ->  too rigid, yaml, Microsoft controlled
+even more rigid than scoop JSON no logic whatsoever if the installer needs anything custom you're stuck
+
+
+chocolatey   ->  too complex, .NET dependency, no sandbox
+requires .NET runtime
+requires NuGet format
+PowerShell all the way down
+no sandbox whatsoever
+complex to contribute to
+
+
+scoop       ->  sweet spot but PowerShell tax, JSON ceiling
