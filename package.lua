@@ -10,11 +10,19 @@ package {
     homepage    = "https://python.org",
     license     = "PSF",
     
+    
+    --persist = {
+     --   "data/",
+    --    "config/"
+    --}
 
-    persist = {
-        "data/",
-        "config/"
-    }
+    install = function(ctx)
+        ctx.fs.extract("/stage","/sofware-location")
+        ctx.fs.glob()
+    end
+
+
+
 
 
 

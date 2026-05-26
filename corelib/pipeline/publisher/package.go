@@ -30,12 +30,12 @@ func NewPackage(luaData []byte, client *client.RepoClient) (pipeline.PublisherPa
 	fmt.Println(pacakge.Description)
 	fmt.Println(pacakge.Homepage)
 	fmt.Println(pacakge.License)
-	/*
+	
 	err := ctx.RunInstall()
 
 	if err != nil {
 		return nil,err
-	}*/
+	}
 
     return &PackageContext{Model: &pacakge, Client: client}, nil
 }

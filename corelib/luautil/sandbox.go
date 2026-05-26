@@ -7,7 +7,6 @@ import (
 
 )
 
-
 type Capabilities struct {
     FS       providers.FileSystem
     Registry providers.Registry
@@ -22,12 +21,17 @@ const (
     SandboxDry                          // pact ci no real side effects
 
 )
+// caps Capabilities
+func bootstrap(L *lua.LState) *lua.LTable {
 
-func bootstrap(L *lua.LState, caps Capabilities) *lua.LTable {
+    caps := Capabilities{
+        FS: new(providers.TestFs),
+        // the rest
+    }
     ctx := L.NewTable()
     L.SetField(ctx, "fs",       buildFS(L, caps.FS))
-    L.SetField(ctx, "reg", buildRegistry(L, caps.Registry))
-    L.SetField(ctx, "env",      buildEnv(L, caps.Env))
+    //L.SetField(ctx, "reg", buildRegistry(L, caps.Registry))
+    //L.SetField(ctx, "env",      buildEnv(L, caps.Env))
     return ctx
 }
 

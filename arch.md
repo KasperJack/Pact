@@ -145,3 +145,64 @@ complex to contribute to
 
 
 scoop       ->  sweet spot but PowerShell tax, JSON ceiling
+
+
+
+package.hcl
+releases/
+  1.2.3/
+    release.hcl
+    script.lua
+
+
+
+
+├───git
+│   │   git.hcl
+│   │
+│   ├───1.2.3
+│   │       release.hcl
+│   │       script.lua
+│   │
+│   └───1.3.1
+│           release.hcl
+│           script.lua
+│
+└───python
+    │   python.hcl
+    │
+    ├───1.2.3
+    │       release.hcl
+    │       script.lua
+    │
+    └───1.3.1
+            release.hcl
+            script.lua
+
+
+
+----------------------------------------------
+
+├───git
+│   │   git.hcl
+│   │
+│   └───versions
+│       ├───1.2.3
+│       │       release.hcl
+│       │       script.lua
+│       │
+│       └───1.3.1
+│               release.hcl
+│               script.lua
+│
+└───python
+    │   python.hcl
+    │
+    └───versions
+        ├───1.2.3
+        │       release.hcl
+        │       script.lua
+        │
+        └───1.3.1
+                release.hcl
+                script.lua

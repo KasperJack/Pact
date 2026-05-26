@@ -4,7 +4,6 @@ import (
     "fmt"
     "os"
 
-    "github.com/yourname/pact-runner/runner"
 )
 
 
@@ -20,4 +19,5 @@ func main() {
         fmt.Fprintf(os.Stderr, "error: %v\n", err)
         os.Exit(1)	 
     }
+    fmt.Printf("%d", "hello")
 }
