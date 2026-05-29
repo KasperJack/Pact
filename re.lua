@@ -17,18 +17,21 @@ source = {
 }
 
 install = function(ctx)
+
+    -- all changes happen inside the dist ? 
     ctx.extract(ctx.dist(), ctx.staging())
 
     if ctx.os.x64() then
         ctx.move(ctx.path.join(ctx.staging(), "x64/*"), ctx.dir())
     elseif ctx.os.x86() then
         ctx.move(ctx.path.join(ctx.staging(), "x86/*"), ctx.dir())
-    elseif ctx.os.arm64 then
+    elseif ctx.os.arm64() then
         ctx.move(ctx.path.join(ctx.staging, "arm64/*"), ctx.dir)
     end
 end
 
 post_install = function(ctx)
+    -- everything created here is reversable ? 
     ctx.shortcut(ctx.path.join(ctx.dir(), "WinDirStat.exe"), "WinDirStat")
 end
 

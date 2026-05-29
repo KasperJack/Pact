@@ -16,7 +16,8 @@ package {
     --    "config/"
     --}
 
-    install = function(ctx)
+    function install ()
+        
         ctx.fs.extract("/stage","/sofware-location")
         ctx.fs.glob()
     end

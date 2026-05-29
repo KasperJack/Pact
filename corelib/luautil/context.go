@@ -3,10 +3,11 @@ package luautil
 import (
 	"Pact/corelib/model"
 	"fmt"
-    "strings"
+    //"strings"
+    "log"
 	"github.com/yuin/gopher-lua"
-    "github.com/yuin/gopher-lua/parse"
-    "github.com/yuin/gopher-lua/ast"
+    //"github.com/yuin/gopher-lua/parse"
+    //"github.com/yuin/gopher-lua/ast"
 )
 
 type PackageEvalContext struct {
@@ -49,9 +50,6 @@ func (ctx *PackageEvalContext) fnPackage(L *lua.LState) int {
     return 0
 }
 
-
-
-
 func (ctx *PackageEvalContext) Eval(luaData []byte) error {
     return ctx.l.DoString(string(luaData))
     //return parceLua(luaData)
@@ -93,49 +91,59 @@ func (ctx *PackageEvalContext) RunInstall() error {
 
 
 
-func parceLua (LuaData []byte) error {
-    chunk, err := parse.Parse(strings.NewReader(string(LuaData)), "<string>")
-    if err != nil {
-        return  err
-    }
 
-    findCalls(chunk)
+
+
+
+
+type TestEvalContext struct {
+    l   *lua.LState
+
+}
+
+
+func NewTestEvalContext() *TestEvalContext {
+    ctx := &TestEvalContext{
+        l:   lua.NewState(lua.Options{SkipOpenLibs: true}), // no open libs
+    }
+    //ctx.l.SetGlobal("package", ctx.l.NewFunction(ctx.fnPackage))
+    //ctx.l.SetGlobal("printFromGo", ctx.l.NewFunction(ctx.fnPrintFromGo))
+    return ctx
+}
+
+
+
+
+func (ctx *TestEvalContext) Eval(luaData []byte) error {
+    return ctx.l.DoString(string(luaData))
+    //return parceLua(luaData)
+}     
+
+func (ctx *TestEvalContext) Close() {
+    ctx.l.Close()
+}
+
+
+func (ctx *TestEvalContext) RunInstall() error {
+
+
+    onInstallFunc := ctx.l.GetGlobal("install")
+
+	if onInstallFunc.Type() != lua.LTFunction {
+		log.Fatal("install function not found")
+	}
+    ctx.l.SetFEnv(onInstallFunc, bootstrap(ctx.l))
+
+
+    err := ctx.l.CallByParam(lua.P{
+		Fn:      onInstallFunc,
+		NRet:    0,
+		Protect: true,
+	})
+	if err != nil {
+		return err
+	}
+
     return nil
-}
 
-
-
-
-func findCalls(stmts []ast.Stmt) {
-    for _, stmt := range stmts {
-        walkStmt(stmt)
-    }
-}
-
-func walkStmt(stmt ast.Stmt) {
-    switch s := stmt.(type) {
-    case *ast.FuncCallStmt:
-        walkExpr(s.Expr)
-    case *ast.FuncDefStmt:
-        findCalls(s.Func.Stmts)
-    case *ast.IfStmt:
-        findCalls(s.Then)
-        findCalls(s.Else)
-    case *ast.ReturnStmt:
-        for _, e := range s.Exprs {
-            walkExpr(e)
-        }
-    // add more cases as needed...
-    }
-}
-
-func walkExpr(expr ast.Expr) {
-    switch e := expr.(type) {
-    case *ast.FuncCallExpr:
-        fmt.Printf("called: %v, args: %d\n", e.Func, len(e.Args))
-        // recurse into args too
-        for _, arg := range e.Args {
-            walkExpr(arg)
-        }
-    }
 }

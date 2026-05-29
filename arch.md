@@ -206,3 +206,85 @@ releases/
         └───1.3.1
                 release.hcl
                 script.lua
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------
+-- download and verify the installer
+installer = fetch "https://github.com/git-for-windows/.../Git-2.44.0-64-bit.exe"
+             verify sha256 "c9f1a3..."
+
+-- run it; language knows inno setup flags so you don't have to
+run installer as inno:
+  components = "gitlfs,assoc"
+  editor     = "VIM"
+  line_ending = checkout_as_is
+
+-- first-class path manipulation
+path.add "%ProgramFiles%\Git\cmd"
+
+-- first-class registry, no cryptic ps syntax
+registry.set HKLM\Software\GitForWindows\InstallPath
+             = "%ProgramFiles%\Git"
+
+-- assert the install worked before returning
+expect shell.output("git --version") contains "2.44.0"
+---------------------------------------------------------
+-- conditionally choose the right package
+let driver_ver = registry.read HKLM\...\NVCUDA\DriverVersion
+
+if driver_ver < "531.00":
+  fail "GPU driver too old — update driver first (need 531+)"
+
+-- pick the right build for the machine
+let pkg = match system.arch:
+  x64   => fetch "https://developer.nvidia.com/.../cuda_12.4_win10_x64.exe"
+  arm64 => fail "CUDA not supported on ARM"
+
+run pkg as nsis:
+  components = "compiler,libraries,tools"
+
+-- add multiple paths in one go
+path.add:
+  "%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin"
+  "%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v12.4\libnvvp"
+
+-- set env vars — native concept, no setx boilerplate
+env.set CUDA_PATH = "%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v12.4"
+
+-- verify a binary exists and runs
+expect file.exists "%CUDA_PATH%\bin\nvcc.exe"
+expect shell.exit_ok("nvcc --version")
+-------------------------------------------------------------
+
+-- filesystem
+file.copy    "src\thing.dll"  to="%System32%"
+file.extract "app.zip"        to="%ProgramFiles%\MyApp"
+file.delete  "%TEMP%\setup.exe"
+dir.create   "%AppData%\MyApp\logs"
+
+-- registry
+registry.set    HKCU\...\MyApp\Theme = "dark"
+registry.read   HKLM\...\Version          -- returns a value
+registry.delete HKCU\...\OldKey
+registry.exists HKLM\...\MyApp            -- returns bool
+
+-- environment + path
+env.set     MY_VAR = "%ProgramFiles%\MyApp"  scope=machine
+path.add    "%ProgramFiles%\MyApp\bin"
+path.remove "%ProgramFiles%\OldApp\bin"
+
+-- processes + services
+service.install "MyApp" exe="%ProgramFiles%\MyApp\svc.exe"
+service.start   "MyApp"
+service.stop    "MyApp"
+shell.run       "netsh advfirewall ..."
+
+-- system inspection
+system.arch          -- x64 | arm64
+system.windows_ver   -- "11" | "10" | "server2022"
+system.is_admin      -- bool
+system.reboot_needed -- bool, set automatically after some ops

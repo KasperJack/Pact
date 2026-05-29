@@ -3,9 +3,10 @@ package main
 import (
 	//"github.com/hashicorp/hcl/v2/hclsimple"
     //"Pact/corelib/model"
-    "Pact/corelib/pipeline/publisher"
-	"Pact/corelib/client"
+    //"Pact/corelib/pipeline/publisher"
+	//"Pact/corelib/client"
     //"github.com/yuin/gopher-lua"
+    "Pact/corelib/luautil"
 
 )
 
@@ -64,7 +65,7 @@ func parseConfig(raw []byte) error {
 
 func parseluaConfig(data []byte) error {
 
-
+    /*
 	s := client.NewLFilesystemSource("C:\\Users\\Aya\\Desktop\\pact-tools\\test-buckets\\defult")
 
 	client := client.NewRepoClient(s)
@@ -73,9 +74,22 @@ func parseluaConfig(data []byte) error {
 
 	if err != nil {
 		return err
-	}
+	}*/
 
-	
+	t := luautil.NewTestEvalContext()
+
+     err := t.Eval(data)
+    if err != nil {
+        return err
+    }
+
+    err = t.RunInstall()
+
+    if err != nil {
+        return err
+    }
+
+
 	return nil
 }
 

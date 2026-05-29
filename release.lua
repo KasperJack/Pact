@@ -19,7 +19,7 @@ python {
         local py_root    = dir():gsub("\\", "\\\\")
         local py_version = version():match("^(%d+%.%d+)")
 
-        PACT("detect architecture")
+     
 
         for _, reg_file in ipairs({ "install-pep-514.reg", "uninstall-pep-514.reg" }) do
             replace_in_file(script(reg_file), dir(reg_file), {
