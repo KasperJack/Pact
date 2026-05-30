@@ -1,23 +1,51 @@
 package main
 
+
 import (
-    "fmt"
-    "os"
+
+	"os"
+	"fmt"
 
 )
 
+func main(){
 
-func main() {
-    if len(os.Args) < 2 {
-        fmt.Println("usage: pact-runner <package.lua>")
-        os.Exit(1)
-    }
+	if len(os.Args) <= 2 {
+		fmt.Println("expected command: install <arg>")
+		os.Exit(1)
+	}
 
-    path := os.Args[1]
+	switch os.Args[1] {
 
-    if err := runner.RunFile(path); err != nil {
-        fmt.Fprintf(os.Stderr, "error: %v\n", err)
-        os.Exit(1)	 
-    }
-    fmt.Printf("%d", "hello")
+	case "build":
+		fmt.Printf("install %s \n","Package")
+		install_cmd(os.Args[2])
+		
+	default:
+		fmt.Println("expected command: install <Package>")
+		os.Exit(1)
+
+	}
+
+}
+
+
+
+func install_cmd (pkg string){
+
+	//index.LoadToml()
+	
+	//index.Ass()
+	
+	err := install(pkg)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+
+	fmt.Println("ok")
+	
+
 }

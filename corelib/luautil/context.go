@@ -8,6 +8,9 @@ import (
 	"github.com/yuin/gopher-lua"
     //"github.com/yuin/gopher-lua/parse"
     //"github.com/yuin/gopher-lua/ast"
+    "io"
+	"net/http"
+	"os"
 )
 
 type PackageEvalContext struct {
@@ -126,6 +129,10 @@ func (ctx *TestEvalContext) Close() {
 
 func (ctx *TestEvalContext) RunInstall() error {
 
+    err := downloadFile("https://github.com/windirstat/windirstat/releases/download/release%2Fv2.6.1/WinDirStat.zip")
+    if err!= nil {
+        log.Fatal(err)
+    }
 
     onInstallFunc := ctx.l.GetGlobal("install")
 
@@ -135,7 +142,7 @@ func (ctx *TestEvalContext) RunInstall() error {
     ctx.l.SetFEnv(onInstallFunc, bootstrap(ctx.l))
 
 
-    err := ctx.l.CallByParam(lua.P{
+    err = ctx.l.CallByParam(lua.P{
 		Fn:      onInstallFunc,
 		NRet:    0,
 		Protect: true,
@@ -147,3 +154,28 @@ func (ctx *TestEvalContext) RunInstall() error {
     return nil
 
 }
+
+
+
+
+func downloadFile(url string) error {
+	
+
+
+	resp, err := http.Get(url)
+	if err != nil {
+		 return  err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create("dist/dist.dist")
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		return err
+	}
+    return nil
+}   

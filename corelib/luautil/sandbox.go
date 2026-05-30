@@ -69,3 +69,12 @@ func buildEnv(L *lua.LState, env providers.Environment) *lua.LTable {
 
     return tbl
 }
+
+
+func buildOs(L *lua.LState) *lua.LTable {
+    tbl := L.NewTable()
+    L.SetField(tbl, "x64",   lua.LBool(runtime.GOARCH == "amd64"))
+    L.SetField(tbl, "x86",   lua.LBool(runtime.GOARCH == "386"))
+    L.SetField(tbl, "arm64", lua.LBool(runtime.GOARCH == "arm64"))
+    return tbl
+}
