@@ -11,6 +11,7 @@ test-buckets/
 .env
 *.pact
 *.conf
-bench.ps1
-bench.py
+*.ps1
+*.py
 *.db
+*.sum
