@@ -1,8 +1,12 @@
 package main
 
-import "github.com/kasperjack/pact/lib"
+import (
+	"fmt"
+
+	//"github.com/kasperjack/pact/lib"
+)
 
 func main() {
 
-lib.Check()
+fmt.Println("gg")
 }

@@ -1,11 +1,11 @@
 BIN_DIR=bin
 
-build-pactci:
-	go build -o $(BIN_DIR)/pact-ci.exe ./cmd/ci
+build-runner:
+	go build -o $(BIN_DIR)/runner.exe ./runner
 
-build-pcatbuild:
-	go build -o $(BIN_DIR)/pcat-check.exe ./cmd/check
+build-ci:
+	go build -o $(BIN_DIR)/ci.exe ./ci
 
 build-all:
-	make build-pactci
-	make build-pcatbuild
+	make build-runner
+	make build-ci

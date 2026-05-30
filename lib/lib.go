@@ -7,5 +7,5 @@ import "fmt"
 
 func Check () {
 
-	fmt.Println("ping pong")
+	fmt.Println("ping vvpong")
 }
