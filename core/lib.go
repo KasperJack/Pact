@@ -47,7 +47,7 @@ type LocalState interface {
 type Repo interface {
 
 	PackageExists(string) (bool,error)
-	LoadPackage(string,string) (PackageFiles,error)
+	LoadPackage(packageName string, version string) (PackageFiles,error)
 	GetVersions(string) ([]string,error)
 
 }

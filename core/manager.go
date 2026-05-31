@@ -22,6 +22,10 @@ type pkgManager struct { // lowercase, hidden from outside
 
 func (m *pkgManager) Install(pkgName string) error {
 
+	// check if pcakge is already installed 
+	// ehck if pakge supports multiple version 
+
+
 	ok, err := m.repo.PackageExists(pkgName)
 
 	if err != nil {
@@ -33,6 +37,17 @@ func (m *pkgManager) Install(pkgName string) error {
 	}
 
 	
+
+
+	pf,err := m.repo.LoadPackage(pkgName,"2.6.1")
+	if err != nil {
+		return err
+	}
+
+
+	//fmt.Println(pf.Package.Description)
+	//fmt.Println(pf.Release.Source.X86.URL)
+
 
 
 	return nil
