@@ -3,34 +3,33 @@ package core
 
 import (
 	"io"
-	"fmt"
+	//"fmt"
 )
 
 
-type Input struct {
-    PackageFile  io.Reader
-    RelaseFile    io.Reader
+type PackageFiles struct {
+    Package  io.Reader
+    Release    io.Reader
     LuaScript  io.Reader
 }
 
-func Process(input Input) error {
-
-
-	config, _ := io.ReadAll(input.PackageFile)
-    data, _   := io.ReadAll(input.RelaseFile)
-    schema, _ := io.ReadAll(input.LuaScript)
-
-	fmt.Println(string(config))
-	fmt.Println(string(schema))
-	fmt.Println(string(data))
-	return nil
-}
 
 
 
 type LocalState interface {
+	// this is an fs pov
+	GetLockFile() (io.ReadWriter,error)
+	CreatePackage(string) error
+	GetPackagePath()
+	PackageExists(string) bool
 
-	GetLockFile() []byte
-	LoadPackage()
+}
+
+
+type Repo interface {
+
+	PackageExists(string) (bool,error)
+	LoadPackage(string,string) (PackageFiles,error)
+	GetVersions(string) ([]string,error)
 
 }
