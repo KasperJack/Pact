@@ -28,7 +28,9 @@ func (m *pkgManager) Install(pkgName string) error {
 		return err
 	}
 
-	if ok {fmt.Println("found pcakge ")}else{fmt.Println(" did not find pcakge")}
+	if !ok {
+		return fmt.Errorf("package not found")
+	}
 
 	
 

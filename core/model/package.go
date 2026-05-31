@@ -1,13 +1,12 @@
 package model
 
 
+
 type Package struct {
-	PackageIdentifier string `lua:"package_identifier"`
-	Name              string `lua:"name"`
-	Versioning        string `lua:"versioning"`
-	Description       string `lua:"description"`
-	Homepage          string `lua:"homepage"`
-	License           string `lua:"license"`
+    Identifier  string `hcl:"identifier"`
+    Name        string `hcl:"name"`
+    Versioning  string `hcl:"versioning"`
+    Description string `hcl:"description,optional"`
+    Homepage    string `hcl:"homepage,optional"`
+    License     string `hcl:"license,optional"`
 }
-
-
