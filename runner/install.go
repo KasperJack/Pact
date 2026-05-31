@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"path"
+	//"os"
+	//"path"
 	//"path/filepath"
 
 	"github.com/kasperjack/pact/core"
@@ -11,54 +10,19 @@ import (
 
 func install (pkg string, version string) error {
 
-	bucket := "test-buckets"
-	pkgPath := path.Join(bucket,pkg)
+	//r := repo{}
 
-	info, err := os.Stat(pkgPath)
-	if err != nil {
-		return err
-	}
-
-	if  !info.IsDir() {
-		return fmt.Errorf("path isnot a dir")
-	}
-
-
-
-	pkgFilePath :=  path.Join(pkgPath,fmt.Sprintf("%s.hcl",pkg))
-	pkgFile, err := os.Open(pkgFilePath)
-	if err != nil {
-		return err
-	}
-	defer pkgFile.Close()
-
-
-
-	releaseFilePath := path.Join(pkgPath,version,"release.hcl")
-	releaseFile, err := os.Open(releaseFilePath)
-	if err != nil {
-		return err
-	}
-	defer releaseFile.Close()
-
-	sciptFilePath := path.Join(pkgPath,version,"script.lua")
-	scriptFile, err := os.Open(sciptFilePath)
-	if err != nil {
-		return err
-	}
-	defer scriptFile.Close()
-
-
-
-	i := core.Input{
-    Package: pkgFile,
-    Release: releaseFile,
-    Script:  scriptFile,
-}
+	repo := NewLocalRepo("C:\\Users\\Aya\\Desktop\\pact\\bin\\test-buckets")
+	localState := NewLocalState("ass")
 	
 
-	
-	
+	m := core.NewManager(localState,repo)
+
+
+	err := m.Install(pkg)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

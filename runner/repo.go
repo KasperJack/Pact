@@ -7,15 +7,25 @@ import(
 	"fmt"
 )
 
-type Repo struct {
-	RepoRoot string
+type repo struct {
+	repoRoot string
 }
 
 
 
-func (r *Repo) PackageExists(packageName string) (bool,error) {
+func NewLocalRepo(repoRoot string) core.Repo {
 
-	pkgPath := path.Join(r.RepoRoot,packageName)
+	return &repo{repoRoot: repoRoot}
+}
+
+
+
+
+
+
+func (r *repo) PackageExists(packageName string) (bool,error) {
+
+	pkgPath := path.Join(r.repoRoot,packageName)
 
 	info, err := os.Stat(pkgPath)
 	if err != nil {
@@ -34,10 +44,10 @@ func (r *Repo) PackageExists(packageName string) (bool,error) {
 
 
 
-func (r *Repo) GetVersions(packageName string) ([]string, error) {
+func (r *repo) GetVersions(packageName string) ([]string, error) {
 
 
-    pkgPath := path.Join(r.RepoRoot, packageName)
+    pkgPath := path.Join(r.repoRoot, packageName)
 
     entries, err := os.ReadDir(pkgPath)
     if err != nil {
@@ -57,41 +67,43 @@ func (r *Repo) GetVersions(packageName string) ([]string, error) {
 
 
 
-func (r *Repo) LoadPackage(packageName string, version string) (core.PackageFiles,error) {
+func (r *repo) LoadPackage(packageName string, version string) (core.PackageFiles,error) {
 
-	pkgPath := path.Join(r.RepoRoot,packageName)
+    pkgFilePath := path.Join(r.repoRoot, packageName, fmt.Sprintf("%s.hcl", packageName))
+    pkgData, err := os.ReadFile(pkgFilePath)
+    if err != nil {
+        return core.PackageFiles{}, err
+    }
+    pkg, err := core.ParcePacakge(pkgData)
+    if err != nil {
+        return core.PackageFiles{}, err
+    }
 
+    // read and parse release manifest
+    releaseFilePath := path.Join(r.repoRoot, packageName, version, "release.hcl")
+    releaseData, err := os.ReadFile(releaseFilePath)
+    if err != nil {
+        return core.PackageFiles{}, err
+    }
+    release, err := core.ParceRelease(releaseData)
+    if err != nil {
+        return core.PackageFiles{}, err
+    }
 
+    // lua script just stays as raw bytes, core will run it
+    scriptFilePath := path.Join(r.repoRoot, packageName, version, "script.lua")
+    script, err := os.ReadFile(scriptFilePath)
+    if err != nil {
+        return core.PackageFiles{}, err
+    }
 
-	pkgFilePath :=  path.Join(pkgPath,fmt.Sprintf("%s.hcl",packageName))
-	pkgFile, err := os.Open(pkgFilePath)
-	if err != nil {
-		return core.PackageFiles{},err
+	f := core.PackageFiles{
+		Release: release,
+		Package: pkg,
+		LuaScript: script,
 	}
-	defer pkgFile.Close()
 
 
 
-	releaseFilePath := path.Join(pkgPath,version,"release.hcl")
-	releaseFile, err := os.Open(releaseFilePath)
-	if err != nil {
-		return core.PackageFiles{},err
-	}
-	defer releaseFile.Close()
-
-	sciptFilePath := path.Join(pkgPath,version,"script.lua")
-	scriptFile, err := os.Open(sciptFilePath)
-	if err != nil {
-		return core.PackageFiles{},err
-	}
-	defer scriptFile.Close()
-
-	pf := core.PackageFiles{
-		Package: pkgFile,
-		Release: releaseFile,
-		LuaScript: scriptFile,
-		
-	}
-
-	return pf,nil
+    return f,nil
 }
