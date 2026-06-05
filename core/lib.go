@@ -2,26 +2,9 @@ package core
 
 
 import (
-	"io"
 	"github.com/kasperjack/pact/core/model"
-	"github.com/kasperjack/pact/core/parce"
+	
 )
-
-
-
-func ParcePacakge(pkgData []byte) (model.Package,error) {
-
-	return parce.Pacakge(pkgData)
-
-}
-
-func ParceRelease(rlsData []byte) (model.Release,error) {
-
-	return parce.Release(rlsData)
-}
-
-
-
 
 
 
@@ -32,18 +15,13 @@ type PackageFiles struct {
 }
 
 
-
-
 type LocalState interface {
 	// this is an fs pov
-	GetLockFile() (io.ReadWriter,error)
 	//CreatePackage(string) error
 	//GetPackagePath()
 	PackageExists(string) (bool, error)
 
 }
-
-
 type Repo interface {
 
 	PackageExists(string) (bool,error)
@@ -51,3 +29,15 @@ type Repo interface {
 	GetVersions(string) ([]string,error)
 
 }
+
+type LockFile interface {
+    
+    GetInstalled(pkg string) (model.LockedPackage, error)
+    RecordInstall(pkg model.LockedPackage) error
+    RecordRemove(pkg string) error
+	Test() error
+
+}
+    //InstallDir(pkg string) string
+	//IsInstalled(pkg string) error
+

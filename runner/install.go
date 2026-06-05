@@ -6,23 +6,27 @@ import (
 	//"path/filepath"
 
 	"github.com/kasperjack/pact/core"
+	"github.com/kasperjack/pact/core/model"
 )
 
 func install (pkg string, version string) error {
 
-	//r := repo{}
-
-	repo := NewLocalRepo("C:\\Users\\Aya\\Desktop\\pact\\bin\\test-buckets")
-	localState := NewLocalState("ass")
 	
 
-	m := core.NewManager(localState,repo)
+	repo := NewLocalRepo("test-buckets")
+	localState := NewLocalState("ass")
+	lockFile, err := NewLockFile("installed/lock.hcl")
 
 
-	err := m.Install(pkg)
+	m := core.NewManager(localState,repo,lockFile)
+
+
+	err = m.Install(model.InstallArgs{})
 	if err != nil {
 		return err
 	}
+
+
 
 	return nil
 }

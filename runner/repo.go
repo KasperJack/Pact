@@ -4,6 +4,7 @@ import(
 	"path"
 	"os"
 	"github.com/kasperjack/pact/core"
+    "github.com/kasperjack/pact/core/parce"
 	"fmt"
 )
 
@@ -74,7 +75,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageFile
     if err != nil {
         return core.PackageFiles{}, err
     }
-    pkg, err := core.ParcePacakge(pkgData)
+    pkg, err := parce.Pacakge(pkgData)
     if err != nil {
         return core.PackageFiles{}, err
     }
@@ -85,7 +86,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageFile
     if err != nil {
         return core.PackageFiles{}, err
     }
-    release, err := core.ParceRelease(releaseData)
+    release, err := parce.Release(releaseData)
     if err != nil {
         return core.PackageFiles{}, err
     }
