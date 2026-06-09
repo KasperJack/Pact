@@ -38,10 +38,17 @@ func (m *pkgManager) Install(agrs model.InstallArgs) error {
 		return err
 	}
 
+	if pf.Release.Source.ARM64 == nil {
+		fmt.Println("no ARM64 source found  ")
+	}
 
-	fmt.Println(pf.Package.Description)
-	fmt.Println(pf.Release.Source.X86.URL)
+	if pf.Release.Source.X64 == nil {
+		fmt.Println("no X64 source found  ")
+	}
 
+	if pf.Release.Source.X86 == nil {
+		fmt.Println("no X86 source found  ")
+	}
 
 
 	return nil

@@ -69,7 +69,7 @@ func (r *repo) GetVersions(packageName string) ([]string, error) {
 
 
 func (r *repo) LoadPackage(packageName string, version string) (core.PackageFiles,error) {
-
+    
     pkgFilePath := path.Join(r.repoRoot, packageName, fmt.Sprintf("%s.hcl", packageName))
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {

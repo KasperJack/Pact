@@ -16,7 +16,7 @@ func NewManager(localState LocalState, repo Repo,lf LockFile) Manager {
 
 }
 
-type pkgManager struct { // lowercase, hidden from outside
+type pkgManager struct { 
 	localState LocalState
 	repo       Repo
 	lockFile LockFile
