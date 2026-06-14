@@ -25,7 +25,7 @@ func main(){
 
 	case "install":
 		//fmt.Printf("installing %s \n", os.Args[2])
-		install_cmd(os.Args[2],os.Args[3])
+		installCmd(os.Args[2],os.Args[3])
 		
 	default:
 		fmt.Println("expected command: install <pkg> <ver>")
@@ -37,7 +37,7 @@ func main(){
 
 
 
-func install_cmd (pkg string, version string){
+func installCmd (pkg string, version string){
 
 	
 	
@@ -45,15 +45,15 @@ func install_cmd (pkg string, version string){
 	var arch platform.Arch
 
 	if len(os.Args) > 4 {
-		
-		arch,err := parseArch(os.Args[4])
+		var err error
+		arch,err = platform.ParseArch(os.Args[4])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
 
-		if err := validateArch(arch); err != nil {
+		if err := arch.ValidateForHost(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -61,7 +61,8 @@ func install_cmd (pkg string, version string){
 
 	}
 
-	fmt.Println(arch)
+	fmt.Printf("%s\n",arch)
+
 
 	/*
 	err := install(pkg,version,arch)
@@ -78,6 +79,9 @@ func install_cmd (pkg string, version string){
 
 
 
+
+
+/*
 func validateArch(targetArch platform.Arch) error {
     
 	host, err := platform.HostArch()
@@ -110,7 +114,7 @@ func validateArch(targetArch platform.Arch) error {
 	}
 
 	return nil
-}
+}*/
 
 
 
@@ -119,11 +123,3 @@ func validateArch(targetArch platform.Arch) error {
 
 
 
-func parseArch(s string) (platform.Arch, error) {
-    switch platform.Arch(s) {
-    case platform.X86, platform.X64, platform.ARM64:
-        return platform.Arch(s), nil
-    default:
-        return "", fmt.Errorf("unknown arch %q, must be one of: x86, x64, arm64", s)
-    }
-}
