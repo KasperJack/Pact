@@ -3,6 +3,7 @@ package core
 
 import (
 	"github.com/kasperjack/pact/core/model"
+
 	
 )
 
@@ -40,4 +41,10 @@ type LockFile interface {
 }
     //InstallDir(pkg string) string
 	//IsInstalled(pkg string) error
+
+
+
+
+
+
 

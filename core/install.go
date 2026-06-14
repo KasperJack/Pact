@@ -2,6 +2,7 @@ package core
 import (
 	"fmt"
 	"github.com/kasperjack/pact/core/model"
+	"runtime"
 )
 
 
@@ -37,19 +38,55 @@ func (m *pkgManager) Install(agrs model.InstallArgs) error {
 	if err != nil {
 		return err
 	}
+	
+	var binSource string
+	var binHash string
 
-	if pf.Release.Source.ARM64 == nil {
-		fmt.Println("no ARM64 source found  ")
+	//TODO: create a ResolveSource func
+	if agrs.Arch == "" {
+		host := runtime.GOARCH
+		switch host {
+			case "arm64":
+				if pf.Release.Source.ARM64 == nil {
+					return fmt.Errorf("no ARM64 source found")
+				}
+				binSource = pf.Release.Source.ARM64.URL
+				binHash = pf.Release.Source.ARM64.SHA256
+
+
+			case "amd64":
+				if pf.Release.Source.X64 != nil {
+					binSource = pf.Release.Source.X64.URL
+					binHash = pf.Release.Source.X64.SHA256
+				}else if pf.Release.Source.X86 != nil {
+					binSource = pf.Release.Source.X86.URL
+					binHash = pf.Release.Source.X86.SHA256
+				}else {
+					return fmt.Errorf("no x86/x64 source found")
+				}
+				
+
+			case "386":
+				if pf.Release.Source.X86 == nil {
+					return fmt.Errorf("no x86 source found")
+				}
+				binSource = pf.Release.Source.X86.URL
+				binHash = pf.Release.Source.X86.SHA256
+
+			default:
+				return fmt.Errorf("unsupported host architecture: %s", host)
+				
+    	}
+
+	}else{
+
+		fmt.Printf("looking for source %s \n",agrs.Arch)
 	}
 
-	if pf.Release.Source.X64 == nil {
-		fmt.Println("no X64 source found  ")
-	}
 
-	if pf.Release.Source.X86 == nil {
-		fmt.Println("no X86 source found  ")
-	}
 
+	fmt.Println(binSource)
+	fmt.Println(binHash)
 
 	return nil
 }
