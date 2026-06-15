@@ -1,9 +1,9 @@
 package core
 
-import "github.com/kasperjack/pact/core/model"
+
 
 type Manager interface {
-	Install(model.InstallArgs) error
+	Install(InstallArgs) error
 }
 
 func NewManager(localState LocalState, repo Repo,lf LockFile) Manager {

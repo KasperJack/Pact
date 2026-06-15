@@ -1,14 +1,14 @@
 package core
 import (
 	"fmt"
-	"github.com/kasperjack/pact/core/model"
+	//"github.com/kasperjack/pact/core/model"
 	"runtime"
 )
 
 
 
 
-func (m *pkgManager) Install(agrs model.InstallArgs) error {
+func (m *pkgManager) Install(agrs InstallArgs) error {
 
 	_ , err := m.lockFile.GetInstalled(agrs.Name)
 

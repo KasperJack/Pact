@@ -61,10 +61,8 @@ func installCmd (pkg string, version string){
 
 	}
 
-	fmt.Printf("%s\n",arch)
-
-
-	/*
+	//fmt.Printf("%s\n",arch)
+	
 	err := install(pkg,version,arch)
 
 	if err != nil {
@@ -74,7 +72,7 @@ func installCmd (pkg string, version string){
 
 	//a := platform.Arch("stringFromCli")
 	fmt.Println("everything run ok")
-	*/
+	
 }
 
 
