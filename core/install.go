@@ -1,8 +1,9 @@
 package core
 import (
 	"fmt"
+	"github.com/kasperjack/pact/core/platform"
 	//"github.com/kasperjack/pact/core/model"
-	"runtime"
+	//"runtime"
 )
 
 
@@ -39,54 +40,93 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 		return err
 	}
 	
-	var binSource string
-	var binHash string
+	//var binSource string
+	//var binHash string
 
-	//TODO: create a ResolveSource func
-	if agrs.Arch == "" {
-		host := runtime.GOARCH
-		switch host {
-			case "arm64":
-				if pf.Release.Source.ARM64 == nil {
-					return fmt.Errorf("no ARM64 source found")
-				}
-				binSource = pf.Release.Source.ARM64.URL
-				binHash = pf.Release.Source.ARM64.SHA256
-
-
-			case "amd64":
-				if pf.Release.Source.X64 != nil {
-					binSource = pf.Release.Source.X64.URL
-					binHash = pf.Release.Source.X64.SHA256
-				}else if pf.Release.Source.X86 != nil {
-					binSource = pf.Release.Source.X86.URL
-					binHash = pf.Release.Source.X86.SHA256
-				}else {
-					return fmt.Errorf("no x86/x64 source found")
-				}
-				
-
-			case "386":
-				if pf.Release.Source.X86 == nil {
-					return fmt.Errorf("no x86 source found")
-				}
-				binSource = pf.Release.Source.X86.URL
-				binHash = pf.Release.Source.X86.SHA256
-
-			default:
-				return fmt.Errorf("unsupported host architecture: %s", host)
-				
-    	}
-
-	}else{
-
-		fmt.Printf("looking for source %s \n",agrs.Arch)
+	binSource,binHash,err := resolveSource(agrs.Arch,pf)
+	if err != nil {
+		return err
 	}
-
 
 
 	fmt.Println(binSource)
 	fmt.Println(binHash)
 
 	return nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+func resolveSource(arch platform.Arch, pf PackageFiles) (binSource string,binHash string,err error) {
+
+
+	if arch == "" {
+		fmt.Println("arch was not passed")
+		host,err := platform.HostArch()
+
+		if err != nil{ // this error sould not exist 
+			return "","",err
+		}
+
+
+
+		switch host {
+			case platform.X64:
+				if  pf.Release.Source.X64 != nil {
+					return pf.Release.Source.X64.URL,pf.Release.Source.X64.SHA256,nil
+				}
+				if  pf.Release.Source.X86 != nil {
+					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
+				}
+				
+				return "","",fmt.Errorf("no source found for x64/x86")
+
+			case platform.X86:
+				if  pf.Release.Source.X86 != nil {
+					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
+				}
+				return "","",fmt.Errorf("no source found for x86")
+			
+			case platform.ARM64:
+				if pf.Release.Source.ARM64 != nil {
+					return pf.Release.Source.ARM64.URL,pf.Release.Source.ARM64.SHA256,nil
+				}
+
+				return "","",fmt.Errorf("no source found for arm64")
+
+		}
+
+	}else{
+		fmt.Println("arch was passed")
+		switch arch {
+			case platform.X64:
+				if  pf.Release.Source.X64 != nil {
+					return pf.Release.Source.X64.URL,pf.Release.Source.X64.SHA256,nil
+				}
+				return "","",fmt.Errorf("no source found for x64")
+
+			case platform.X86:
+				if  pf.Release.Source.X86 != nil {
+					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
+				}
+				return "","",fmt.Errorf("no source found for x86")
+			
+			case platform.ARM64:
+				if pf.Release.Source.ARM64 != nil {
+					return pf.Release.Source.ARM64.URL,pf.Release.Source.ARM64.SHA256,nil
+				}
+				return "","",fmt.Errorf("no source found for arm64")
+		}
+	}
+
+	return "","",fmt.Errorf("unexpected error happend")
 }
