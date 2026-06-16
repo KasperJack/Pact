@@ -16,7 +16,7 @@ import (
 func NewLockFile(filePath string) (core.LockFile, error) {
     f, err := os.ReadFile(filePath)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error loading the lock file") //RF:E
     }
 
     c, err := parce.LockFile(f)

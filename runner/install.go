@@ -13,10 +13,16 @@ func install (pkg string, version string, arch platform.Arch) error {
 
 	
 
-	repo := NewLocalRepo("test-buckets")
-	localState := NewLocalState("C:\\Users\\Aya\\Desktop\\pact\\bin\\installed")
-	lockFile, err := NewLockFile("installed/lock.hcl")
+	repo,err := NewLocalRepo("test-buckets")
+	if err != nil {
+		return err
+	}
 
+	localState := NewLocalState("installed")
+	lockFile, err := NewLockFile("installed/lock.hcl")
+	if err != nil {
+		return err
+	}
 
 	m := core.NewManager(localState,repo,lockFile)
 

@@ -14,9 +14,17 @@ type repo struct {
 
 
 
-func NewLocalRepo(repoRoot string) core.Repo {
+func NewLocalRepo(repoRoot string) (core.Repo,error) {
 
-	return &repo{repoRoot: repoRoot}
+    _, err := os.Stat(repoRoot)
+
+    if err != nil {
+
+        return nil,fmt.Errorf("can't find the test-buckets") //RF:E
+    } // check if is a a valid pact repo . ? 
+
+
+	return &repo{repoRoot: repoRoot},nil
 }
 
 
