@@ -4,6 +4,7 @@ import (
 	"github.com/kasperjack/pact/core/platform"
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
+	"github.com/kasperjack/pact/core/internal/runtime"
 )
 
 
@@ -51,6 +52,18 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 	fmt.Println(binSource)
 	fmt.Println(binHash)
+
+	rt, err := runtime.NewIinstallContext(pf.LuaScript)
+	if err != nil {
+		return err
+
+	}
+
+	err = rt.Run()
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

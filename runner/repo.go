@@ -20,7 +20,7 @@ func NewLocalRepo(repoRoot string) (core.Repo,error) {
 
     if err != nil {
 
-        return nil,fmt.Errorf("can't find the test-buckets") //RF:E
+        return nil,fmt.Errorf("can't find the test bucket") //RF:E
     } // check if is a a valid pact repo . ? 
 
 
@@ -89,7 +89,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageFile
     }
 
     // read and parse release manifest
-    releaseFilePath := path.Join(r.repoRoot, packageName, version, "release.hcl")
+    releaseFilePath := path.Join(r.repoRoot, packageName, version, "release.hcl") //RF:E (can't find release file for version)
     releaseData, err := os.ReadFile(releaseFilePath)
     if err != nil {
         return core.PackageFiles{}, err
@@ -100,7 +100,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageFile
     }
 
     // lua script just stays as raw bytes, core will run it
-    scriptFilePath := path.Join(r.repoRoot, packageName, version, "script.lua")
+    scriptFilePath := path.Join(r.repoRoot, packageName, version, "script.star") //RF:E (can't find install script )
     script, err := os.ReadFile(scriptFilePath)
     if err != nil {
         return core.PackageFiles{}, err
