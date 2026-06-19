@@ -6,14 +6,6 @@ import (
 	"Pact/corelib/luautil/providers"
 
 )
-
-type Capabilities struct {
-    FS       providers.FileSystem
-    Registry providers.Registry
-    Env      providers.Environment
-}
-
-
 type SandboxLevel int
 
 const (
@@ -21,6 +13,14 @@ const (
     SandboxDry                          // pact ci no real side effects
 
 )
+type Capabilities struct {
+    FS       providers.FileSystem
+    Registry providers.Registry
+    Env      providers.Environment
+}
+
+
+
 // caps Capabilities
 func bootstrap(L *lua.LState) *lua.LTable {
 
