@@ -12,6 +12,20 @@ import (
 type installContext struct {
     thread  *starlark.Thread
     globals starlark.StringDict
+    predeclared starlark.StringDict
+}
+
+
+func builtin(name string, fn func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error)) *starlark.Builtin {
+    return starlark.NewBuiltin(name, func(thread *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+        return fn(args, kwargs)
+    })
+}
+
+func blocked(name string) *starlark.Builtin {
+    return builtin(name, func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+        return nil, fmt.Errorf("%s can only be called inside install", name)
+    })
 }
 
 
@@ -22,14 +36,14 @@ func NewIinstallContext(script []byte) (*installContext,error) {
     opts := syntax.FileOptions{TopLevelControl: true}
 
 
-    blocked := starlark.NewBuiltin("log", func(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-    return nil, fmt.Errorf("log can only be called inside install")
-})
-    _ = blocked //RE:DS
+    //blocked := starlark.NewBuiltin("log", func(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+    //return nil, fmt.Errorf("log can only be called inside install")
+    //})
+    //_ = blocked //RE:DS
 
     predeclared := starlark.StringDict{
     "print_from_go": starlark.NewBuiltin("print_from_go", PrintFromGo ),
-    //"log": blocked,
+    "log": blocked("log"),
     }
 
     
@@ -41,7 +55,7 @@ func NewIinstallContext(script []byte) (*installContext,error) {
         return nil, err
     }
 
-    return &installContext{thread: thread, globals: globals}, nil
+    return &installContext{thread: thread, globals: globals,predeclared: predeclared}, nil
 
 }
 
@@ -63,7 +77,7 @@ func (ctx *installContext) Run() error {
     }
 
 
-    ctx.globals["log"] = starlark.NewBuiltin("log", logBuiltin)
+    ctx.predeclared["log"] = starlark.NewBuiltin("log", logBuiltin)
 
     _, err := starlark.Call(ctx.thread, callable, nil, nil)
     if err != nil {
