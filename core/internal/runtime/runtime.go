@@ -22,9 +22,14 @@ func NewIinstallContext(script []byte) (*installContext,error) {
     opts := syntax.FileOptions{TopLevelControl: true}
 
 
+    blocked := starlark.NewBuiltin("log", func(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+    return nil, fmt.Errorf("log can only be called inside install")
+})
+    _ = blocked //RE:DS
 
     predeclared := starlark.StringDict{
     "print_from_go": starlark.NewBuiltin("print_from_go", PrintFromGo ),
+    //"log": blocked,
     }
 
     
@@ -58,6 +63,7 @@ func (ctx *installContext) Run() error {
     }
 
 
+    ctx.globals["log"] = starlark.NewBuiltin("log", logBuiltin)
 
     _, err := starlark.Call(ctx.thread, callable, nil, nil)
     if err != nil {
@@ -66,6 +72,32 @@ func (ctx *installContext) Run() error {
 
     return nil
 }
+
+
+func logBuiltin (thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+
+        var action starlark.String
+
+        if err := starlark.UnpackArgs(fn.Name(), args, kwargs, "action", &action); err != nil {
+        return nil, err
+    }
+
+        fmt.Printf("log:%s \n",action.GoString())
+        return starlark.None, nil
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -85,3 +117,4 @@ func PrintFromGo (thread *starlark.Thread, fn *starlark.Builtin, args starlark.T
     fmt.Println("age.GoString()")
     return starlark.None, nil
     }
+
