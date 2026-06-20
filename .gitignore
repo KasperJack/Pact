@@ -15,4 +15,3 @@ test-buckets/
 *.py
 *.db
 *.sum
-*.star
