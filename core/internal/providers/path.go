@@ -2,7 +2,7 @@ package providers
 
 import (
 	//"fmt"
-	"fmt"
+	"path/filepath"
 
 	"go.starlark.net/starlark"
 )
@@ -19,13 +19,16 @@ func NewTestPath() Path {
 }
 
 
-func (*path) Join(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error){
+func (p *path) Join(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+    var a, b starlark.String
 
-	fmt.Println("patttttt")
+    if err := starlark.UnpackArgs(fn.Name(), args, kwargs, "a", &a, "b", &b); err != nil {
+        return nil, err
+    }
 
-	return starlark.None,nil
+    result := filepath.Join(string(a), string(b))
+    return starlark.String(result), nil 
 }
-
 
 
 

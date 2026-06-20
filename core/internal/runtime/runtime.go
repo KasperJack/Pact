@@ -25,15 +25,12 @@ func NewIinstallContext(script []byte) (*installContext,error) {
 
     
     thread := &starlark.Thread{Name: "main"}
-    opts := syntax.FileOptions{TopLevelControl: true}
 
+    opts := syntax.FileOptions{
+    TopLevelControl: true,
+    GlobalReassign:  false, // default, but be explicit
+    }
 
-    //blocked := starlark.NewBuiltin("log", func(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-    //return nil, fmt.Errorf("log can only be called inside install")
-    //})
-    //_ = blocked //RE:DS
-
-     //p  := providers.NewTestPath()
 
 
     predeclared := starlark.StringDict{
@@ -50,6 +47,15 @@ func NewIinstallContext(script []byte) (*installContext,error) {
     if err != nil {
         return nil, err
     }
+
+
+    for name := range predeclared {
+        if _, ok := globals[name]; ok {
+        return nil, fmt.Errorf("%s is a reserved name and cannot be reassigned", name)
+        }
+    }
+
+
 
     return &installContext{thread: thread, globals: globals,predeclared: predeclared}, nil
 
@@ -83,6 +89,23 @@ func (ctx *installContext) Run() error {
 
     return nil
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 func logBuiltin (thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
