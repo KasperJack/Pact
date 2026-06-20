@@ -1,11 +1,11 @@
 package runtime
 import (
-    //"fmt"
+    "fmt"
     //"go.starlark.net/starlark"
 	"go.starlark.net/starlark"
     //"go.starlark.net/syntax"
 	"github.com/kasperjack/pact/core/internal/providers"
-	"go.starlark.net/starlarkstruct"
+	//"go.starlark.net/starlarkstruct"
 )
 
 type Capabilities struct {
@@ -14,28 +14,41 @@ type Capabilities struct {
     //Env      providers.Environment
 }
 
-func buildPath(Path providers.Path) starlark.StringDict {
-    return starlark.StringDict{
-        "join": starlark.NewBuiltin("join", Path.Join),
+func builtin(name string, fn func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error)) *starlark.Builtin {
+    return starlark.NewBuiltin(name, func(thread *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+        return fn(args, kwargs)
+    })
+}
 
-    }
+func blocked(name string) *starlark.Builtin {
+    return builtin(name, func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+        return nil, fmt.Errorf("%s can only be called inside install", name)
+    })
 }
 
 
-func newPreDeclared(caps Capabilities) starlark.StringDict {
+func buildPath(p providers.Path) starlark.StringDict {
+
+	path := starlark.StringDict{}
 
 
-	predeclared := starlark.StringDict{
+	if p == nil {
 
-
-        "path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(caps.Path)),
-        //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
-        //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
-    }
-
+		path["join"] = blocked("join")
 
 
 
 
-	return predeclared
+	}else{
+
+		path["join"] = starlark.NewBuiltin("join", p.Join)
+
+
+
+	}
+
+
+	return path
 }
+
+

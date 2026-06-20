@@ -1,10 +1,12 @@
 package runtime
 
 import (
-    "fmt"
-    //"go.starlark.net/starlark"
+	"fmt"
+	//"go.starlark.net/starlark"
+	"github.com/kasperjack/pact/core/internal/providers"
 	"go.starlark.net/starlark"
-    "go.starlark.net/syntax"
+	"go.starlark.net/starlarkstruct"
+	"go.starlark.net/syntax"
 )
 
 
@@ -16,17 +18,7 @@ type installContext struct {
 }
 
 
-func builtin(name string, fn func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error)) *starlark.Builtin {
-    return starlark.NewBuiltin(name, func(thread *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-        return fn(args, kwargs)
-    })
-}
 
-func blocked(name string) *starlark.Builtin {
-    return builtin(name, func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-        return nil, fmt.Errorf("%s can only be called inside install", name)
-    })
-}
 
 
 func NewIinstallContext(script []byte) (*installContext,error) {
@@ -41,9 +33,13 @@ func NewIinstallContext(script []byte) (*installContext,error) {
     //})
     //_ = blocked //RE:DS
 
+     //p  := providers.NewTestPath()
+
+
     predeclared := starlark.StringDict{
-    "print_from_go": starlark.NewBuiltin("print_from_go", PrintFromGo ),
-    "log": blocked("log"),
+        "path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(nil)),
+        //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
+        //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
     }
 
     
@@ -76,8 +72,9 @@ func (ctx *installContext) Run() error {
         return fmt.Errorf("install must take no arguments, but got %d", callable.(*starlark.Function).NumParams())
     }
 
+    p:= providers.NewTestPath()
 
-    ctx.predeclared["log"] = starlark.NewBuiltin("log", logBuiltin)
+    ctx.predeclared["path"] = starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(p))
 
     _, err := starlark.Call(ctx.thread, callable, nil, nil)
     if err != nil {
