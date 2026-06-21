@@ -37,6 +37,8 @@ func NewIinstallContext(script []byte) (*installContext,error) {
         "path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(nil)),
         //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
         //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
+        "install_dir": starlark.String("/usr/local"),
+        "version":     starlark.String("1.0.0"),
     }
 
     

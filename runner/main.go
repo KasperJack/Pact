@@ -5,6 +5,7 @@ import (
 	"os"
 	"github.com/kasperjack/pact/core/platform"
 	//"golang.org/x/text/cases"
+	//"github.com/kasperjack/pact/psbridge"
 )
 
 
@@ -15,7 +16,7 @@ import (
 
 
 func main(){
-
+	
 	if len(os.Args) < 4 {
 		fmt.Println("expected command: install <pkg> <ver>")
 		os.Exit(1)

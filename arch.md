@@ -288,3 +288,40 @@ system.arch          -- x64 | arm64
 system.windows_ver   -- "11" | "10" | "server2022"
 system.is_admin      -- bool
 system.reboot_needed -- bool, set automatically after some ops
+
+
+
+
+portable
+
+just files in a directory, nothing else
+no installer runs
+no ARP entry
+no registry writes
+no files outside its own dir
+no auto update 
+
+pact controls the version
+multiple versions can coexist
+uninstall = delete the folder
+
+
+managed
+
+runs an installer (exe/msi)
+writes to ARP
+may scatter files across ProgramFiles, AppData, system32
+no auto update 
+
+pact controls the version
+
+one version at a time (installer replaces previous)
+uninstall = run uninstaller
+
+self_managed
+
+pact runs the installer once to bootstrap
+software has its own update mechanism running in background
+pact no longer controls the version after install
+no point version pinning or upgrading via pact 
+uninstall = run their uninstaller (if it works)

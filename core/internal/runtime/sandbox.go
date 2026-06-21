@@ -38,12 +38,9 @@ func buildPath(p providers.Path) starlark.StringDict {
 
 
 
-
 	}else{
 
 		path["join"] = starlark.NewBuiltin("join", p.Join)
-
-
 
 	}
 
