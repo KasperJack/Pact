@@ -1,7 +1,11 @@
 package core
+
 import (
 	"fmt"
+
+
 	"github.com/kasperjack/pact/core/platform"
+
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
 	"github.com/kasperjack/pact/core/internal/runtime"
@@ -49,9 +53,17 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 		return err
 	}
 
-
 	fmt.Println(binSource)
 	fmt.Println(binHash)
+	
+	path,err := m.staging.Prepare(agrs.Name,agrs.Version)
+	if err != nil {
+		return err
+
+	}
+	fmt.Println(path)
+
+
 
 	rt, err := runtime.NewIinstallContext(pf.LuaScript)
 	if err != nil {

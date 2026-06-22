@@ -18,7 +18,7 @@ func install (pkg string, version string, arch platform.Arch) error {
 		return err
 	}
 
-	localState := NewLocalState("installed")
+	localState := NewLocalState("installed") // local state should contain the lockFile ? 
 	lockFile, err := NewLockFile("installed/lock.hcl")
 	if err != nil {
 		return err

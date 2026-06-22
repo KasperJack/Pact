@@ -12,6 +12,7 @@ func NewManager(localState LocalState, repo Repo,lf LockFile) Manager {
 		localState: localState,
 		repo:       repo,
 		lockFile: lf,
+		staging: NewStagingArea("C:\\Users\\Aya\\Desktop\\pact\\bin\\staging"),
 	}
 
 }
@@ -20,5 +21,6 @@ type pkgManager struct {
 	localState LocalState
 	repo       Repo
 	lockFile LockFile
+	staging *StagingArea //EC: change to an interface 
 }
 
