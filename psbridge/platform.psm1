@@ -1,34 +1,40 @@
 function Get-Users {
     param([string]$Filter = "*")
-    
     return @(
-        @{ Name = "Alice"; Email = "alice@company.com" }
-        @{ Name = "Bob";   Email = "bob@company.com" }
+        [PSCustomObject]@{ Name = "Alice"; Email = "alice@company.com" }
+        [PSCustomObject]@{ Name = "Bob";   Email = "bob@company.com"   }
     )
 }
 
 function Write-Log {
     param([string]$Message)
-    Microsoft.PowerShell.Utility\Write-Host "[LOG] $Message"
+    __real_Write-Host "[LOG] $Message"
 }
 
 function Send-Alert {
     param([string]$Message, [string]$Severity = "info")
-    Write-Host "[ALERT][$Severity] $Message"
+    __real_Write-Host "[ALERT][$Severity] $Message"
 }
 
 
-#some error code for security vailations 
-function Start-Process { throw "Start-Process is not allowed in this environment"}
+function Write-Host {
+    param(
+        [Parameter(ValueFromPipeline)][object]$Object,
+        [string]$ForegroundColor,
+        [switch]$NoNewline
+    )
 
-
-function Invoke-Expression {
-    $msg = "BLOCKED: Invoke-Expression called at line $($MyInvocation.ScriptLineNumber) in $($MyInvocation.ScriptName)"
-    Microsoft.PowerShell.Utility\Write-Host $msg
-    throw $msg
+     __real_Write-Host "hole agin"   
+    # your checks/logging here
+    __real_Write-Host $Object
 }
 
-
-#`Microsoft.PowerShell.Utility\`,
-#`Microsoft.PowerShell.Management\`,
-#`Microsoft.PowerShell.Security\`,
+function Copy-Item {
+    param([string]$Path, [string]$Destination)
+    # your checks here
+    if ($Path -notmatch '^C:\\allowed\\') {
+        __real_Write-Host "[BLOCKED] Copy-Item: $Path"
+        return
+    }
+    __real_Copy-Item $Path $Destination
+}
