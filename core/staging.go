@@ -29,5 +29,5 @@ func (s *StagingArea) Clear() error {
         return err
     }
 
-    return os.MkdirAll(s.root, 0755)
+    return os.MkdirAll(s.root, 0755) //RE: refactor a propper error 
 }

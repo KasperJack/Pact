@@ -56,12 +56,25 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	fmt.Println(binSource)
 	fmt.Println(binHash)
 	
-	path,err := m.staging.Prepare(agrs.Name,agrs.Version)
+
+	 //prepare staging dir
+	stagingDirPath,err := m.staging.Prepare(agrs.Name,agrs.Version) // --> C:\pact\staging\ripgrep\14.1.0\
+	//defer m.staging.Clear()
 	if err != nil {
 		return err
 
 	}
-	fmt.Println(path)
+
+	err = Download(binSource,binHash,stagingDirPath)
+	if err != nil {
+		return err
+	}
+
+	err = Extract(stagingDirPath)
+		if err != nil {
+		return err
+	}
+
 
 
 
