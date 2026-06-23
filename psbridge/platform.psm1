@@ -8,13 +8,24 @@ function Get-Users {
 
 function Write-Log {
     param([string]$Message)
-    __real_Write-Host "[LOG] $Message"
+   
+    Builtin-Write-Host "[LOG] $Message"
 }
+
+
 
 function Send-Alert {
     param([string]$Message, [string]$Severity = "info")
-    __real_Write-Host "[ALERT][$Severity] $Message"
+    Builtin-Write-Host "[ALERT][$Severity] $Message"
 }
+
+
+
+function Private-Somthing {
+    
+    Builtin-Write-Host "DOING SOMTHING PRIVATE"
+}
+
 
 
 function Write-Host {
@@ -24,17 +35,8 @@ function Write-Host {
         [switch]$NoNewline
     )
 
-     __real_Write-Host "hole agin"   
-    # your checks/logging here
-    __real_Write-Host $Object
+     Builtin-Write-Host "gg"   
 }
 
-function Copy-Item {
-    param([string]$Path, [string]$Destination)
-    # your checks here
-    if ($Path -notmatch '^C:\\allowed\\') {
-        __real_Write-Host "[BLOCKED] Copy-Item: $Path"
-        return
-    }
-    __real_Copy-Item $Path $Destination
-}
+
+#Export-ModuleMember -Function 'Write-Log'

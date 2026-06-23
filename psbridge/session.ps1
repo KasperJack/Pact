@@ -1,27 +1,49 @@
-param([string]$ScriptPath)
+param(
+    [string]$ScriptPath,
+    [string]$Seed
+)
+
 
 $moduleDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# ── 1. blank slate ───────────────────────────────────────────────
+# . blank slate ───────────────────────────────────────────────
 $iss = [System.Management.Automation.Runspaces.InitialSessionState]::Create()
 $iss.LanguageMode = [System.Management.Automation.PSLanguageMode]::ConstrainedLanguage
 
 # ── 2. load platform in trusted session ──────────────────────────
-Import-Module "$moduleDir/platform.psm1" -Force
+### Import-Module "$moduleDir/platform.psm1" -Force
+## call a constructor from the module using the seed #NO
+
+# . Load & patch the module source ────────────────────────────
+
+$moduleSource = Get-Content "$moduleDir/platform.psm1" -Raw
+$moduleSource = $moduleSource -replace 'Builtin-Write-Host', "${seed}-Write-Host"
+
+
+# ── 2. Load the patched module into a temporary module object ─────
+$patchedModule = New-Module -Name "platform_patched" -ScriptBlock ([ScriptBlock]::Create($moduleSource))
+$patchedModule = Import-Module $patchedModule -PassThru -Force
+
+
+
+
 
 # ── 3. inject platform wrapper functions ─────────────────────────
-foreach ($name in @('Get-Users', 'Write-Log', 'Send-Alert', 'Write-Host', 'Copy-Item')) { ##from platfrom module 
-    $fn = Get-Item "Function:\$name"
+foreach ($name in $patchedModule.ExportedFunctions.Keys) {
+    $fn = $patchedModule.ExportedFunctions[$name]
     $iss.Commands.Add((New-Object System.Management.Automation.Runspaces.SessionStateFunctionEntry(
         $name, $fn.ScriptBlock
     )))
 }
 
+
+
 # ── 4. inject real cmdlets under __real_ names ───────────────────
 #    these are callable by your wrappers but not guessable by the script
+## loop over some capbilty set by the module for fuct it needs 
 $passthroughCmdlets = @(
-    @{ Name = '__real_Write-Host'; Type = [Microsoft.PowerShell.Commands.WriteHostCommand]  }
-    @{ Name = '__real_Copy-Item';  Type = [Microsoft.PowerShell.Commands.CopyItemCommand]   }
+    @{ Name = "${seed}-Write-Host"; Type = [Microsoft.PowerShell.Commands.WriteHostCommand]  }
+
 )
 
 foreach ($c in $passthroughCmdlets) {
