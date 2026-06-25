@@ -1,13 +1,57 @@
-package psbridge
+package main
 
 import (
+	//"fmt"
+	//"os"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
+	//"path/filepath"
+	//"bytes"
+	"bufio"
+	"encoding/json"
+	"io"
+	"time"
+	"strconv"
 )
 
-func ASS() {
+/*
+type Request struct {
+	Name string `json:"name"`
+}
+
+type Response struct {
+	Message string `json:"message"`
+}
+
+
+
+func Test() {
+
+	req := Request{
+		Name: "bro",
+	}
+
+	data, _ := json.Marshal(req)
+
+	cmd := exec.Command(
+		"./test.ps1",
+	)
+
+	cmd.Stdin = bytes.NewReader(data)
+
+	out, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+
+	var res Response
+
+	json.Unmarshal(out, &res)
+
+	fmt.Println(res.Message)
+}
+*/
+/*
 	// get absolute paths so pwsh can find everything
 	sessionScript, _ := filepath.Abs("session.ps1")
 	userScript, _    := filepath.Abs("script.ps1")
@@ -17,6 +61,7 @@ func ASS() {
 		"-NoProfile",
 		"-File", sessionScript,
 		"-ScriptPath", userScript,
+		"-Seed","hhf4",
 	)
 
 	cmd.Stdout = os.Stdout
@@ -29,8 +74,214 @@ func ASS() {
 		os.Exit(1)
 	}
 	fmt.Println("done")
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+func main() {
+	//ps, _ := NewPSServer()
+	numberReqest := 200
+	fmt.Printf("doing %s rqs\n",strconv.Itoa(numberReqest))
+
+
+
+	start3 := time.Now()
+	ps, _ := NewPSServer()
+	fmt.Println("server strated in:", time.Since(start3))
+	
+
+
+	start4 := time.Now()
+	s, err := ps.GetDate(2022, 12)
+		if err != nil {
+			panic(err)
+		}
+		_ = s
+	fmt.Println("first rquest:", time.Since(start4))
+
+	//fmt.Println("slepping for 30s")
+	//time.Sleep(30 * time.Second)
+
+	start := time.Now()
+	for i := 0; i < numberReqest-1; i++ {
+		s, err := ps.GetDate(2022, 12)
+		if err != nil {
+			panic(err)
+		}
+		_ = s
+	}
+
+	fmt.Println("elapsed (server):", time.Since(start))
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//start2 := time.Now()
+	//callExec(numberReqest)
+	//fmt.Println("elapsed (exec):", time.Since(start2))
+	/*
+	start4 := time.Now()
+	callExecSingleProcess(numberReqest)
+	fmt.Println("elapsed (exec-once/n:cmd):", time.Since(start4))
+	*/
+
+	defer ps.Close()
+
+
 }
 
-func GG(){
-	fmt.Println("gg")
+
+
+
+func callExec(n int) {
+    for i := 0; i < n; i++ {
+        cmd := exec.Command(
+            "powershell.exe",
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",  
+    		"Get-Date -Year 2022",
+
+        )
+
+        out, _ := cmd.Output()
+        _ = out
+    }
+}
+
+
+func callExecSingleProcess(n int) {
+    script := fmt.Sprintf(`
+        for ($i=0; $i -lt %d; $i++) {
+            Get-Date -Year 2022
+        }
+    `, n)
+
+    cmd := exec.Command(
+        "powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        script,
+    )
+
+    _, _ = cmd.Output()
+}
+
+
+
+
+
+
+
+
+
+type Request struct {
+    Fid    int `json:"fid"`
+	Params map[string]any `json:"params,omitempty"`
+}
+
+type Response struct {
+    Ok    bool   `json:"ok"`
+    Result string `json:"result"`
+}
+
+
+type PSServer struct {
+    stdin  io.WriteCloser
+    reader *bufio.Reader
+    cmd    *exec.Cmd
+}
+
+
+func NewPSServer() (*PSServer, error) {
+    cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-File", "./server.ps1")
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil { return nil, err }
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil { return nil, err }
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+}
+
+
+
+    return &PSServer{
+        stdin:  stdin,
+        reader: bufio.NewReader(stdout),
+        cmd:    cmd,
+    }, nil
+}
+
+
+
+func (s *PSServer) Send(req Request) (Response, error) {
+    data, _ := json.Marshal(req)
+    io.WriteString(s.stdin, string(data)+"\n")  
+
+    line, _ := s.reader.ReadString('\n')         
+	//fmt.Println(line)
+    var res Response
+    json.Unmarshal([]byte(line), &res)
+    return res, nil
+}
+
+func (s *PSServer) NewRequest(fid int, params map[string]any) Request {
+    return Request{
+        Fid:    fid,
+        Params: params,
+    }
+}
+
+func (s *PSServer) GetDate(year int, month int) (string,error) {
+	var fid int = 1 
+
+	req := s.NewRequest(fid,map[string]any{
+
+		"Year": year,
+    	"Month": month,
+
+	})
+
+
+	res ,err := s.Send(req)
+
+	if err != nil{
+		return "",err
+	}
+
+	if !res.Ok {
+		
+		return "",fmt.Errorf("error bad fix later")
+	}
+
+	return res.Result,nil
+}
+
+
+
+func (s *PSServer) Close() {
+    s.stdin.Close()
+    s.cmd.Wait()
 }
