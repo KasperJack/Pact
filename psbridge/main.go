@@ -5,6 +5,7 @@ import (
 	//"os"
 	"fmt"
 	"os/exec"
+	"os"
 	//"path/filepath"
 	//"bytes"
 	"bufio"
@@ -78,6 +79,28 @@ func Test() {
 
 
 
+func main(){
+
+	start3 := time.Now()
+	ps, err:= NewPSServer()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer ps.Close()
+
+	fmt.Println("server strated in:", time.Since(start3))
+
+
+	start5 := time.Now()
+	fmt.Println(ps.CreateShortcut("my app","C:\\Users\\Aya\\Desktop\\test\\main.exe","--ass --hole"))
+	fmt.Println("command run in:", time.Since(start5))
+
+
+	start7 := time.Now()
+	fmt.Println(ps.CreateShortcut("my app 2","C:\\Users\\Aya\\Desktop\\test\\sandbox.exe","--ass --hole"))
+	fmt.Println("command run in:", time.Since(start7))
+}
 
 
 
@@ -86,10 +109,10 @@ func Test() {
 
 
 
-
-func main() {
+func Bench() {
 	//ps, _ := NewPSServer()
-	numberReqest := 200
+	numberReqest := 30
+
 	fmt.Printf("doing %s rqs\n",strconv.Itoa(numberReqest))
 
 
@@ -99,25 +122,35 @@ func main() {
 	fmt.Println("server strated in:", time.Since(start3))
 	
 
-
+	
 	start4 := time.Now()
 	s, err := ps.GetDate(2022, 12)
 		if err != nil {
 			panic(err)
 		}
 		_ = s
+
+
+
 	fmt.Println("first rquest:", time.Since(start4))
+
+
 
 	//fmt.Println("slepping for 30s")
 	//time.Sleep(30 * time.Second)
 
 	start := time.Now()
 	for i := 0; i < numberReqest-1; i++ {
+		//fmt.Println("slepping for 1s")
+		//time.Sleep(1* time.Second)
+
+		//start := time.Now()
 		s, err := ps.GetDate(2022, 12)
 		if err != nil {
 			panic(err)
 		}
 		_ = s
+		//fmt.Println("req in:", time.Since(start))
 	}
 
 	fmt.Println("elapsed (server):", time.Since(start))
@@ -202,7 +235,9 @@ type Request struct {
 type Response struct {
     Ok    bool   `json:"ok"`
     Result string `json:"result"`
-}
+	Error  string  `json:"error,omitempty"`
+}	
+
 
 
 type PSServer struct {
@@ -223,15 +258,22 @@ func NewPSServer() (*PSServer, error) {
 
 	if err := cmd.Start(); err != nil {
 		return nil, err
-}
+	}
 
-
-
-    return &PSServer{
+	s := &PSServer{
         stdin:  stdin,
         reader: bufio.NewReader(stdout),
         cmd:    cmd,
-    }, nil
+    }
+
+	
+	if err := s.InitServer(); err != nil {
+		return nil, err
+	}
+	
+
+
+    return s, nil
 }
 
 
@@ -244,6 +286,11 @@ func (s *PSServer) Send(req Request) (Response, error) {
 	//fmt.Println(line)
     var res Response
     json.Unmarshal([]byte(line), &res)
+
+	if !res.Ok{
+		return Response{},fmt.Errorf(res.Error)
+	}
+
     return res, nil
 }
 
@@ -271,13 +318,66 @@ func (s *PSServer) GetDate(year int, month int) (string,error) {
 		return "",err
 	}
 
-	if !res.Ok {
-		
-		return "",fmt.Errorf("error bad fix later")
+	return res.Result,nil
+}
+
+
+
+
+
+
+func (s *PSServer) CreateShortcut(name string, target string, arguments string) (string,error) {
+	var fid int = 2 
+
+	params := map[string]any{
+		"Name":   name,
+		"Target": target,
+	}
+
+	if arguments != "" {
+    params["Arguments"] = arguments
+	}
+
+	req := s.NewRequest(fid, params)
+
+	res ,err := s.Send(req)
+
+	if err != nil{
+		return "",err
 	}
 
 	return res.Result,nil
 }
+
+
+
+
+
+
+
+
+
+
+func (s *PSServer) InitServer() (error) {
+	var fid int = 0
+
+	req := s.NewRequest(fid,map[string]any{})
+
+
+	_ ,err := s.Send(req)
+
+	if err != nil{
+		return err
+	}
+
+
+	return nil
+}
+
+
+
+
+
 
 
 
