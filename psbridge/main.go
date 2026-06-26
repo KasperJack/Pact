@@ -93,12 +93,12 @@ func main(){
 
 
 	start5 := time.Now()
-	fmt.Println(ps.CreateShortcut("my app","C:\\Users\\Aya\\Desktop\\test\\main.exe","--ass --hole"))
+	fmt.Println(ps.CreateShortcut("my app",".\\main.exe","--ass --hole"))
 	fmt.Println("command run in:", time.Since(start5))
 
 
 	start7 := time.Now()
-	fmt.Println(ps.CreateShortcut("my app 2","C:\\Users\\Aya\\Desktop\\test\\sandbox.exe","--ass --hole"))
+	fmt.Println(ps.CreateShortcut("my app 2",".\\sandbox.exe","--ass --hole"))
 	fmt.Println("command run in:", time.Since(start7))
 }
 

@@ -1,10 +1,14 @@
+# PSVersion 5.1.26100.8655
+
+
+
+
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-
-
-
 Import-Module Microsoft.PowerShell.Management
+
+
 
 # Pre-instantiate COM objects you'll reuse
 $Global:Shell = New-Object -ComObject WScript.Shell
@@ -158,7 +162,8 @@ while ($true) {
 
 
 <#
-
+## give each command / acction and id 
+## can actions be rversable ? 
 
 In your case it’s probably one (or more) of these:
 

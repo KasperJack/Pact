@@ -25,7 +25,7 @@ $Router = @{}
 $Router[0] = {
     param($req)
 
-    # warm real execution 
+    
     $raw = '{"fid":1,"params":{"Year":2022,"Month":12}}'
 
 
