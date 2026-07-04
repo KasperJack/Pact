@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 
-	"github.com/kasperjack/pact/core/platform"
 
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
@@ -48,36 +47,38 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	//var binSource string
 	//var binHash string
 
-	binSource,binHash,err := resolveSource(agrs.Arch,pf)
+	//fix this
+	s,_,err := resolveSource(agrs.TargetArch,pf.Release.Source)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(binSource)
-	fmt.Println(binHash)
+	fmt.Println(s.URL)
+	fmt.Println(s.URL)
 	
 
+	/*/////////////
 	 //prepare staging dir
 	stagingDirPath,err := m.staging.Prepare(agrs.Name,agrs.Version) // --> C:\pact\staging\ripgrep\14.1.0\
-	//defer m.staging.Clear()
+	defer m.staging.Clear()
 	if err != nil {
 		return err
 
 	}
 
-	err = Download(binSource,binHash,stagingDirPath)
+	err = Download(binSource,binHash,stagingDirPath) // download cehck hash 
 	if err != nil {
 		return err
 	}
 
-	err = Extract(stagingDirPath)
+	err = Extract(stagingDirPath) // extract and delete zip 
 		if err != nil {
 		return err
-	}
+	}*/
 
 
 
-
+	
 	rt, err := runtime.NewIinstallContext(pf.LuaScript)
 	if err != nil {
 		return err
@@ -103,68 +104,3 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 
 
-
-func resolveSource(arch platform.Arch, pf PackageFiles) (binSource string,binHash string,err error) {
-
-
-	if arch == "" {
-		fmt.Println("arch was not passed")
-		host,err := platform.HostArch()
-
-		if err != nil{ // this error sould not exist 
-			return "","",err
-		}
-
-
-
-		switch host {
-			case platform.X64:
-				if  pf.Release.Source.X64 != nil {
-					return pf.Release.Source.X64.URL,pf.Release.Source.X64.SHA256,nil
-				}
-				if  pf.Release.Source.X86 != nil {
-					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
-				}
-				
-				return "","",fmt.Errorf("no source found for x64/x86")
-
-			case platform.X86:
-				if  pf.Release.Source.X86 != nil {
-					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
-				}
-				return "","",fmt.Errorf("no source found for x86")
-			
-			case platform.ARM64:
-				if pf.Release.Source.ARM64 != nil {
-					return pf.Release.Source.ARM64.URL,pf.Release.Source.ARM64.SHA256,nil
-				}
-
-				return "","",fmt.Errorf("no source found for arm64")
-
-		}
-
-	}else{
-		fmt.Println("arch was passed")
-		switch arch {
-			case platform.X64:
-				if  pf.Release.Source.X64 != nil {
-					return pf.Release.Source.X64.URL,pf.Release.Source.X64.SHA256,nil
-				}
-				return "","",fmt.Errorf("no source found for x64")
-
-			case platform.X86:
-				if  pf.Release.Source.X86 != nil {
-					return pf.Release.Source.X86.URL,pf.Release.Source.X86.SHA256,nil
-				}
-				return "","",fmt.Errorf("no source found for x86")
-			
-			case platform.ARM64:
-				if pf.Release.Source.ARM64 != nil {
-					return pf.Release.Source.ARM64.URL,pf.Release.Source.ARM64.SHA256,nil
-				}
-				return "","",fmt.Errorf("no source found for arm64")
-		}
-	}
-
-	return "","",fmt.Errorf("unexpected error happend")
-}

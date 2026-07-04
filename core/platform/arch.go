@@ -14,24 +14,17 @@ const (
     ARM64 Arch = "arm64"
 )
 
-func HostArch() (Arch, error) {
+func HostArch() Arch {
     switch runtime.GOARCH {
     case "386":
-        return X86, nil
-
+        return X86
     case "amd64":
-        return X64, nil
-
-    case "arm64":
-        return ARM64, nil
-
-    default:
-        return "", fmt.Errorf(
-            "unsupported architecture: %s",
-            runtime.GOARCH,
-        )
+        return X64
+    default: // arm64
+        return ARM64
     }
 }
+
 
 // initail setp 
 func ParseArch(s string) (Arch, error) {
@@ -79,12 +72,8 @@ func (target Arch) IsCompatibleWith(host Arch) bool {
 
 
 func (target Arch) ValidateForHost() error {
-    host, err := HostArch()
-    if err != nil { // should never be an error. compile the bin for target only 
-        return err
-    }
-
-
+    host := HostArch()
+    
     if !target.IsCompatibleWith(host) {
         return fmt.Errorf("cannot install %s binary on an %s host", target, host)
     }

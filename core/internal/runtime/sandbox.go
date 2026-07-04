@@ -22,7 +22,7 @@ func builtin(name string, fn func(args starlark.Tuple, kwargs []starlark.Tuple) 
 
 func blocked(name string) *starlark.Builtin {
     return builtin(name, func(args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-        return nil, fmt.Errorf("%s can only be called inside install", name)
+        return nil, fmt.Errorf("%s can only be called inside install", name) // add line number 
     })
 }
 

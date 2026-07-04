@@ -33,8 +33,9 @@ func NewIinstallContext(script []byte) (*installContext,error) {
 
 
 
-    predeclared := starlark.StringDict{
-        "path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(nil)),
+    predeclared := starlark.StringDict{ // what is diffrance using Module or FromStringDict
+        //"path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(nil)),
+        "path": &starlarkstruct.Module{Name: "path", Members: buildPath(nil)},
         //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
         //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
         "install_dir": starlark.String("/usr/local"),

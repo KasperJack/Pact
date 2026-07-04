@@ -7,9 +7,11 @@ type ReleaseSource struct {
 }
 
 type ReleaseSourceBlock struct {
-    X64   *ReleaseSource `hcl:"x64,block"`
-    ARM64 *ReleaseSource `hcl:"arm64,block"`
-    X86   *ReleaseSource `hcl:"x86,block"`
+    X64      *ReleaseSource `hcl:"x64,block"`
+    ARM64    *ReleaseSource `hcl:"arm64,block"`
+    X86      *ReleaseSource `hcl:"x86,block"`
+    Universal *ReleaseSource `hcl:"universal,block"`
+    NoArch   *ReleaseSource `hcl:"noarch,block"`
 }
 
 type Release struct {

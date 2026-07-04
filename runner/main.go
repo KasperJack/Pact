@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/kasperjack/pact/core/platform"
+	//"github.com/kasperjack/pact/core/platform"
 	//"golang.org/x/text/cases"
 	//"github.com/kasperjack/pact/psbridge"
 )
@@ -41,25 +41,10 @@ func main(){
 func installCmd (pkg string, version string){
 
 	
-	
-	
-	var arch platform.Arch
+	var arch string
 
 	if len(os.Args) > 4 {
-		var err error
-		arch,err = platform.ParseArch(os.Args[4])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-
-
-		if err := arch.ValidateForHost(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-
-
+		arch = os.Args[4]
 	}
 
 	//fmt.Printf("%s\n",arch)

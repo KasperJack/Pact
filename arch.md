@@ -325,3 +325,10 @@ software has its own update mechanism running in background
 pact no longer controls the version after install
 no point version pinning or upgrading via pact 
 uninstall = run their uninstaller (if it works)
+
+
+
+
+
+----------------
+auto version bumping Starlark  scripts that run in the repo side
