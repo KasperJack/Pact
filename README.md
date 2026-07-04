@@ -3,7 +3,7 @@
 Pact is a software distribution platform for Windows. Packages are defined 
 in Starlark — a safe, sandboxed scripting language.
 
-> ⚠️ Early stage.
+> ⚠️ Early stage
 
 ## What's here
 
