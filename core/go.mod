@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/zclconf/go-cty v1.16.3
+	github.com/zclconf/go-cty v1.18.1
 	go.starlark.net v0.0.0-20260613233743-8ba36ccb83fb
 )
 
