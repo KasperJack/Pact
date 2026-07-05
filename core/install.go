@@ -39,22 +39,24 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	
 
 
-	pf ,err := m.repo.LoadPackage(agrs.Name,agrs.Version)
+	bundle ,err := m.repo.LoadPackage(agrs.Name,agrs.Version)
 	if err != nil {
+		// error loading the package 
 		return err
 	}
 	
-	//var binSource string
-	//var binHash string
+	
 
 	//fix this
-	s,_,err := resolveSource(agrs.TargetArch,pf.Release.Source)
+	s,a,err := resolveSource(agrs.TargetArch,bundle.Release.Source)
 	if err != nil {
 		return err
 	}
 
+
+	fmt.Println(a)
 	fmt.Println(s.URL)
-	fmt.Println(s.URL)
+	fmt.Println(s.SHA256)
 	
 
 	/*/////////////
@@ -78,8 +80,8 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 
 
-	
-	rt, err := runtime.NewIinstallContext(pf.LuaScript)
+	// stagingDir , resolvedArch,PackageBundle, interfaces
+	rt, err := runtime.NewIinstallContext(bundle.Script)
 	if err != nil {
 		return err
 

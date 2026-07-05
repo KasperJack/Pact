@@ -76,40 +76,40 @@ func (r *repo) GetVersions(packageName string) ([]string, error) {
 
 
 
-func (r *repo) LoadPackage(packageName string, version string) (core.PackageFiles,error) {
+func (r *repo) LoadPackage(packageName string, version string) (core.PackageBundle,error) {
     
     pkgFilePath := path.Join(r.repoRoot, packageName, fmt.Sprintf("%s.hcl", packageName))
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return core.PackageFiles{}, err
+        return core.PackageBundle{}, err
     }
     pkg, err := parce.Pacakge(pkgData)
     if err != nil {
-        return core.PackageFiles{}, err
+        return core.PackageBundle{}, err
     }
 
     // read and parse release manifest
     releaseFilePath := path.Join(r.repoRoot, packageName, version, "release.hcl") //RF:E (can't find release file for version)
     releaseData, err := os.ReadFile(releaseFilePath)
     if err != nil {
-        return core.PackageFiles{}, err
+        return core.PackageBundle{}, err
     }
     release, err := parce.Release(releaseData)
     if err != nil {
-        return core.PackageFiles{}, err
+        return core.PackageBundle{}, err
     }
 
     // lua script just stays as raw bytes, core will run it
     scriptFilePath := path.Join(r.repoRoot, packageName, version, "script.star") //RF:E (can't find install script )
     script, err := os.ReadFile(scriptFilePath)
     if err != nil {
-        return core.PackageFiles{}, err
+        return core.PackageBundle{}, err
     }
 
-	f := core.PackageFiles{
+	f := core.PackageBundle{
 		Release: release,
 		Package: pkg,
-		LuaScript: script,
+		Script: script,
 	}
 
 

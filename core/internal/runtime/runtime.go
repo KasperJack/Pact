@@ -21,7 +21,7 @@ type installContext struct {
 
 
 
-func NewIinstallContext(script []byte) (*installContext,error) {
+func NewIinstallContext(script []byte) (*installContext,error) { //change to an interface 
 
     
     thread := &starlark.Thread{Name: "main"}
@@ -83,7 +83,8 @@ func (ctx *installContext) Run() error {
 
     p:= providers.NewTestPath()
 
-    ctx.predeclared["path"] = starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(p))
+    //ctx.predeclared["path"] = starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(p))
+    ctx.predeclared["path"] = &starlarkstruct.Module{Name: "path", Members: buildPath(p)}
 
     _, err := starlark.Call(ctx.thread, callable, nil, nil)
     if err != nil {

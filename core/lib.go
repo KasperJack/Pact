@@ -9,10 +9,10 @@ import (
 
 
 
-type PackageFiles struct {
+type PackageBundle struct {
     Package  model.Package
     Release    model.Release
-    LuaScript  []byte
+    Script  []byte
 }
 
 
@@ -26,7 +26,7 @@ type LocalState interface {
 type Repo interface {
 
 	PackageExists(string) (bool,error)
-	LoadPackage(packageName string, version string) (PackageFiles,error)
+	LoadPackage(packageName string, version string) (PackageBundle,error)
 	GetVersions(string) ([]string,error)
 
 }
