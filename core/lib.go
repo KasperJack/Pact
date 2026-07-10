@@ -9,6 +9,29 @@ import (
 
 
 
+
+
+/*
+app  →  manager, core
+manager  →  runtime, core
+runtime  →  core
+core  →  (leaf)
+
+core(types and install args)
+manager(all manager commands)
+
+
+
+
+*/
+
+
+
+
+
+
+
+
 type PackageBundle struct {
     Package  model.Package
     Release    model.Release

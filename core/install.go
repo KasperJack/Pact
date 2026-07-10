@@ -80,7 +80,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 
 
-	// stagingDir , resolvedArch,PackageBundle, interfaces
+	// stagingDir , resolvedArch,PackageBundle, interfaces (create a lock entrey,localState a pointer to install dir)
 	rt, err := runtime.NewIinstallContext(bundle.Script)
 	if err != nil {
 		return err
