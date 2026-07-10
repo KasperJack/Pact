@@ -52,23 +52,23 @@ type PackageBundle struct {
 type LocalState interface {
 	// this is an fs pov
 	//CreatePackage(string) error
-	//GetPackagePath()
+	CreateInstallDir(PackageIdentifier string, version string) (string,error)
 	PackageExists(string) (bool, error)
 
 }
 type Repo interface {
 
 	PackageExists(string) (bool,error)
-	LoadPackage(packageName string, version string) (PackageBundle,error)
+	LoadPackage(PackageIdentifier string, version string) (PackageBundle,error)
 	GetVersions(string) ([]string,error)
 
 }
 
 type LockFile interface {
     
-    GetInstalled(pkg string) (LockedPackage, error)
+    GetInstalled(PackageIdentifier string) (LockedPackage, error)
     RecordInstall(pkg LockedPackage) error
-    RecordRemove(pkg string) error
+    RecordRemove(PackageIdentifier string, version string) error
 	Test() error
 
 }
@@ -109,7 +109,7 @@ type LockFileC struct {
 
 
 
-type Package struct {
+type Package struct {   // size=96 (0x60)
     Identifier  string `hcl:"identifier"`
     Name        string `hcl:"name"`
     Versioning  string `hcl:"versioning"`

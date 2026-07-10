@@ -6,7 +6,7 @@ import (
 )
 
 type InstallArgs struct {
-    Name       string
+    PackageIdentifier string
     Version    string
 	TargetArch  string
 }

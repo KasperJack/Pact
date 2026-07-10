@@ -27,7 +27,7 @@ func install (pkg string, version string, arch string) error {
 	m := manager.NewManager(localState,repo,lockFile)
 
 
-	err = m.Install(manager.InstallArgs{Name: pkg,Version: version,TargetArch: arch}) // move InstallArgs to core 
+	err = m.Install(manager.InstallArgs{PackageIdentifier: pkg,Version: version,TargetArch: arch}) // move InstallArgs to core 
 	if err != nil {
 		return err
 	}

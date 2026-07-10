@@ -22,7 +22,7 @@ type installContext struct {
 
 
 
-func NewIinstallContext(b core.PackageBundle,) (*installContext,error) { //change to an interface 
+func NewIinstallContext(installDir string,stagingDir string, arch string, b core.PackageBundle) (*installContext,error) { //change to an interface 
 
     
     thread := &starlark.Thread{Name: "main"}
@@ -40,7 +40,7 @@ func NewIinstallContext(b core.PackageBundle,) (*installContext,error) { //chang
         //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
         //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
         "install_dir": starlark.String("/usr/local"),
-        "version":     starlark.String("1.0.0"),
+        "version":     starlark.String(b.Release.Version),
     }
 
     

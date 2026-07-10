@@ -11,7 +11,7 @@ import (
     "github.com/kasperjack/pact/core"
     "github.com/kasperjack/pact/core/parce"
 )
-
+                                    //interface                
 func NewLockFile(filePath string) (core.LockFile, error) {
     f, err := os.ReadFile(filePath)
     if err != nil {
@@ -32,16 +32,16 @@ type lockFile struct {
     content core.LockFileC
 }
 
-func (f *lockFile) GetInstalled(pkg string) (core.LockedPackage, error) {
+func (f *lockFile) GetInstalled(PackageIdentifier string) (core.LockedPackage, error) {
     f.mu.RLock()
     defer f.mu.RUnlock()
 
     for _, p := range f.content.Packages {
-        if p.Name == pkg {
+        if p.Name == PackageIdentifier {
             return p, nil
         }
     }
-    return core.LockedPackage{}, fmt.Errorf("package %q is not installed", pkg)
+    return core.LockedPackage{}, fmt.Errorf("package %q is not installed", PackageIdentifier)
 }
 
 func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
@@ -59,18 +59,18 @@ func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
     return f.flush()
 }
 
-func (f *lockFile) RecordRemove(pkg string) error {
+func (f *lockFile) RecordRemove(PackageIdentifier string, version string) error {
     f.mu.Lock()
     defer f.mu.Unlock()
 
     packages := f.content.Packages
     for i, p := range packages {
-        if p.Name == pkg {
+        if p.Name == PackageIdentifier {
             f.content.Packages = append(packages[:i], packages[i+1:]...)
             return f.flush()
         }
     }
-    return fmt.Errorf("package %q not found", pkg)
+    return fmt.Errorf("package %q not found", PackageIdentifier)
 }
 
 func (f *lockFile) Test() error {
