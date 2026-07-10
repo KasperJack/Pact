@@ -1,11 +1,11 @@
-package core
+package manager
 
 import (
 	"fmt"
 
 
 	"github.com/kasperjack/pact/core/platform"
-	"github.com/kasperjack/pact/core/model"
+	"github.com/kasperjack/pact/core"
 	//"runtime"
 
 )
@@ -13,7 +13,7 @@ import (
 
 
 
-func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.ReleaseSource, string, error) {
+func resolveSource(targetArch string, source core.ReleaseSourceBlock) (core.ReleaseSource, string, error) {
 	// targetArch: already verifed to be in "","arm64","x86","x64"
 
 	target := platform.Arch(targetArch)
@@ -45,20 +45,20 @@ func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.Re
 				if  source.X86 != nil {
 					return *source.X86,string(platform.X86),nil
 				}
-				return model.ReleaseSource{},"",fmt.Errorf("no source found for x64/x86")
+				return core.ReleaseSource{},"",fmt.Errorf("no source found for x64/x86")
 
 			case platform.X86:
 				if  source.X86 != nil {
 					return *source.X86,string(platform.X86),nil
 				}
-				return model.ReleaseSource{},"",fmt.Errorf("no source found for x86")
+				return core.ReleaseSource{},"",fmt.Errorf("no source found for x86")
 			
 			case platform.ARM64:
 				if source.ARM64 != nil {
 					return *source.ARM64,string(platform.ARM64),nil
 				}
 
-				return  model.ReleaseSource{},"",fmt.Errorf("no source found for arm64")
+				return  core.ReleaseSource{},"",fmt.Errorf("no source found for arm64")
 
 		}
 
@@ -89,7 +89,7 @@ func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.Re
 					if  source.X64 != nil {
 						return *source.X64,string(platform.X64),nil
 					}
-					return model.ReleaseSource{},"",fmt.Errorf("no source found for x64")	
+					return core.ReleaseSource{},"",fmt.Errorf("no source found for x64")	
 				}
 
 
@@ -97,7 +97,7 @@ func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.Re
 					if  source.X86 != nil {
 						return *source.X86,string(platform.X86),nil
 					}
-					return model.ReleaseSource{},"",fmt.Errorf("no source found for x86")	
+					return core.ReleaseSource{},"",fmt.Errorf("no source found for x86")	
 				}
 
 
@@ -106,14 +106,14 @@ func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.Re
 				if  source.X86 != nil {
 					return *source.X86,string(platform.X86),nil
 				}
-				return model.ReleaseSource{},"",fmt.Errorf("no source found for x86")
+				return core.ReleaseSource{},"",fmt.Errorf("no source found for x86")
 			
 			case platform.ARM64:
 				if source.ARM64 != nil {
 					return *source.ARM64,string(platform.ARM64),nil
 				}
 
-				return  model.ReleaseSource{},"",fmt.Errorf("no source found for arm64")
+				return  core.ReleaseSource{},"",fmt.Errorf("no source found for arm64")
 
 		}
 
@@ -121,5 +121,5 @@ func resolveSource(targetArch string, source model.ReleaseSourceBlock) (model.Re
 	
 	}
 
-	return model.ReleaseSource{},"",fmt.Errorf("unexpected error happend")
+	return core.ReleaseSource{},"",fmt.Errorf("unexpected error happend")
 }

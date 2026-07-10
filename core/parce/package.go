@@ -2,18 +2,18 @@ package parce
 
 import (
 	
-	"github.com/kasperjack/pact/core/model"
+	"github.com/kasperjack/pact/core"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
-func Pacakge(pkgData []byte) (model.Package,error) {
+func Pacakge(pkgData []byte) (core.Package,error) {
 
 
-	var config model.Package
+	var config core.Package
 	
     err := hclsimple.Decode("package.hcl", pkgData, nil, &config)
     if err != nil {
-        return  model.Package{},err
+        return  core.Package{},err
     }
 
 	return config,nil

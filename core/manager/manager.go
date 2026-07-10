@@ -1,12 +1,14 @@
-package core
+package manager
 
-
+import (
+		"github.com/kasperjack/pact/core"
+)
 
 type Manager interface {
 	Install(InstallArgs) error
 }
 
-func NewManager(localState LocalState, repo Repo,lf LockFile) Manager {
+func NewManager(localState core.LocalState, repo core.Repo,lf core.LockFile) Manager {
 
 	return &pkgManager{
 		localState: localState,
@@ -18,9 +20,9 @@ func NewManager(localState LocalState, repo Repo,lf LockFile) Manager {
 }
 
 type pkgManager struct { 
-	localState LocalState
-	repo       Repo
-	lockFile LockFile
+	localState core.LocalState
+	repo       core.Repo
+	lockFile core.LockFile
 	staging *StagingArea //EC: change to an interface 
 }
 

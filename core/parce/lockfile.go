@@ -2,7 +2,7 @@ package parce
 
 import (
 	
-	"github.com/kasperjack/pact/core/model"
+	"github.com/kasperjack/pact/core"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -10,14 +10,14 @@ import (
 
 
 
-func LockFile(lockData []byte) (model.LockFile,error) {
+func LockFile(lockData []byte) (core.LockFileC,error) {
 
 
-	var config model.LockFile
+	var config core.LockFileC
 	
     err := hclsimple.Decode("package.hcl", lockData, nil, &config)
     if err != nil {
-        return  model.LockFile{},err
+        return  core.LockFileC{},err
     }
 
 	return config,nil
@@ -25,7 +25,7 @@ func LockFile(lockData []byte) (model.LockFile,error) {
 
 
 
-func WriteLockFile(lf model.LockFile) []byte {
+func WriteLockFile(lf core.LockFileC) []byte {
     f := hclwrite.NewEmptyFile()
     body := f.Body()
 

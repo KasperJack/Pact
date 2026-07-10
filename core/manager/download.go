@@ -1,4 +1,4 @@
-package core
+package manager
 
 import (
     "crypto/sha256"

@@ -1,4 +1,4 @@
-package core
+package manager
 
 import (
 	"fmt"
@@ -81,7 +81,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 
 	// stagingDir , resolvedArch,PackageBundle, interfaces (create a lock entrey,localState a pointer to install dir)
-	rt, err := runtime.NewIinstallContext(bundle.Script)
+	rt, err := runtime.NewIinstallContext(bundle)
 	if err != nil {
 		return err
 

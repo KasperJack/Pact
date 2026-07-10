@@ -9,7 +9,6 @@ import (
 	"time"
 
     "github.com/kasperjack/pact/core"
-    "github.com/kasperjack/pact/core/model"
     "github.com/kasperjack/pact/core/parce"
 )
 
@@ -30,10 +29,10 @@ func NewLockFile(filePath string) (core.LockFile, error) {
 type lockFile struct {
     mu      sync.RWMutex
     path    string
-    content model.LockFile
+    content core.LockFileC
 }
 
-func (f *lockFile) GetInstalled(pkg string) (model.LockedPackage, error) {
+func (f *lockFile) GetInstalled(pkg string) (core.LockedPackage, error) {
     f.mu.RLock()
     defer f.mu.RUnlock()
 
@@ -42,10 +41,10 @@ func (f *lockFile) GetInstalled(pkg string) (model.LockedPackage, error) {
             return p, nil
         }
     }
-    return model.LockedPackage{}, fmt.Errorf("package %q is not installed", pkg)
+    return core.LockedPackage{}, fmt.Errorf("package %q is not installed", pkg)
 }
 
-func (f *lockFile) RecordInstall(pkg model.LockedPackage) error {
+func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
     f.mu.Lock()
     defer f.mu.Unlock()
 
@@ -75,7 +74,7 @@ func (f *lockFile) RecordRemove(pkg string) error {
 }
 
 func (f *lockFile) Test() error {
-    pkg := model.LockedPackage{
+    pkg := core.LockedPackage{
         Name:        "test-package2",
         Version:     "1.0.0",
         InstalledAt: time.Now().Format(time.RFC3339),

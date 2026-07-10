@@ -7,7 +7,7 @@ import (
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
 	"go.starlark.net/syntax"
-    //"github.com/kasperjack/pact/core"
+    "github.com/kasperjack/pact/core"
 )
 
 
@@ -22,7 +22,7 @@ type installContext struct {
 
 
 
-func NewIinstallContext(script []byte) (*installContext,error) { //change to an interface 
+func NewIinstallContext(b core.PackageBundle,) (*installContext,error) { //change to an interface 
 
     
     thread := &starlark.Thread{Name: "main"}
@@ -47,7 +47,7 @@ func NewIinstallContext(script []byte) (*installContext,error) { //change to an 
 
     // goroutine needed here with a timeout 
     // inject globals and functions                                               //predeclared                         
-    globals, err := starlark.ExecFileOptions(&opts, thread, "script.star", script, predeclared)  //top level eval
+    globals, err := starlark.ExecFileOptions(&opts, thread, "script.star", b.Script, predeclared)  //top level eval
     if err != nil {
         return nil, err
     }

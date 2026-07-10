@@ -2,7 +2,7 @@ package core
 
 
 import (
-	"github.com/kasperjack/pact/core/model"
+	//"github.com/kasperjack/pact/core/model"
 
 	
 )
@@ -23,18 +23,28 @@ manager(all manager commands)
 
 
 
+
+
+
+
+reorganize packages into core and manager to fix import cycles
+- Add manager package to hold manager operations
+- Move types from model into core
+- Move manager-related logic out of core into manager
+- Resolve import cycle between core and runtime
+
+
+
+
+
+
 */
 
 
 
-
-
-
-
-
 type PackageBundle struct {
-    Package  model.Package
-    Release    model.Release
+    Package  Package
+    Release    Release
     Script  []byte
 }
 
@@ -56,8 +66,8 @@ type Repo interface {
 
 type LockFile interface {
     
-    GetInstalled(pkg string) (model.LockedPackage, error)
-    RecordInstall(pkg model.LockedPackage) error
+    GetInstalled(pkg string) (LockedPackage, error)
+    RecordInstall(pkg LockedPackage) error
     RecordRemove(pkg string) error
 	Test() error
 
@@ -71,3 +81,60 @@ type LockFile interface {
 
 
 
+////////
+
+
+
+type LockedPackage struct {
+    Name        string `hcl:"name,label"`
+    Version     string `hcl:"version"`
+    InstalledAt string `hcl:"installed_at"`
+    InstallDir  string `hcl:"install_dir"`
+}
+
+type LockFileC struct {
+    Packages []LockedPackage `hcl:"package,block"`
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+type Package struct {
+    Identifier  string `hcl:"identifier"`
+    Name        string `hcl:"name"`
+    Versioning  string `hcl:"versioning"`
+    Description string `hcl:"description,optional"`
+    Homepage    string `hcl:"homepage,optional"`
+    License     string `hcl:"license,optional"`
+}
+
+
+
+
+type ReleaseSource struct {
+    URL    string `hcl:"url"`
+    SHA256 string `hcl:"sha256"`
+}
+
+type ReleaseSourceBlock struct {
+    X64      *ReleaseSource `hcl:"x64,block"`
+    ARM64    *ReleaseSource `hcl:"arm64,block"`
+    X86      *ReleaseSource `hcl:"x86,block"`
+    Universal *ReleaseSource `hcl:"universal,block"`
+    NoArch   *ReleaseSource `hcl:"noarch,block"`
+}
+
+type Release struct {
+    Version string             `hcl:"version"`
+    Source  ReleaseSourceBlock `hcl:"source,block"`
+}
