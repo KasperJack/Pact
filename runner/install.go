@@ -1,9 +1,9 @@
 package main
 
 import (
-	//"os"
+	"os"
 	//"path"
-	//"path/filepath"
+	"path/filepath"
 
 	//"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/manager"
@@ -11,15 +11,20 @@ import (
 
 func install (pkg string, version string, arch string) error {
 
-	
+	exePath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	exeDir := filepath.Dir(exePath)
 
-	repo,err := NewLocalRepo("test-buckets")
+
+	repo,err := NewLocalRepo(filepath.Join(exeDir, "test-buckets"))
 	if err != nil {
 		return err
 	}
 
-	localState := NewLocalState("installed") // local state should contain the lockFile ? 
-	lockFile, err := NewLockFile("installed/lock.hcl")
+	localState := NewLocalState(filepath.Join(exeDir, "installed")) // local state should contain the lockFile ? 
+	lockFile, err := NewLockFile(filepath.Join(exeDir, "installed", "lock.hcl"))
 	if err != nil {
 		return err
 	}

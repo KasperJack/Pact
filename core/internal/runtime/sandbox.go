@@ -10,7 +10,7 @@ import (
 
 type Capabilities struct {
     Path       providers.Path
-    //Registry providers.Registry
+    Os providers.Os
     //Env      providers.Environment
 }
 
@@ -49,3 +49,26 @@ func buildPath(p providers.Path) starlark.StringDict {
 }
 
 
+func buildOs(o providers.Os) starlark.StringDict {
+
+	os := starlark.StringDict{}
+
+
+	if o == nil {
+
+		os["is_x64"] = blocked("is_x64")
+        os["is_x86"] = blocked("is_x86")
+        os["is_arm64"] = blocked("is_arm64")
+
+
+
+	}else{
+        os["arch"] = o.GArch()
+		os["is_x64"] = starlark.NewBuiltin("is_x64", o.IsX64)
+        os["is_x86"] = starlark.NewBuiltin("is_x86", o.IsX86)
+        os["is_arm64"] = starlark.NewBuiltin("is_arm64", o.IsArm64)
+	}
+
+
+	return os
+}

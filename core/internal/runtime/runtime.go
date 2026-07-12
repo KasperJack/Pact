@@ -37,9 +37,13 @@ func NewIinstallContext(installDir string,stagingDir string, arch string, b core
     predeclared := starlark.StringDict{ // what is diffrance using Module or FromStringDict
         //"path":  starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(nil)),
         "path": &starlarkstruct.Module{Name: "path", Members: buildPath(nil)},
+        "os": &starlarkstruct.Module{Name: "os", Members: buildOs(nil)},
         //"reg": starlarkstruct.FromStringDict(starlarkstruct.Default, buildRegistry(caps.Registry)),
         //"env": starlarkstruct.FromStringDict(starlarkstruct.Default, buildEnv(caps.Env)),
-        "install_dir": starlark.String("/usr/local"),
+        "arch": starlark.String(arch),
+        "identifier": starlark.String(b.Package.Identifier),
+        "install_dir": starlark.String(installDir),
+        "staging_dir": starlark.String(stagingDir),
         "version":     starlark.String(b.Release.Version),
     }
 
@@ -83,9 +87,11 @@ func (ctx *installContext) Run() error {
     }
 
     p:= providers.NewTestPath()
+    os := providers.NewOs()
 
     //ctx.predeclared["path"] = starlarkstruct.FromStringDict(starlarkstruct.Default, buildPath(p))
     ctx.predeclared["path"] = &starlarkstruct.Module{Name: "path", Members: buildPath(p)}
+    ctx.predeclared["os"] = &starlarkstruct.Module{Name: "os", Members: buildOs(os)}
 
     _, err := starlark.Call(ctx.thread, callable, nil, nil)
     if err != nil {

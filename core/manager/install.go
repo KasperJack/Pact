@@ -48,7 +48,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	
 
 	//fix this
-	resolvedRelease,resolvedArch,err := resolveSource(agrs.TargetArch,bundle.Release.Source)
+	_,resolvedArch,err := resolveSource(agrs.TargetArch,bundle.Release.Source)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,15 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	
 	 //prepare staging dir
 	stagingDirPath,err := m.staging.Prepare(agrs.PackageIdentifier,agrs.Version) // --> C:\pact\staging\ripgrep\14.1.0\
-	defer m.staging.Clear()
+	
 	if err != nil {
 		return err
 
 	}
+	defer m.staging.Clear()
 
+
+	/*
 	err = Download(resolvedRelease.URL,resolvedRelease.SHA256,stagingDirPath) // download cehck hash 
 	if err != nil {
 		return err
@@ -76,7 +79,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	err = Extract(stagingDirPath) // extract and delete zip 
 	if err != nil {
 		return err
-	}
+	}*/
 
 
 	installDir, err := m.localState.CreateInstallDir(agrs.PackageIdentifier,agrs.Version)

@@ -2,6 +2,9 @@ package manager
 
 import (
 		"github.com/kasperjack/pact/core"
+		"os"
+	//"path"
+		"path/filepath"
 )
 
 type Manager interface {
@@ -10,11 +13,16 @@ type Manager interface {
 
 func NewManager(localState core.LocalState, repo core.Repo,lf core.LockFile) Manager {
 
+	exePath, _ := os.Executable()
+
+	exeDir := filepath.Dir(exePath)
+
+
 	return &pkgManager{
 		localState: localState,
 		repo:       repo,
 		lockFile: lf,
-		staging: NewStagingArea("C:\\Users\\Aya\\Desktop\\pact\\bin\\staging"),
+		staging: NewStagingArea(filepath.Join(exeDir, "staging")),
 	}
 
 }
