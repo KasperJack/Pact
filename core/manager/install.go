@@ -2,13 +2,15 @@ package manager
 
 import (
 	"fmt"
+	//"path"
 
-
+	"path/filepath"
 
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
 	"github.com/kasperjack/pact/core/internal/runtime"
-	"github.com/nyaosorg/go-windows-junction"
+	//"github.com/nyaosorg/go-windows-junction"
+	"github.com/kasperjack/pact/core/internal/win"
 )
 
 
@@ -100,10 +102,25 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 		return err
 	}
 
-	err = junction.Create(installDir, "C:\\Users\\Aya\\Desktop\\pact\\bin\\installed\\windirstat\\current")
+	
+
+	//err = junction.Create()
+	//fmt.Println(installDir)
+	currentDir := filepath.Join(filepath.Dir(installDir),"current")
+
+	//fmt.Println(currentDir)
+	err = win.CreateJunction(installDir,currentDir) // C:\Users\installed\windirstat\2.6.1 , C:\Users\installed\windirstat\current
+
 	if err != nil {
 		return err
 	}
+
+	exePath := filepath.Join(currentDir,"WinDirStat.exe") // get pcakge exports for shortcts 
+
+
+							//if exists name fall back to exe name or pcakge id 
+	win.CreateDesktopShortcut(bundle.Package.Name,exePath,exePath)
+
 
 	return nil
 }
