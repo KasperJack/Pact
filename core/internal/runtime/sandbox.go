@@ -36,12 +36,13 @@ func buildPath(p providers.Path) starlark.StringDict {
 
 		path["join"] = blocked("join")
 
+		path["move_all"] = blocked("move_all")
 
 
 	}else{
 
 		path["join"] = starlark.NewBuiltin("join", p.Join)
-
+		path["move_all"] = starlark.NewBuiltin("move_all", p.MoveAll)
 	}
 
 

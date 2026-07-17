@@ -8,6 +8,7 @@ import (
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
 	"github.com/kasperjack/pact/core/internal/runtime"
+	"github.com/nyaosorg/go-windows-junction"
 )
 
 
@@ -48,7 +49,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	
 
 	//fix this
-	_,resolvedArch,err := resolveSource(agrs.TargetArch,bundle.Release.Source)
+	resolvedRelease,resolvedArch,err := resolveSource(agrs.TargetArch,bundle.Release.Source)
 	if err != nil {
 		return err
 	}
@@ -69,8 +70,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	}
 	defer m.staging.Clear()
 
-
-	/*
+	
 	err = Download(resolvedRelease.URL,resolvedRelease.SHA256,stagingDirPath) // download cehck hash 
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	err = Extract(stagingDirPath) // extract and delete zip 
 	if err != nil {
 		return err
-	}*/
+	}
 
 
 	installDir, err := m.localState.CreateInstallDir(agrs.PackageIdentifier,agrs.Version)
@@ -96,6 +96,11 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 	err = rt.Run()
 
+	if err != nil {
+		return err
+	}
+
+	err = junction.Create(installDir, "C:\\Users\\Aya\\Desktop\\pact\\bin\\installed\\windirstat\\current")
 	if err != nil {
 		return err
 	}

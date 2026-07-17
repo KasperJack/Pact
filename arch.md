@@ -332,3 +332,42 @@ uninstall = run their uninstaller (if it works)
 
 ----------------
 auto version bumping Starlark  scripts that run in the repo side
+
+
+
+
+
+
+--------
+golang.org/x/sys/windows — the foundation, direct Windows API access:
+go// registry, process, security, handles, everything low level
+import "golang.org/x/sys/windows"
+import "golang.org/x/sys/windows/registry"
+
+
+github.com/Microsoft/go-winio — Windows IO, named pipes, ACLs:
+go// named pipes, file security descriptors, reparse points
+import "github.com/Microsoft/go-winio"
+
+
+
+github.com/go-ole/go-ole — COM automation, talk to Windows shell:
+go// create shortcuts (.lnk) properly via Windows Shell COM
+import "github.com/go-ole/go-ole"
+
+
+
+
+github.com/lxn/walk — Windows GUI t
+github.com/shirou/gopsutil — process, memory, CPU, disk info:
+go// what pact bench script does, but from Go
+import "github.com/shirou/gopsutil/v3/process"
+
+
+
+
+go-winio — already a dep of the junction package // replace with github.com/nyaosorg/go-windows-junction
+
+
+
+github.com/allan-simon/go-singleinstance — prevent multiple instances of pact
