@@ -105,18 +105,43 @@ type LockFileC struct {
 
 
 
+type Shortcut struct {
+    Name string `hcl:"name,optional"`
+    Exe  string `hcl:"exe"`
+    Icon string `hcl:"icon,optional"`
+    Args string `hcl:"args,optional"`
+}
+
+
+
+type Command struct {
+    Exe  string `hcl:"exe"`
+    Args string `hcl:"args,optional"`   // default args baked into shim
+}
 
 
 
 
-type Package struct {   // size=96 (0x60)
+type Package struct {   // size=144 (0x90) /use a pointer ? 
     Identifier  string `hcl:"identifier"`
     Name        string `hcl:"name"`
     Versioning  string `hcl:"versioning"`
     Description string `hcl:"description,optional"`
     Homepage    string `hcl:"homepage,optional"`
     License     string `hcl:"license,optional"`
+    Shortcuts   []Shortcut `hcl:"shortcut,block"`
+    Commands    []Command  `hcl:"command,block"`
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

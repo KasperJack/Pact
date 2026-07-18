@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	//"path"
+	"os"
 
 	"path/filepath"
 
@@ -102,8 +103,61 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 		return err
 	}
 
-	
+	//// wtfffff
+	currentDir := filepath.Join(filepath.Dir(installDir),"current")
+	err = win.CreateJunction(installDir,currentDir)
+	if err != nil {
+		return err
+	}
 
+	// creating shortcuts
+	if len(bundle.Package.Shortcuts) > 0 { 
+		for _, sc := range bundle.Package.Shortcuts {
+			exePath := filepath.Join(installDir,sc.Exe)
+			// check if exe path exists 
+			if _, err := os.Stat(exePath); err != nil{
+				return fmt.Errorf("shortcut exe not found: %s", sc.Exe)
+			}
+
+		}
+
+
+		for _, sc := range bundle.Package.Shortcuts {
+			exePath := filepath.Join(currentDir,sc.Exe)
+
+			var name string = sc.Name
+			//var arguments string = sc.Args
+			var iconPath string = sc.Icon
+
+			if name == "" {
+				name = bundle.Package.Name // should be fine for now Package Name is not optional
+			}
+
+			if iconPath == "" {
+				iconPath = exePath
+			}else{
+				iconPath = filepath.Join(currentDir,sc.Icon)
+			}
+
+
+
+			win.CreateDesktopShortcut(name,exePath,sc.Args,iconPath)
+		}
+
+	}
+
+
+
+
+	//TODO: commands exposed as shims
+	if len(bundle.Package.Commands) > 0 { 
+
+		for _, cmd := range bundle.Package.Commands {
+			fmt.Println(cmd.Exe)
+		}
+
+	}
+	/*
 	//err = junction.Create()
 	//fmt.Println(installDir)
 	currentDir := filepath.Join(filepath.Dir(installDir),"current")
@@ -120,7 +174,7 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 
 							//if exists name fall back to exe name or pcakge id 
 	win.CreateDesktopShortcut(bundle.Package.Name,exePath,exePath)
-
+	*/
 
 	return nil
 }

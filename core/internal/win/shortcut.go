@@ -31,7 +31,7 @@ type Shortcut struct {
 // CreateShortcut create a desktop shortcut with name, target and iconPath
 // target is a file or website
 // if iconPath is empty string, icon would be "%SystemRoot%\\System32\\SHELL32.dll,0"
-func CreateDesktopShortcut(name, target, iconPath string) error {
+func CreateDesktopShortcut(name, target, arguments, iconPath string) error {
 
 	u, err := user.Current()
 	if err != nil {
@@ -42,7 +42,7 @@ func CreateDesktopShortcut(name, target, iconPath string) error {
 		ShortcutPath:     shortcutPath,
 		Target:           target,
 		IconLocation:     iconPath,
-		Arguments:        "",
+		Arguments:        arguments,
 		Description:      "",
 		Hotkey:           "",
 		WindowStyle:      "1",
