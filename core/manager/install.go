@@ -147,6 +147,9 @@ func (m *pkgManager) Install(agrs InstallArgs) error {
 	}
 
 
+	//test
+	// passing a directory instead of a file path fails silently 
+	win.CreateShim("C:\\Users\\Aya\\Desktop\\pact\\bin\\shims\\calc.exe","C:\\Windows\\System32\\calc.exe","")
 
 
 	//TODO: commands exposed as shims

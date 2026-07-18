@@ -1,294 +1,216 @@
-# Pact Vision: Starlark-Based End-to-End Package Management
 
-## Overview
 
-Pact has the potential to become a fundamentally different kind of package manager for Windows by using Starlark as the universal language across the entire ecosystem — from repository automation to client-side installation.
+Software on Windows is a mess. There is no standard model for what an "installed package" actually means. Package managers like Scoop, Chocolatey, and winget all treat packages as a delivery mechanism — they care about getting software onto your machine, not about what it looks like after.
 
-## Current Architecture
+The result: you never really know what you have installed, who owns it, or whether you can cleanly remove it.
 
-```
-Frontend CLI (runner)
-    ↓
-    └─→ Provides repository interface
-        ↓
-        Core Runtime (Starlark execution engine)
-        ↓
-        └─→ Calls platform abstractions
-            ↓
-            Platform Layer (psbridge, filesystem, registry)
-            ↓
-            System mutations (controlled & auditable)
-```
-
-**Key insight:** Core is functionally pure (deterministic Starlark logic) while remaining side-effect-isolated through narrow, controlled interfaces. This enables both security and auditability.
+Pact is an attempt to fix that.
 
 ---
 
-## Vision: Three-Layer Starlark Ecosystem
+## Core Idea: Software Has Types
 
-### 1. Repository Layer (Server-Side)
+Pact defines three models for how software exists on a Windows system. Every package must declare which one it is.
 
-**Purpose:** Automated version management and package publishing.
+### portable
 
-**Concept:** Package repositories contain Starlark scripts that handle:
-- Fetching latest versions from upstream (GitHub, release feeds, etc.)
-- Verifying checksums and installer integrity
-- Publishing to registry
-- Triggering notifications
+> Just files in a directory. Nothing else.
 
-**Example implementation:**
+- No installer runs
+- No ARP entry
+- No registry writes
+- No files outside its own directory
+- No auto-update
 
-```starlark
-# In package repository (auto-runs on schedule or webhook)
-
-def fetch_latest_version(ctx):
-    """Query upstream for new releases"""
-    release = ctx.http.get("https://api.github.com/repos/owner/repo/releases/latest")
-    return release.tag_name.lstrip("v")
-
-def should_update(ctx, current_version, latest_version):
-    """Custom logic: skip pre-releases, respect compatibility"""
-    if "rc" in latest_version or "alpha" in latest_version:
-        return False
-    return ctx.version_compare(latest_version, current_version) > 0
-
-def on_new_version(ctx, version):
-    """Publish new version to registry"""
-    installer_url = f"https://github.com/owner/repo/releases/download/v{version}/installer.exe"
-    installer = ctx.download(installer_url)
-    checksum = ctx.checksum(installer, "sha256")
-    ctx.publish_to_registry(version, {
-        "url": installer_url,
-        "checksum": checksum,
-        "manifest": load_manifest(version)
-    })
-    ctx.notify_slack(f"Published {ctx.package_name()}@{version}")
-```
-
-**Benefits:**
-- Zero-latency updates (no manual version bumps)
-- Transparent, auditable update process
-- Per-package custom versioning logic (semver, dates, custom schemes)
-- Built-in verification before publishing
+Pact controls the version. Multiple versions can coexist. Uninstall means deleting the folder.
 
 ---
 
-### 2. Package Definition Layer (Repository Metadata)
+### managed
 
-**Purpose:** Define package metadata and installation recipes.
+> Runs an installer. Pact tracks it.
 
-**Concept:** Each package has a Starlark definition that:
-- Describes metadata (name, dependencies, update strategy)
-- Defines installation logic for any version
-- Specifies version comparison rules
-- Handles migrations between versions
+- Runs an `.exe` or `.msi` installer
+- Writes to ARP (Add/Remove Programs)
+- May scatter files across `Program Files`, `AppData`, `System32`
+- No auto-update
 
-**Example implementation:**
-
-```starlark
-# python/package.star
-
-def metadata():
-    return {
-        "name": "python",
-        "description": "Python interpreter",
-        "maintainer": "community",
-        "portable": True,
-        "auto_update": True,
-        "versioning": "semver",  # or custom function
-    }
-
-def install(ctx):
-    """Install logic executed on client side"""
-    version = ctx.version()
-    installer = ctx.download(ctx.latest_url(version))
-    ctx.verify_checksum(installer, ctx.checksum(version))
-    ctx.extract_to(ctx.install_dir())
-    ctx.add_path(ctx.install_dir() + "/bin")
-    ctx.verify_install("python --version")
-
-def migrate(ctx, from_version, to_version):
-    """Handle version-specific migrations"""
-    if ctx.version_parse(from_version).major < 3:
-        ctx.backup_config()
-        ctx.move_config("/old/path", "/new/path")
-    
-    if from_version < "3.11":
-        ctx.run_script("upgrade_3_11.py")
-
-def uninstall(ctx):
-    """Cleanup on removal"""
-    ctx.remove_path()
-    ctx.cleanup_config()
-
-def compare_versions(v1, v2):
-    """Custom version comparison if needed"""
-    # Default: semantic versioning
-    # Can override for custom schemes (date-based, channels, etc.)
-    return ctx.default_compare(v1, v2)
-```
-
-**Benefits:**
-- Per-package versioning strategies (not one-size-fits-all)
-- Conditional logic for migrations and upgrades
-- Clear separation: metadata vs. installation logic
-- Composable with other packages
+Pact controls the version. One version at a time — the installer replaces the previous one. Uninstall means running the uninstaller.
 
 ---
 
-### 3. Client Layer (Installation & Management)
+### self_managed
 
-**Purpose:** Execute Starlark manifests with system isolation.
+> Pact bootstraps it. The software takes over.
 
-**Concept:** Runner CLI provides repository interface to Core, which sandboxes execution through controlled platform abstractions.
+- Pact runs the installer once
+- The software has its own background update mechanism
+- Pact no longer controls the version after install
+- No point in version pinning or upgrading via Pact
 
-**Current state (partial):**
+Uninstall means running their uninstaller — if it works.
 
-```go
-// runner/main.go
-func installCmd(pkg, version string, arch platform.Arch) error {
-    manifest := repo.Resolve(pkg, version)  // Fetch from repository
-    return core.Execute(manifest, arch)      // Execute in sandbox
+---
+
+### Why This Matters
+
+Declaring a type gives Pact a model of the software. It knows what it owns, what it can guarantee, and what it can't. Most package managers don't make this distinction — everything is treated the same, which is why uninstalls break things and version pinning is unreliable.
+
+> These types are not 100% enforced. Starlark hooks can extend or override behavior at any point — before/after install, uninstall, version switch, or migration. You can also write a package with no script at all if the software fits the type completely. The types are still being refined.
+
+---
+
+## Architecture
+
+```
+CLI (runner)
+    └── provides Repository + LocalState interfaces
+        └── Core (orchestration + Starlark runtime)
+            └── Platform layer (filesystem, registry, shortcuts, junctions)
+                └── System mutations (controlled, auditable)
+```
+
+Core is functionally pure — deterministic Starlark logic isolated from side effects through narrow interfaces. The platform layer is the only place system mutations happen, making every operation traceable.
+
+---
+
+## Package Definition
+
+Packages are defined in two layers:
+
+**Global definition** (`windirstat.hcl`) — applies to all versions:
+```hcl
+identifier  = "windirstat"
+name        = "WinDirStat"
+kind        = "portable"
+versioning  = "semver"
+description = "Disk usage viewer"
+homepage    = "https://windirstat.net"
+license     = "GPL-2.0"
+
+shortcut {
+    name = "WinDirStat"
+    exe  = "WinDirStat.exe"
+    icon = "WinDirStat.exe"
 }
 ```
 
-**What needs to be added:**
+**Release definition** (`release.hcl`) — per version, has download URLs and hashes:
+```hcl
+version = "2.6.1"
 
-1. **Repository Interface** — Define how Core asks for packages
-   ```go
-   type Repository interface {
-       Resolve(pkg, version string) (*Manifest, error)
-       Search(query string) ([]*Package, error)
-       LatestVersion(pkg string) (string, error)
-   }
-   ```
+source {
+    x64   { url = "..." sha256 = "..." }
+    x86   { url = "..." sha256 = "..." }
+    arm64 { url = "..." sha256 = "..." }
+}
+```
 
-2. **Multiple Repository Backends:**
-   - Local filesystem (development)
-   - Git-based (low overhead, version control)
-   - HTTP registry (central authority)
-   - Hybrid (local cache + remote fallback)
+**Install script** (`script.star`) — Starlark, optional, for anything non-standard:
+```python
+def install():
+    extract(dist(), staging())
+    if os.x64():
+        move(path.join(staging(), "x64/*"), dir())
+```
 
-3. **Expanded Starlark Standard Library:**
-   - HTTP client (for fetching, API calls)
-   - Cryptography (checksums, signatures)
-   - Archive extraction (zip, 7z, msi, exe)
-   - Process execution with timeout
-   - System inspection (arch, Windows version, admin status)
+If no script is defined, Pact handles the install automatically based on the package type.
 
 ---
 
-## Implementation Roadmap
+## Entry Points
 
-### Phase 1: Foundation (Minimal Viable Product)
-- [ ] Define Repository interface in Core
-- [ ] Implement local filesystem backend
-- [ ] Package 3-5 critical applications (Python, Git, Node, VS Code, 7-Zip)
-- [ ] Wire up basic auto-update logic
-- [ ] Publish proof-of-concept packages
+Pact exposes software to the user through typed entry points declared in the global definition.
 
-### Phase 2: Infrastructure
-- [ ] Implement Git-based repository backend
-- [ ] Add HTTP client to Starlark sandbox
-- [ ] Expand standard library (crypto, archives)
-- [ ] Create central registry (optional HTTP endpoint)
-- [ ] Package migration tools from Scoop
+```hcl
+# GUI app — creates a desktop shortcut
+shortcut {
+    name = "WinDirStat"       # optional, falls back to package name
+    exe  = "WinDirStat.exe"
+    icon = "WinDirStat.exe"   # optional, falls back to exe
+    args = ""                  # optional
+}
 
-### Phase 3: Ecosystem
-- [ ] Community package contributions
-- [ ] Dependency resolution between packages
-- [ ] Lockfile format for reproducible installs
-- [ ] CI/CD templates for package maintainers
-- [ ] Performance optimization (parallel downloads, caching)
+# CLI tool — creates a shim on PATH
+command {
+    name = "rg"
+    exe  = "rg.exe"
+}
+```
 
-### Phase 4: Advanced Features
-- [ ] Custom versioning schemes (date-based, channels)
-- [ ] Rollback mechanism (undo installs)
-- [ ] Package signing & verification
-- [ ] Differential updates (delta compression)
-- [ ] GUI client
+- `shortcut` → creates a `.lnk` on the desktop pointing to the active version
+- `command` → creates a shim on PATH that forwards to the active version
+
+Shortcuts and shims always point to a `current/` junction. Switching versions updates the junction — entry points never change.
 
 ---
 
-## Architectural Advantages
+## Version Management
 
-### 1. Universal Language
-- **Single DSL** across repository automation, package definitions, and installation
-- **Lower contribution barrier** — Package maintainers learn Starlark once
-- **Consistency** — Same logic runs everywhere; no translation errors
+Each package has a `current/` junction that always points to the active version:
 
-### 2. Security Through Isolation
-- **Starlark sandbox** — Scripts cannot break out
-- **Controlled platform layer** — All OS mutations go through auditable interfaces
-- **Explicit capabilities** — Package author declares what they need (registry write, filesystem access, etc.)
+```
+C:/pact/packages/windirstat/
+├── current/          ← junction, points to active version
+├── 2.6.1/
+└── 2.7.0/
+```
 
-### 3. Flexibility
-- **Per-package customization** — Versioning, migrations, dependencies
-- **Pluggable repositories** — Mix and match backends
-- **Extensible by design** — New Starlark functions can be added without core changes
-
-### 4. Reproducibility
-- **Deterministic execution** — Same script + inputs = same outcome
-- **Auditability** — Every operation is traceable
-- **Testability** — Mock platform layer; no real side effects during testing
-
-### 5. Comparison to Existing Managers
-
-| Feature | Scoop | Chocolatey | Winget | **Pact** |
-|---------|-------|-----------|--------|---------|
-| Language | PowerShell/JSON | PowerShell/.NET | YAML (rigid) | Starlark (flexible) |
-| Custom versioning | ❌ | ❌ | ❌ | ✅ |
-| Conditional logic | ❌ (JSON limitation) | ✅ | ❌ | ✅ |
-| Auto-update scripts | ❌ | ❌ | ❌ | ✅ |
-| Sandbox | ❌ | ❌ | Limited | ✅ |
-| Performance | Slow (26+ sec for search) | Slow (.NET startup) | Medium | Fast (Go + caching) |
-| Cross-platform | ❌ | ❌ | ✅ | ❌ (Windows-focused) |
+Switching versions = update one junction. Shortcuts and shims are never recreated.
 
 ---
 
-## Technical Debt & Open Questions
+## Starlark Hooks
 
-1. **Repository Distribution**
-   - How do users discover and subscribe to repositories?
-   - Decentralized (like npm) or centralized?
-   - Package signing and trust model?
+Scripts can hook into any lifecycle event:
 
-2. **Dependency Resolution**
-   - How to handle package A depends on package B?
-   - Version constraint syntax?
-   - Conflict resolution?
+```python
+def pre_install():  pass
+def post_install(): pass
+def pre_remove():   pass
+def post_remove():  pass
+def pre_switch():   pass
+def post_switch():  pass
+def on_update():    pass
 
-3. **Licensing & Legal**
-   - Copyright of packaged applications?
-   - Terms of service for central registry?
-
-4. **Performance at Scale**
-   - How many packages can be efficiently indexed?
-   - Search performance with thousands of packages?
-   - Update frequency & latency?
-
-5. **Backward Compatibility**
-   - Migration path from Scoop/Chocolatey?
-   - Can existing package manifests be ported?
+# if install() is defined, Pact does nothing automatically
+def install():      pass
+```
 
 ---
 
-## Why This Matters
+## Roadmap
 
-Windows lacks a modern, developer-friendly package manager. Scoop is the closest thing but is limited by its JSON-based design and lacks automation. Pact has the opportunity to leapfrog by using Starlark as a universal language, enabling:
+**Phase 1 — Foundation**
+- Local filesystem repository backend
+- Install pipeline for `portable` packages
+- Shortcut and shim creation
+- Lockfile tracking
 
-- **For users:** Fast, predictable, safe package management
-- **For maintainers:** Simple, expressive package definitions with zero boilerplate
-- **For developers:** A platform for building package management tools and automation
+**Phase 2 — Infrastructure**
+- Git-based repository backend
+- `managed` and `self_managed` pipelines
+- Version switching (`pact use`)
+- Package detection / adopt existing installs
 
-The architecture is already sound. Filling in the repository layer and packaging initial applications is the critical next step.
+**Phase 3 — Ecosystem**
+- Central registry
+- Community package contributions
+- Dependency resolution
+- CI/CD templates for maintainers
+
+**Phase 4 — Advanced**
+- Package signing and verification
+- Rollback mechanism
+- Parallel downloads and caching
+- GUI client
 
 ---
 
-## Next Steps
+## Open Questions
 
-1. **Design the Repository Interface** — Formalize Core's expectations
-2. **Implement Local Backend** — Start with file-based packages
-3. **Port 3-5 Key Packages** — Proof of concept
-4. **Gather Feedback** — Early adopters on the vision
-5. **Iterate on Design** — Adjust based on real-world usage
+- **Dependencies** — how does package A declare it needs package B?
+- **Conflict resolution** — what happens when two packages want the same command name?
+- **Migration from Scoop/Chocolatey** — can existing manifests be ported?
+- **Registry at scale** — search and index performance with thousands of packages?
+- **Legal** — licensing and terms of service for a central registry?
