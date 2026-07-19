@@ -13,15 +13,38 @@ license     = "GPL-2.0"
 
  //valid   
 
-  
-        
-shortcut {  
-    name = "hole" // optional fall back to name from exe  
-    exe  = "WinDirStat.exe"
-    icon = "WinDirStat.exe" // optional fall back to exe icon 
-    args = "--ass --hole" // optional
-}
+// install script for each version is granteed to produce a dir with the help of the script script should own delevery and installation 
 
+
+
+
+match "<=2.0.3" {
+
+
+    link {
+
+    current ="install_dir" // should be done buy manger 
+
+
+    }
+  
+    announce {
+
+        shortcut {  
+        name = "hole" // optional fall back to name from exe  
+        exe  = "WinDirStat.exe"
+        icon = "WinDirStat.exe" // optional fall back to exe icon 
+        args = "--ass --hole" // optional
+        }
+
+        command  {
+            exe  = "cli/wds.exe" // this will create a shim 
+        }
+
+    }        
+
+
+}
 
 
 
@@ -33,9 +56,6 @@ shortcut  {
     exe  = "WinDirStat.exe"  
 }
 
-command  {
-    exe  = "cli/WinDirStat.exe"
-}
 
 
 

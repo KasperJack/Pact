@@ -293,17 +293,17 @@ system.reboot_needed -- bool, set automatically after some ops
 
 
 portable
-
-just files in a directory, nothing else
-no installer runs
+- multiple versions can coexist 
+- just files in a directory, nothing else
 no ARP entry
 no registry writes
 no files outside its own dir
 no auto update 
 
 pact controls the version
-multiple versions can coexist
-uninstall = delete the folder
+
+uninstall = delete the install folder
+
 
 
 managed
