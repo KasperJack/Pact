@@ -18,33 +18,10 @@ license     = "GPL-2.0"
 
 
 
-match "<=2.0.3" {
 
 
-    link {
-
-    current ="install_dir" // should be done buy manger 
 
 
-    }
-  
-    announce {
-
-        shortcut {  
-        name = "hole" // optional fall back to name from exe  
-        exe  = "WinDirStat.exe"
-        icon = "WinDirStat.exe" // optional fall back to exe icon 
-        args = "--ass --hole" // optional
-        }
-
-        command  {
-            exe  = "cli/wds.exe" // this will create a shim 
-        }
-
-    }        
-
-
-}
 
 
 
