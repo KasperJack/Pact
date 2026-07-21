@@ -8,8 +8,10 @@ import (
 )
 
 type Manager interface {
-	Install(InstallArgs) error
+	Install(args core.InstallArgs) error
 }
+
+
 
 func NewManager(localState core.LocalState, repo core.Repo,lf core.LockFile) Manager {
 

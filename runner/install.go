@@ -5,7 +5,7 @@ import (
 	//"path"
 	"path/filepath"
 
-	//"github.com/kasperjack/pact/core"
+	"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/manager"
 )
 
@@ -32,7 +32,7 @@ func install (pkg string, version string, arch string) error {
 	m := manager.NewManager(localState,repo,lockFile)
 
 
-	err = m.Install(manager.InstallArgs{PackageIdentifier: pkg,Version: version,TargetArch: arch}) // move InstallArgs to core 
+	err = m.Install(core.InstallArgs{PackageIdentifier: pkg,Version: version,TargetArch: arch}) // move InstallArgs to core 
 	if err != nil {
 		return err
 	}

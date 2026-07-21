@@ -42,6 +42,19 @@ reorganize packages into core and manager to fix import cycles
 
 
 
+
+type InstallArgs struct {
+    PackageIdentifier string
+    Version    string
+	TargetArch  string
+}
+
+
+
+
+
+
+
 type PackageBundle struct {
     Package  Package
     Release    Release
@@ -66,7 +79,7 @@ type Repo interface {
 
 type LockFile interface {
     
-    GetInstalled(PackageIdentifier string) (LockedPackage, error)
+    GetInstalled(PackageIdentifier string) (map[string]LockedPackage)
     RecordInstall(pkg LockedPackage) error
     RecordRemove(PackageIdentifier string, version string) error
 	Test() error
@@ -162,4 +175,67 @@ type ReleaseSourceBlock struct {
 type Release struct {
     Version string             `hcl:"version"`
     Source  ReleaseSourceBlock `hcl:"source,block"`
+}
+
+
+
+
+
+
+////version
+
+
+
+
+
+
+
+type versionKind int
+
+const (
+	versionUndefined versionKind = iota
+	versionExact
+)
+
+// Version represents a package version, which may be undefined
+// (caller didn't specify one — resolve to latest downstream).
+type Version struct {
+	kind  versionKind
+	value string
+}
+
+func versionUndefinedValue() Version {
+	return Version{kind: versionUndefined}
+}
+
+func versionExactValue(v string) Version {
+	if v == "" {
+		panic("core.versionExactValue: empty version string")
+	}
+	return Version{kind: versionExact, value: v}
+}
+
+// ParseVersion converts a raw string (from a CLI flag )
+// into a Version. Empty string becomes an undefined version; anything else
+// becomes an exact version. This is the only way to construct a Version
+// from outside the package.
+func ParseVersion(s string) Version {
+	if s == "" {
+		return versionUndefinedValue()
+	}
+	return versionExactValue(s)
+}
+
+// IsDefined reports whether a concrete version was specified.
+func (v Version) IsDefined() bool {
+	return v.kind == versionExact
+}
+
+// String returns the raw version string. Panics if called on an undefined
+// version — callers must check IsDefined() first.
+func (v Version) String() string {
+	if v.kind == versionUndefined {
+		panic("core.Version.String: called on an undefined version")
+	}
+	return v.value
 }

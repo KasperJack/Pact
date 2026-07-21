@@ -9,15 +9,38 @@ import (
 
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
+	"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/internal/runtime"
 	//"github.com/nyaosorg/go-windows-junction"
 	"github.com/kasperjack/pact/core/internal/win"
+	"github.com/kasperjack/pact/core/internal/install"
+	
 )
 
 
 
 
-func (m *pkgManager) Install(agrs InstallArgs) error {
+func (m *pkgManager) Install(agrs core.InstallArgs) error {
+
+
+	//quary pacakge type 
+	// -package exists 
+
+
+
+
+	 i := install.NewManaged(agrs,m.lockFile,m.localState,m.repo).Run()
+
+
+	
+	
+
+
+
+
+
+
+
 
 	_ , err := m.lockFile.GetInstalled(agrs.PackageIdentifier)
 

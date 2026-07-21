@@ -32,16 +32,23 @@ type lockFile struct {
     content core.LockFileC
 }
 
-func (f *lockFile) GetInstalled(PackageIdentifier string) (core.LockedPackage, error) {
+
+
+// GetInstalled returns all installed versions of a package, keyed by version.
+// Returns an empty map (not an error) if the package has no installed versions —
+// "not installed" is a valid normal state, not a failure
+
+func (f *lockFile) GetInstalled(packageIdentifier string) (map[string]core.LockedPackage) {
     f.mu.RLock()
     defer f.mu.RUnlock()
 
+    result := make(map[string]core.LockedPackage)
     for _, p := range f.content.Packages {
-        if p.Name == PackageIdentifier {
-            return p, nil
+        if p.Name == packageIdentifier {
+            result[p.Version] = p
         }
     }
-    return core.LockedPackage{}, fmt.Errorf("package %q is not installed", PackageIdentifier)
+    return result
 }
 
 func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
