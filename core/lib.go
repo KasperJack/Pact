@@ -45,7 +45,7 @@ reorganize packages into core and manager to fix import cycles
 
 type InstallArgs struct {
     PackageIdentifier string
-    Version    string
+    Version    Version
 	TargetArch  string
 }
 

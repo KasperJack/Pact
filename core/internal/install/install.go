@@ -7,10 +7,13 @@ import (
 )
 
 
-type Installer interface{
-	Run() error
-}
+type installKind int
 
+const (
+	installKindUnknown installKind = iota
+	installKindFirst              // no versions of this package installed yet
+	installKindAlongside          // installing a new version next to existing ones
+)
 
 
 type manager struct {
@@ -26,7 +29,7 @@ type installer struct {
 	
 	manager manager
 
-
+	kind         installKind
 	bundle        *core.PackageBundle
     resolvedRel   core.ReleaseSource
     resolvedArch  string
@@ -82,31 +85,37 @@ func (i *installer) checkNotInstalled() error {
 	installed  := i.manager.lockFile.GetInstalled(i.args.PackageIdentifier)
 
 
-	if i.args.Version == "" {
+	if i.args.Version.IsDefined() {
+		if _, exists := installed[i.args.Version.String()]; exists {
+			return fmt.Errorf("package %q version %q already installed",
+				i.args.PackageIdentifier, i.args.Version.String())
+		}
 
 		if len(installed) > 0 {
-			// error: pkg already installed must provied a spesefic to install 
+			i.kind = installKindAlongside
+			// installing a version along side another version
+		} else {
+			i.kind = installKindFirst
 		}
-		
-		
-		// first install will install latest 
-	}else{  // a version was passed 
 
-		if _, exists := installed[i.args.Version]; exists {
-    		return fmt.Errorf("package %q version %q already installed", i.args.PackageIdentifier, i.args.Version)
-		}
-		// installing pkg@version
+
+
+		return nil
 	}
 	
 
+	if len(installed) > 0 {
+		return fmt.Errorf(
+			"package %q already installed with other version(s); specify a version to install alongside them",
+			i.args.PackageIdentifier,
+		)
+	}
 
 
 
+	i.kind = installKindFirst
+	return nil // first install — version will be resolved to latest downstream
 
-
-
-
-	return nil
 }
 
 
