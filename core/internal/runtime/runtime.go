@@ -56,7 +56,7 @@ func NewIinstallContext(installDir string,stagingDir string, arch string, b core
         return nil, err
     }
 
-
+    //FIXME: Remove this check
     for name := range predeclared {
         if _, ok := globals[name]; ok {
         return nil, fmt.Errorf("%s is a reserved name and cannot be reassigned", name)
@@ -64,7 +64,7 @@ func NewIinstallContext(installDir string,stagingDir string, arch string, b core
     }
 
 
-
+                            //FIXME: Potential memory leak in starlark globals
     return &installContext{thread: thread, globals: globals,predeclared: predeclared}, nil
 
 }

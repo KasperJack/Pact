@@ -1,9 +1,10 @@
 package install
 
-
 import (
-	"github.com/kasperjack/pact/core"
 	"fmt"
+	//"go/version"
+	"slices"
+	"github.com/kasperjack/pact/core"
 )
 
 
@@ -40,7 +41,25 @@ type installer struct {
 
 
 
-func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) *installer {
+func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
+
+
+		if args.Version.IsDefined() {
+			//hanndle errors //fetch //should be sfve to asume not no pkgnotfound error
+			version,_ := repo.GetVersions(args.PackageIdentifier)
+
+			if !slices.Contains(version,args.Version.String()) {
+				return nil,fmt.Errorf("pkg %s does not have version %s",args.PackageIdentifier,args.Version.String())
+			}
+
+		}
+
+
+
+
+
+
+
 
 	m := manager{
 		localState: localState,
@@ -52,20 +71,21 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 	return &installer{args: args,manager: m}
 
-
-
 }
 
 
 func (i *installer) Run()error{
+	// pcakge already exists at this point 
 
 
-
-	i.checkNotInstalled()
+	err := i.checkNotInstalled()
+	if err != nil {
+		return nil
+	}
 
 	
 
-	i.checkExists()
+	i.checkVersionExists()
 
 
 
@@ -119,10 +139,25 @@ func (i *installer) checkNotInstalled() error {
 }
 
 
-func (i *installer) checkExists() error {
+func (i *installer) checkVersionExists() error {
+
+	if i.args.Version.IsDefined() {
+
+
+	}
+
+
 
 	return nil
 }
+
+
+
+
+
+
+
+
 
 
 func (i *installer) loadBundle() error {

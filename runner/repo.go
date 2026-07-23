@@ -1,7 +1,7 @@
 package main
 
 import(
-	"path"
+	"path/filepath"
 	"os"
 	"github.com/kasperjack/pact/core"
     "github.com/kasperjack/pact/core/parce"
@@ -31,54 +31,112 @@ func NewLocalRepo(repoRoot string) (core.Repo,error) {
 
 
 
+//index //fetch error
+func (r *repo) PackageExists(PackageIdentifier string) (bool,string,error) { //add type of package 
 
-func (r *repo) PackageExists(packageName string) (bool,error) {
+	pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
 
-	pkgPath := path.Join(r.repoRoot,packageName)
 
-	info, err := os.Stat(pkgPath)
+    //fmt.Println(pkgFilePath)
+
+	_, err := os.Stat(pkgFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return false, nil 
+			return false, "",nil 
 		}
-    	return false, err  // permission or something else, real error
+    	return false,"", fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
 	}
 
-	if  !info.IsDir() {
-		return false,nil
-	}
+    pkgData, err := os.ReadFile(pkgFilePath)
+    if err != nil {
+        return false, "",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
 
-	return true,nil
+
+    pType,err := parce.GetType(pkgData)
+
+    if err != nil{
+        return false,"",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+
+	return true,pType,nil
 }
 
+            
+//index  //fetch error //not found error 
+func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error ftching 
 
 
-func (r *repo) GetVersions(packageName string) ([]string, error) {
+    pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
 
 
-    pkgPath := path.Join(r.repoRoot, packageName)
+    _, err := os.Stat(pkgFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil,core.ErrPkgNotFound
+		}
+    	return nil, fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
+	}
 
-    entries, err := os.ReadDir(pkgPath)
+
+
+    pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return nil, err
+        return nil,fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
     }
 
-    var versions []string
-    for _, entry := range entries {
-        if entry.IsDir() {
-            versions = append(versions, entry.Name())
-        }
+
+    versions,err := parce.GetVersions(pkgData)
+    if err != nil{
+        return nil,fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
     }
+
+
 
     return versions, nil
 }
 
 
+//index //fetch error  //not found error 
+func (r *repo) GetLatest(PackageIdentifier string) (string, error) { //error ftching 
 
 
-func (r *repo) LoadPackage(packageName string, version string) (core.PackageBundle,error) {
+    pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
+
+
+    _, err := os.Stat(pkgFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "",core.ErrPkgNotFound
+		}
+    	return "", fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
+	}
+
+
+    pkgData, err := os.ReadFile(pkgFilePath)
+    if err != nil {
+        return "",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+
+    latest,err := parce.GetLatest(pkgData)
+
+        if err != nil{
+        return "",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+    return latest, nil
+}
+
+
+
+
+// loadLatest using tags from indexes 
+
+func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.PackageBundle,error) {
     
-    pkgFilePath := path.Join(r.repoRoot, packageName, fmt.Sprintf("%s.hcl", packageName))
+    pkgFilePath := filepath.Join(r.repoRoot, PackageIdentifier, fmt.Sprintf("%s.hcl", PackageIdentifier))
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
         return core.PackageBundle{}, err
@@ -89,7 +147,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageBund
     }
 
     // read and parse release manifest
-    releaseFilePath := path.Join(r.repoRoot, packageName, version, "release.hcl") //RF:E (can't find release file for version)
+    releaseFilePath := filepath.Join(r.repoRoot, PackageIdentifier, version, "release.hcl") //RF:E (can't find release file for version)
     releaseData, err := os.ReadFile(releaseFilePath)
     if err != nil {
         return core.PackageBundle{}, err
@@ -100,7 +158,7 @@ func (r *repo) LoadPackage(packageName string, version string) (core.PackageBund
     }
 
     // lua script just stays as raw bytes, core will run it
-    scriptFilePath := path.Join(r.repoRoot, packageName, version, "script.star") //RF:E (can't find install script )
+    scriptFilePath := filepath.Join(r.repoRoot, PackageIdentifier, version, "script.star") //RF:E (can't find install script )
     script, err := os.ReadFile(scriptFilePath)
     if err != nil {
         return core.PackageBundle{}, err

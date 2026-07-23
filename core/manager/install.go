@@ -2,19 +2,21 @@ package manager
 
 import (
 	"fmt"
-	//"path"
-	"os"
 
-	"path/filepath"
+	
+
+	//"path"
+	//"os"
+
+	//"path/filepath"
 
 	//"github.com/kasperjack/pact/core/model"
 	//"runtime"
 	"github.com/kasperjack/pact/core"
-	"github.com/kasperjack/pact/core/internal/runtime"
+	//"github.com/kasperjack/pact/core/internal/runtime"
 	//"github.com/nyaosorg/go-windows-junction"
-	"github.com/kasperjack/pact/core/internal/win"
+	//"github.com/kasperjack/pact/core/internal/win"
 	"github.com/kasperjack/pact/core/internal/install"
-	
 )
 
 
@@ -23,14 +25,41 @@ import (
 func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 
-	//quary pacakge type 
-	// -package exists 
+	//valid pkg
 
 
+	// NewManaged constructor should hanndle version and arch validation 
 
 
-	 i := install.NewManaged(agrs,m.lockFile,m.localState,m.repo).Run()
+	ok,pType, err := m.repo.PackageExists(agrs.PackageIdentifier)
+	if err != nil{
+		// fetching errors 
+		return err
+	}
 
+	if ok {
+
+
+		switch pType {
+
+		case "managed":
+			
+			err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile).Run()
+
+			if err != nil{
+				return err
+			}
+
+
+		default:
+			return fmt.Errorf("only manged install is implmanted, unkown tpye: %q ",pType)
+
+
+		}
+
+
+		return nil
+	}
 
 	
 	
@@ -39,10 +68,25 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 
 
+	return fmt.Errorf("pkg %s not found",agrs.PackageIdentifier)
+
+
+}
 
 
 
-	_ , err := m.lockFile.GetInstalled(agrs.PackageIdentifier)
+
+
+
+
+/*
+func Sinstall{
+
+
+
+
+
+		_ , err := m.lockFile.GetInstalled(agrs.PackageIdentifier)
 
 	if err == nil {
 		return fmt.Errorf("package already installed boom")
@@ -201,9 +245,6 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 							//if exists name fall back to exe name or pcakge id 
 	win.CreateDesktopShortcut(bundle.Package.Name,exePath,exePath)
 	*/
-
-	return nil
-}
 
 
 

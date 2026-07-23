@@ -1,15 +1,11 @@
 package core
 
-
 import (
 	//"github.com/kasperjack/pact/core/model"
 
-	
+	"errors"
+
 )
-
-
-
-
 
 /*
 app  →  manager, core
@@ -46,7 +42,7 @@ reorganize packages into core and manager to fix import cycles
 type InstallArgs struct {
     PackageIdentifier string
     Version    Version
-	TargetArch  string
+	TargetArch  Arch
 }
 
 
@@ -71,9 +67,10 @@ type LocalState interface {
 }
 type Repo interface {
 
-	PackageExists(string) (bool,error)
+	PackageExists(PackageIdentifier string) (bool,string,error)
 	LoadPackage(PackageIdentifier string, version string) (PackageBundle,error)
-	GetVersions(string) ([]string,error)
+	GetVersions(PackageIdentifier string) ([]string,error)
+    GetLatest(PackageIdentifier string) (string, error)
 
 }
 
@@ -239,3 +236,94 @@ func (v Version) String() string {
 	}
 	return v.value
 }
+
+
+
+
+
+
+
+
+
+
+
+
+type archKind int
+
+
+const (
+	archUndefined archKind = iota
+	archExact
+)
+
+
+type Arch struct {
+	kind  archKind
+	value string
+}
+
+func archUndefinedValue() Arch {
+	return Arch{kind: archUndefined}
+}
+
+func archExactValue(v string) Arch {
+	return Arch{kind: archExact, value: v}
+}
+
+
+func ParseArch(s string) Arch {
+	if s == "" {
+		return archUndefinedValue()
+	}
+
+    switch s {
+
+    case "x86","arm64","x64":
+        return archExactValue(s)
+
+    // should not reach this point arch is already check buy cli 
+    default:
+        panic("unkown arch passed")
+    }
+	
+}
+
+func (a Arch) IsDefined() bool {
+	return a.kind == archExact
+}
+
+func (a Arch) String() string {
+	if a.kind == archUndefined {
+		panic("core.Arch.String: called on an undefined version")
+	}
+	return a.value
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////
+
+
+
+var ErrPkgNotFound = errors.New("not found")
+var ErrFetch = errors.New("fetch failed")
