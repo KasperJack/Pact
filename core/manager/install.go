@@ -44,11 +44,13 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 		case "managed":
 			
-			err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile).Run()
-
+			i,err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile)
 			if err != nil{
 				return err
 			}
+
+
+			i.Run()
 
 
 		default:

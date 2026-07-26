@@ -42,17 +42,11 @@ type installer struct {
 
 
 func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
+		//resolve version 
+		//resolve arch
+		// resolve install type 
 
 
-		if args.Version.IsDefined() {
-			//hanndle errors //fetch //should be sfve to asume not no pkgnotfound error
-			version,_ := repo.GetVersions(args.PackageIdentifier)
-
-			if !slices.Contains(version,args.Version.String()) {
-				return nil,fmt.Errorf("pkg %s does not have version %s",args.PackageIdentifier,args.Version.String())
-			}
-
-		}
 
 
 
@@ -69,7 +63,7 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 
 
-	return &installer{args: args,manager: m}
+	return &installer{args: args,manager: m},nil
 
 }
 
@@ -158,9 +152,25 @@ func (i *installer) checkVersionExists() error {
 
 
 
-
-
 func (i *installer) loadBundle() error {
 
 	return nil
+}
+
+
+
+
+func resolveVersion(version core.Version, packageIdentifier string, repo core.Repo)(string,error){
+
+			if version.IsDefined() {
+			//hanndle errors //fetch //should be sfve to asume not no pkgnotfound error
+			versions,_ := repo.GetVersions(packageIdentifier)
+
+			if !slices.Contains(versions,version.String()) {
+				return "",fmt.Errorf("pkg %s does not have version %s",packageIdentifier,version.String())
+			}
+			return version.String(),nil
+		}
+
+		return "",nil
 }

@@ -100,6 +100,7 @@ type LockedPackage struct {
     Version     string `hcl:"version"`
     InstalledAt string `hcl:"installed_at"`
     InstallDir  string `hcl:"install_dir"`
+    Arch        string `hcl:"arch"`
 }
 
 type LockFileC struct {
