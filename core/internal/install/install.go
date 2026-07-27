@@ -4,7 +4,9 @@ import (
 	"fmt"
 	//"go/version"
 	"slices"
+
 	"github.com/kasperjack/pact/core"
+	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 
@@ -160,17 +162,149 @@ func (i *installer) loadBundle() error {
 
 
 
-func resolveVersion(version core.Version, packageIdentifier string, repo core.Repo)(string,error){
+func resolveArchVersion(args core.InstallArgs, repo core.Repo)(string,core.Arch,error){
 
-			if version.IsDefined() {
+		if args.Version.IsDefined() {
 			//hanndle errors //fetch //should be sfve to asume not no pkgnotfound error
-			versions,_ := repo.GetVersions(packageIdentifier)
+			versions,_ := repo.GetVersions(args.PackageIdentifier)
 
-			if !slices.Contains(versions,version.String()) {
-				return "",fmt.Errorf("pkg %s does not have version %s",packageIdentifier,version.String())
+			if !slices.Contains(versions,args.Version.String()) {
+				return "",core.ArchUndefined,fmt.Errorf("pkg %s does not have version %s",args.PackageIdentifier,args.Version.String())
 			}
-			return version.String(),nil
+
+			// if the pkg no arch 
+
+			archInfo,err := repo.GetVersionInfo(args.PackageIdentifier,args.Version.String())
+			if err != nil {return "",core.ArchUndefined,err}
+			
+			switch core.HostArch() {
+				
+			
+				case core.ArchX64:
+
+					if args.TargetArch == core.ArchUndefined {
+						if slices.Contains(archInfo.Archs,core.ArchX64){
+							return args.TargetArch.String(),core.ArchX64,nil
+						}
+
+						if archInfo.ArchFallbackSafe {
+							if slices.Contains(archInfo.Archs,core.ArchX64){
+								return args.TargetArch.String(),core.ArchX64,nil
+							}
+						}
+
+						//error
+
+					}
+
+					if args.TargetArch == core.ArchX86 {
+						if slices.Contains(archInfo.Archs,core.ArchX64){
+							return args.TargetArch.String(),core.ArchX64,nil
+						}
+
+						// error 
+					}
+
+					if slices.Contains(archInfo.Archs,core.ArchX86){
+						return args.TargetArch.String(),core.ArchX86,nil
+					}
+
+					// error 
+
+
+
+				case core.ArchX86:
+
+					if slices.Contains(archInfo.Archs,core.ArchX86){
+							return args.TargetArch.String(),core.ArchX86,nil
+					}
+
+					// error 
+
+				default: // arm64
+					if slices.Contains(archInfo.Archs,core.ArchArm64){
+						return args.TargetArch.String(),core.ArchArm64,nil
+					}
+
+					// error 
+
+			}
+
+		}else{ // no defined verions
+
+			if args.TargetArch == core.ArchUndefined {
+
+				ok,v,err := repo.GetLatestVersion(args.PackageIdentifier,core.HostArch()) // get latest verion for an arch 
+
+				if err != nil {
+					return "",core.ArchUndefined,err
+				}
+
+				if ok {
+					return v.verion,core.HostArch(),nil
+				}
+
+				if core.HostArch() == core.ArchArm64 {
+
+					ok,v,_ := repo.GetLatestVersion(args.PackageIdentifier,core.ArchX86)
+
+					if ok {
+						if v.ArchFallbackSafe {
+							return v.verion,core.ArchX86,nil
+						}
+					}
+
+				}
+
+				// error 
+			}
+
+
+
+
+
+			switch core.HostArch() {
+
+				case core.ArchX64:
+
+					if args.TargetArch == core.ArchX64 {
+						ok,v,_ := repo.GetLatestVersion(args.PackageIdentifier,core.ArchX64)
+					}
+
+					if args.TargetArch == core.ArchX86 {
+						
+					}
+
+				case core.ArchX86:
+					ok,v,_ := repo.GetLatestVersion(args.PackageIdentifier,core.ArchX86)
+
+
+				default: //arm64
+					ok,v,_ := repo.GetLatestVersion(args.PackageIdentifier,core.ArchX86)
+					
+
+			}
+
+
+
 		}
 
-		return "",nil
+
+
+
+
+
+
+
+
+
+
+		return "",core.ArchUndefined,fmt.Errorf("unexpecteed error happend resoving the version/arch")
 }
+
+
+
+
+
+
+

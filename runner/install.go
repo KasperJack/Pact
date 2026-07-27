@@ -9,7 +9,7 @@ import (
 	"github.com/kasperjack/pact/core/manager"
 )
 
-func install (pkg string, version string, arch string) error {
+func install (pkg string, version string, arch core.Arch) error {
 
 	exePath, err := os.Executable()
 	if err != nil {
@@ -32,7 +32,7 @@ func install (pkg string, version string, arch string) error {
 	m := manager.NewManager(localState,repo,lockFile)
 
 
-	err = m.Install(core.InstallArgs{PackageIdentifier: pkg,Version: core.ParseVersion(version),TargetArch: core.ParseArch(arch)}) // move InstallArgs to core 
+	err = m.Install(core.InstallArgs{PackageIdentifier: pkg,Version: core.ParseVersion(version),TargetArch: arch}) // move InstallArgs to core 
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,8 @@ import (
 	//"github.com/kasperjack/pact/core/model"
 
 	"errors"
-
+    "runtime"
+    "fmt"
 )
 
 /*
@@ -71,6 +72,7 @@ type Repo interface {
 	LoadPackage(PackageIdentifier string, version string) (PackageBundle,error)
 	GetVersions(PackageIdentifier string) ([]string,error)
     GetLatest(PackageIdentifier string) (string, error)
+    GetVersionInfo(identifier, version string) (VersionInfo, error)
 
 }
 
@@ -183,7 +185,11 @@ type Release struct {
 ////version
 
 
-
+type VersionInfo struct {
+    Version           string
+    Archs             []Arch 
+    ArchFallbackSafe  bool        // per-version optin only meaningful for x86 
+}
 
 
 
@@ -246,70 +252,57 @@ func (v Version) String() string {
 
 
 
-
-
-
-type archKind int
-
-
+type Arch int
 const (
-	archUndefined archKind = iota
-	archExact
+    ArchUndefined Arch = iota // explicitl: no arch was specified
+
+    ArchX86
+    ArchX64
+    ArchArm64
 )
 
-
-type Arch struct {
-	kind  archKind
-	value string
-}
-
-func archUndefinedValue() Arch {
-	return Arch{kind: archUndefined}
-}
-
-func archExactValue(v string) Arch {
-	return Arch{kind: archExact, value: v}
-}
-
-
-func ParseArch(s string) Arch {
-	if s == "" {
-		return archUndefinedValue()
-	}
-
-    switch s {
-
-    case "x86","arm64","x64":
-        return archExactValue(s)
-
-    // should not reach this point arch is already check buy cli 
-    default:
-        panic("unkown arch passed")
-    }
-	
-}
-
-func (a Arch) IsDefined() bool {
-	return a.kind == archExact
-}
-
 func (a Arch) String() string {
-	if a.kind == archUndefined {
-		panic("core.Arch.String: called on an undefined version")
-	}
-	return a.value
+    switch a {
+    case ArchX86:
+        return "x86"
+    case ArchX64:
+        return "x64"
+    case ArchArm64:
+        return "arm64"
+    default:
+        //panic("ops")
+        return "Undefined"
+    }
 }
 
 
 
+func ParseArch(s string) (Arch, error) {
+	switch s {
+	case "x86":
+		return ArchX86, nil
+	case "x64":
+		return ArchX64, nil
+	case "arm64":
+		return ArchArm64, nil
+	default:
+		return ArchUndefined, fmt.Errorf("unknown architecture %q", s)
+	}
+}
 
 
 
+func HostArch() Arch {
+    switch runtime.GOARCH {
+    case "386":
+        return ArchX86
+    case "amd64":
+        return ArchX64
+    default:
+        return ArchArm64
 
-
-
-
-
+    }
+}
 
 
 

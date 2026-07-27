@@ -6,8 +6,10 @@ homepage    = "https://windirstat.net"
 license     = "GPL-2.0"
 
 
+//archfallback = true
 
-archpolicy = "interchangeable" 
+//archpolicy = "interchangeable" 
+//archpolicy = "strict"
 // only one arch at a time for a version 
 // pkgs are idendfied with pkgId/verion 
 
@@ -33,10 +35,10 @@ archpolicy = "interchangeable"
 
 
 
-archpolicy = "strict"
 
 
-type = "managed"
+//index
+type = "portable"
 latest = "2.7.0"
 versions = ["2.6.1","2.7.0"]
 

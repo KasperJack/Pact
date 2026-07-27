@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
+
 )
 
 
@@ -76,4 +78,43 @@ func getAttr(pkgData []byte, name string) (*hcl.Attribute, error) {
 		return nil, fmt.Errorf("%s: attribute not found", name)
 	}
 	return attr, nil
+}
+
+
+
+
+
+
+
+
+
+func GetSourceBlockNames(src []byte) ([]string, error) {
+	parser := hclparse.NewParser()
+	file, diags := parser.ParseHCL(src, "ass")
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("parsing %s: %w", "ass", diags)
+	}
+
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return nil, fmt.Errorf("unexpected body type for %s", "ass")
+	}
+
+	var sourceBody *hclsyntax.Body
+	for _, block := range body.Blocks {
+		if block.Type == "source" {
+			sourceBody = block.Body
+			break
+		}
+	}
+	if sourceBody == nil {
+		return nil, fmt.Errorf("no source block found in %s", "ass")
+	}
+
+	names := make([]string, 0, len(sourceBody.Blocks))
+	for _, archBlock := range sourceBody.Blocks {
+		names = append(names, archBlock.Type)
+	}
+
+	return names, nil
 }

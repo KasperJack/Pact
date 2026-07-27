@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/kasperjack/pact/core/platform"
+	"strings"
+	"github.com/kasperjack/pact/core"
 	//"golang.org/x/text/cases"
 	//"github.com/kasperjack/pact/psbridge"
 )
@@ -41,19 +42,19 @@ func main(){
 func installCmd (pkg string, version string){
 
 	
-	var arch string
+	var arch core.Arch
 
 	if len(os.Args) > 4 {
-		arch = os.Args[4]
+		var err error
+		archflag := os.Args[4]
 
-		a,err := platform.ParseArch(arch)
+		arch, err = ParseArchFlag(archflag)
 		if err != nil {
 			fmt.Fprintln(os.Stderr,err)
 			os.Exit(1)
 		}
 
-		err = a.ValidateForHost()
-		if err != nil {
+		if err := ValidateArchForHost(arch, core.HostArch()); err != nil {
 			fmt.Fprintln(os.Stderr,err)
 			os.Exit(1)
 		}
@@ -73,6 +74,46 @@ func installCmd (pkg string, version string){
 	fmt.Println("everything run ok")
 	
 }
+
+
+
+
+func ParseArchFlag(s string) (core.Arch, error) {
+    switch strings.ToLower(strings.TrimSpace(s)) {
+    case "":
+        return core.ArchUndefined, nil
+    case "x86", "32", "32bit", "386":
+        return core.ArchX86, nil
+    case "x64", "64", "64bit", "amd64":
+        return core.ArchX64, nil
+    case "arm64", "aarch64":
+        return core.ArchArm64, nil
+    default:
+        return core.ArchUndefined, fmt.Errorf("unrecognized architecture %q", s)
+    }
+}
+
+
+
+
+
+func ValidateArchForHost(requested, host core.Arch) error {
+    if requested == core.ArchUndefined {
+        return nil 
+    }
+	
+    if requested == host {
+        return nil
+    }
+   
+    if requested == core.ArchX86 && host == core.ArchX64{
+        return nil
+    }
+
+    return fmt.Errorf("architecture %s is not supported on this host (%s) — try omitting --arch to auto-select, or use a compatible architecture",requested.String(),host.String())
+}
+
+
 
 
 

@@ -42,7 +42,7 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 		switch pType {
 
-		case "managed":
+		case "portable":
 			
 			i,err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile)
 			if err != nil{

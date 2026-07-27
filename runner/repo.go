@@ -6,6 +6,7 @@ import(
 	"github.com/kasperjack/pact/core"
     "github.com/kasperjack/pact/core/parce"
 	"fmt"
+    "slices"
 )
 
 type repo struct {
@@ -76,20 +77,20 @@ func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error
 		if os.IsNotExist(err) {
 			return nil,core.ErrPkgNotFound
 		}
-    	return nil, fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
+    	return nil, fmt.Errorf("%w: fetching versions %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
 	}
 
 
 
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return nil,fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+        return nil,fmt.Errorf("%w: fetching versions%s: %v", core.ErrFetch, PackageIdentifier, err)
     }
 
 
     versions,err := parce.GetVersions(pkgData)
     if err != nil{
-        return nil,fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+        return nil,fmt.Errorf("%w: fetching versions %s: %v", core.ErrFetch, PackageIdentifier, err)
     }
 
 
@@ -110,20 +111,20 @@ func (r *repo) GetLatest(PackageIdentifier string) (string, error) { //error ftc
 		if os.IsNotExist(err) {
 			return "",core.ErrPkgNotFound
 		}
-    	return "", fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
+    	return "", fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)  
 	}
 
 
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return "",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
     }
 
 
     latest,err := parce.GetLatest(pkgData)
 
         if err != nil{
-        return "",fmt.Errorf("%w: fetching %s: %v", core.ErrFetch, PackageIdentifier, err)
+        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
     }
 
     return latest, nil
@@ -173,4 +174,46 @@ func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.Packa
 
 
     return f,nil
+}
+
+
+func (r *repo) GetVersionInfo(PackageIdentifier, version string) (core.VersionInfo, error) {
+
+    releaseFilePath := filepath.Join(r.repoRoot,PackageIdentifier,version,"release.hcl")
+
+
+    _, err := os.Stat(releaseFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return core.VersionInfo{},core.ErrPkgNotFound
+		}
+    	return core.VersionInfo{}, fmt.Errorf("%w: fetching version info %s: %v", core.ErrFetch, PackageIdentifier, err)  
+	}
+
+
+    pkgData, err := os.ReadFile(releaseFilePath)
+    if err != nil {
+        return core.VersionInfo{},fmt.Errorf("%w: fetching version info %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+
+    arches,err := parce.GetSourceBlockNames(pkgData)
+
+    if err != nil{
+    return core.VersionInfo{},fmt.Errorf("%w: fetching version info %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+    vi := core.VersionInfo{ArchFallbackSafe: true,Version: version} // safe is the defult adding  a key  to signal unsafe 
+   
+	for _, a := range arches {     
+
+		arch, err := core.ParseArch(a)
+		if err != nil {
+			return core.VersionInfo{}, fmt.Errorf("parsing arch: %w", err)
+		}
+		vi.Archs = append(vi.Archs, arch) // mutating a field ON vi
+	}
+
+    return vi,nil
+
 }
