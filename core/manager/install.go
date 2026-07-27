@@ -44,13 +44,14 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 		case "portable":
 			
-			i,err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile)
+			_,err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile)
+
 			if err != nil{
 				return err
 			}
 
-
-			i.Run()
+			return nil
+			//i.Run()
 
 
 		default:

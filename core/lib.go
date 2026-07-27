@@ -68,11 +68,15 @@ type LocalState interface {
 }
 type Repo interface {
 
-	PackageExists(PackageIdentifier string) (bool,string,error)
+	PackageExists(PackageIdentifier string) (bool,string,error)  // CONVENTION NOTE fix: Go idiom puts the "ok/found" bool
+                                                                // LAST, after the value(s), matching map-lookup style: v, ok := m[k]
+                                                                // Right:   (string, bool, error)   -- bool last, right before error
+
 	LoadPackage(PackageIdentifier string, version string) (PackageBundle,error)
 	GetVersions(PackageIdentifier string) ([]string,error)
-    GetLatest(PackageIdentifier string) (string, error)
+    //GetLatest(PackageIdentifier string) (string, error)
     GetVersionInfo(identifier, version string) (VersionInfo, error)
+    GetLatestVersionForArch(identifier string, arch Arch) (VersionInfo ,bool ,error)
 
 }
 
@@ -138,6 +142,7 @@ type Command struct {
 type Package struct {   // size=144 (0x90) /use a pointer ? 
     Identifier  string `hcl:"identifier"`
     Name        string `hcl:"name"`
+    Type        string  `hcl:"type"`  
     Versioning  string `hcl:"versioning"`
     Description string `hcl:"description,optional"`
     Homepage    string `hcl:"homepage,optional"`

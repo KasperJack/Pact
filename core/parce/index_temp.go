@@ -118,3 +118,65 @@ func GetSourceBlockNames(src []byte) ([]string, error) {
 
 	return names, nil
 }
+
+
+
+func GetLatestVerArch(pkgData []byte,strArch string) (string,bool, error) {
+
+	var att string
+
+	switch strArch {
+
+		case "x86","arm64","x64":
+
+			att = fmt.Sprintf("latest_%s",strArch)
+
+		default :
+			return "",false,fmt.Errorf("error resoving arch in the indexer %q",strArch)
+
+		
+	}
+
+
+	attr, ok ,err := getAttrOpt(pkgData, att)
+	if err != nil {
+		return "", false ,err
+	}
+
+	if ! ok {
+		return "",false,nil
+	}
+
+
+
+	var value string
+	diags := gohcl.DecodeExpression(attr.Expr, nil, &value)
+	if diags.HasErrors() {
+		return "", false ,diags
+	}
+	return value, true,nil
+}
+
+
+
+func getAttrOpt(pkgData []byte, name string) (*hcl.Attribute,bool ,error) {
+	parser := hclparse.NewParser()
+	f, diags := parser.ParseHCL(pkgData, "index.hcl")
+	if diags.HasErrors() {
+		return nil, false ,diags
+	}
+
+	schema := &hcl.BodySchema{
+		Attributes: []hcl.AttributeSchema{{Name: name}},
+	}
+	content, _, diags := f.Body.PartialContent(schema)
+	if diags.HasErrors() {
+		return nil, false ,diags
+	}
+
+	attr, ok := content.Attributes[name]
+	if !ok {
+		return nil, false,nil
+	}
+	return attr, true,nil
+}

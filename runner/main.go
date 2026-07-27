@@ -18,16 +18,22 @@ import (
 
 func main(){
 	
-	if len(os.Args) < 4 {
-		fmt.Println("expected command: install <pkg> <ver>")
+	if len(os.Args) < 3 {
+		fmt.Println("expected command: install <pkg>")
 		os.Exit(1)
 	}
 
 	switch os.Args[1] {
 
 	case "install":
-		//fmt.Printf("installing %s \n", os.Args[2])
-		installCmd(os.Args[2],os.Args[3])
+			if len(os.Args) > 3 {
+
+				installCmd(os.Args[2],os.Args[3])
+			}else{
+				installCmd(os.Args[2],"")
+			}
+
+			
 		
 	default:
 		fmt.Println("expected command: install <pkg> <ver>")

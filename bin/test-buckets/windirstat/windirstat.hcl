@@ -1,5 +1,6 @@
 identifier  = "windirstat"
 name        = "WinDirStat"
+type = "portable"
 versioning  = "semver"
 description = "Disk usage viewer"
 homepage    = "https://windirstat.net"
@@ -31,16 +32,6 @@ license     = "GPL-2.0"
 // pakes can from 32 --> 64 or vice versa to update to last version 
 
 
-
-
-
-
-
-
-//index
-type = "portable"
-latest = "2.7.0"
-versions = ["2.6.1","2.7.0"]
 
 
 

@@ -6,7 +6,7 @@ import(
 	"github.com/kasperjack/pact/core"
     "github.com/kasperjack/pact/core/parce"
 	"fmt"
-    "slices"
+    //"slices"
 )
 
 type repo struct {
@@ -69,10 +69,10 @@ func (r *repo) PackageExists(PackageIdentifier string) (bool,string,error) { //a
 func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error ftching 
 
 
-    pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
+    indexFilePath := filepath.Join(r.repoRoot,PackageIdentifier,"index.hcl")
 
 
-    _, err := os.Stat(pkgFilePath)
+    _, err := os.Stat(indexFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil,core.ErrPkgNotFound
@@ -82,7 +82,7 @@ func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error
 
 
 
-    pkgData, err := os.ReadFile(pkgFilePath)
+    pkgData, err := os.ReadFile(indexFilePath)
     if err != nil {
         return nil,fmt.Errorf("%w: fetching versions%s: %v", core.ErrFetch, PackageIdentifier, err)
     }
@@ -99,41 +99,12 @@ func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error
 }
 
 
-//index //fetch error  //not found error 
-func (r *repo) GetLatest(PackageIdentifier string) (string, error) { //error ftching 
-
-
-    pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
-
-
-    _, err := os.Stat(pkgFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "",core.ErrPkgNotFound
-		}
-    	return "", fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)  
-	}
-
-
-    pkgData, err := os.ReadFile(pkgFilePath)
-    if err != nil {
-        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
-    }
-
-
-    latest,err := parce.GetLatest(pkgData)
-
-        if err != nil{
-        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
-    }
-
-    return latest, nil
-}
 
 
 
 
-// loadLatest using tags from indexes 
+
+
 
 func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.PackageBundle,error) {
     
@@ -177,6 +148,7 @@ func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.Packa
 }
 
 
+// index
 func (r *repo) GetVersionInfo(PackageIdentifier, version string) (core.VersionInfo, error) {
 
     releaseFilePath := filepath.Join(r.repoRoot,PackageIdentifier,version,"release.hcl")
@@ -217,3 +189,98 @@ func (r *repo) GetVersionInfo(PackageIdentifier, version string) (core.VersionIn
     return vi,nil
 
 }
+
+
+
+func (r *repo) GetLatestVersionForArch(PackageIdentifier string, arch core.Arch) (core.VersionInfo ,bool ,error){
+
+    indexFilePath := filepath.Join(r.repoRoot,PackageIdentifier,"index.hcl")
+
+
+    _, err := os.Stat(indexFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return core.VersionInfo{},false,core.ErrPkgNotFound
+		}
+    	return core.VersionInfo{},false, fmt.Errorf("%w: fetching version for arch %s: %v", core.ErrFetch, PackageIdentifier, err)  // permission or something else
+	}
+
+
+
+    indexData, err := os.ReadFile(indexFilePath)
+    if err != nil {
+        return core.VersionInfo{},false,fmt.Errorf("%w: fetching version for arch %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+
+
+     v,ok,err := parce.GetLatestVerArch(indexData,arch.String())
+
+    if err != nil {
+
+        return core.VersionInfo{},false,err
+    }
+
+    if ok {
+
+        return core.VersionInfo{Version: v,ArchFallbackSafe: true},true,nil
+
+    }
+
+
+    return core.VersionInfo{},false,nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+//index //fetch error  //not found error 
+func (r *repo) GetLatest(PackageIdentifier string) (string, error) { //error ftching 
+
+
+    pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,"index.hcl")
+
+
+    _, err := os.Stat(pkgFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "",core.ErrPkgNotFound
+		}
+    	return "", fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)  
+	}
+
+
+    pkgData, err := os.ReadFile(pkgFilePath)
+    if err != nil {
+        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+
+    latest,err := parce.GetLatest(pkgData)
+
+        if err != nil{
+        return "",fmt.Errorf("%w: fetching latest %s: %v", core.ErrFetch, PackageIdentifier, err)
+    }
+
+    return latest, nil
+}
+
+*/
