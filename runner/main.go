@@ -1,75 +1,167 @@
-package main
 
+package main
+ 
 import (
 	"fmt"
-	"os"
 	"strings"
+	"github.com/alecthomas/kong"
 	"github.com/kasperjack/pact/core"
-	//"golang.org/x/text/cases"
-	//"github.com/kasperjack/pact/psbridge"
+	"os"
 )
 
 
 
 
+/*
+ * TODO:  KNOWN ISSUE: Single-Dash Long Flag Parsing (-arch vs --arch)
+ * -------------------------------------------------------------------
+ * Behavior:
+ * Running `install foo -arch` currently sets:
+ *   - Arch = "rch"
+ */
 
 
 
 
-func main(){
-	
-	if len(os.Args) < 3 {
-		fmt.Println("expected command: install <pkg>")
-		os.Exit(1)
+
+
+
+
+
+
+
+
+
+
+ 
+// command tree add more commands here 
+type CLI struct {
+	Install InstallCmd `cmd:"" help:"Install a package."`
+	List    ListCmd    `cmd:"" help:"List packages."`
+}
+ 
+type InstallCmd struct {
+	Pkg  string `arg:"" name:"pkg" help:"Package name, optionally pkg@version (e.g. ripgrep@14.1.0)."`
+	Arch string `help:"Target architecture (e.g. amd64, arm64)." short:"a"`
+	// add more flags here as needed, e.g.:
+	// Force  bool `help:"Reinstall even if already installed."`
+	// DryRun bool `help:"Show what would happen without doing it." name:"dry-run"`
+}
+ 
+func (c *InstallCmd) Run() error {
+	pkg, version := parsePkgSpec(c.Pkg)
+ 
+	fmt.Printf("Installing package: %s\n", pkg)
+	if version != "" {
+		fmt.Printf("  version: %s\n", version)
+	} else {
+		fmt.Printf("  version: latest\n")
 	}
-
-	switch os.Args[1] {
-
-	case "install":
-			if len(os.Args) > 3 {
-
-				installCmd(os.Args[2],os.Args[3])
-			}else{
-				installCmd(os.Args[2],"")
-			}
-
-			
-		
-	default:
-		fmt.Println("expected command: install <pkg> <ver>")
-		os.Exit(1)
-
+	if c.Arch != "" {
+		fmt.Printf("  arch:    %s\n", c.Arch)
+	}else {
+		fmt.Printf("  arch: auto\n")
 	}
-
+ 
+	linstallDeck(pkg,version,c.Arch)
+	return nil
+}
+ 
+type ListCmd struct {
+	All bool `help:"List all available packages, not just installed ones."`
+}
+ 
+func (c *ListCmd) Run() error {
+	if c.All {
+		fmt.Println("Listing all available packages...")
+	} else {
+		fmt.Println("Listing installed packages...")
+	}
+ 
+	// TODO: actual listing logic goes here
+	return nil
+}
+ 
+func main() {
+	cli := CLI{}
+	ctx := kong.Parse(&cli,
+		kong.Name("Pcat"),
+		kong.Description("a package manager CLI"),
+		kong.UsageOnError(),
+	)
+	err := ctx.Run()
+	ctx.FatalIfErrorf(err)
+}
+ 
+// parsePkgSpec splits "pkg@version" into its parts.
+// "ripgrep" -> ("ripgrep", "")
+// "ripgrep@14.1.0" -> ("ripgrep", "14.1.0")
+func parsePkgSpec(spec string) (pkg, version string) {
+	if i := strings.Index(spec, "@"); i != -1 {
+		return spec[:i], spec[i+1:]
+	}
+	return spec, ""
 }
 
 
 
-func installCmd (pkg string, version string){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+func linstallDeck(pkg string, version string, arch string){
 
 	
-	var arch core.Arch
-
-	if len(os.Args) > 4 {
-		var err error
-		archflag := os.Args[4]
-
-		arch, err = ParseArchFlag(archflag)
-		if err != nil {
-			fmt.Fprintln(os.Stderr,err)
-			os.Exit(1)
-		}
-
-		if err := ValidateArchForHost(arch, core.HostArch()); err != nil {
-			fmt.Fprintln(os.Stderr,err)
-			os.Exit(1)
-		}
-		
+	carch, err := ParseArchFlag(arch)
+	if err != nil {
+		fmt.Fprintln(os.Stderr,err)
+		os.Exit(1)
 	}
+
+
+	if err := ValidateArchForHost(carch, core.HostArch()); err != nil {
+		fmt.Fprintln(os.Stderr,err)
+		os.Exit(1)
+	}
+		
+
 
 	//fmt.Printf("%s\n",arch)
 	
-	err := install(pkg,version,arch)
+	err = install(pkg,version,carch)
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr,err)
@@ -80,6 +172,10 @@ func installCmd (pkg string, version string){
 	fmt.Println("everything run ok")
 	
 }
+
+
+
+
 
 
 

@@ -52,13 +52,6 @@ type InstallArgs struct {
 
 
 
-type PackageBundle struct {
-    Package  Package
-    Release    Release
-    Script  []byte
-}
-
-
 type LocalState interface {
 	// this is an fs pov
 	//CreatePackage(string) error
@@ -68,15 +61,39 @@ type LocalState interface {
 }
 type Repo interface {
 
-	PackageExists(PackageIdentifier string) (bool,string,error)  // CONVENTION NOTE fix: Go idiom puts the "ok/found" bool
-                                                                // LAST, after the value(s), matching map-lookup style: v, ok := m[k]
-                                                                // Right:   (string, bool, error)   -- bool last, right before error
+    // checks whether a package exists in the repository.
+	// Returns true if the package is present, false otherwise.
+	// Errors on I/O/parse failure
+	PackageExists(PackageIdentifier string) (bool,error) 
+                                                                
+                                                              
 
-	LoadPackage(PackageIdentifier string, version string, arch Arch) (*Package,ReleaseSource ,error)
-	GetVersions(PackageIdentifier string) ([]string,error)
+    // loads version-independent package metadata.
+    // Errors if the package doesn't exist or on I/O/parse failure
+    LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
+
+     
+
+    // resolves an upstream version (e.g. "2.7.0")
+    // to its latest release for the given arch (2.7.0 ---> 2.7.0-5 --> retrun Release )
+    // Errors if the package doesn't exist, the upstream version is unknown,
+    // or on I/O/parse failure
+    LoadReleaseByUpstreamVersion(arch Arch, packageIdentifier, upstreamVersion string) (Release, error)
+
+
+    // loads an exact release by its full version
+    // (e.g. "2.7.0-1"), bypassing the "latest revision" lookup.
+    // Errors if the package doesn't exist, the full version is unknown,
+    // or on I/O/parse failure.
+    LoadReleaseByFullVersion(arch Arch, packageIdentifier, fullVersion string) (Release, error)
+
+
+
+	//LoadPackage(PackageIdentifier string, version string, arch Arch) (*Package,ReleaseSource ,error)
+	//GetVersions(PackageIdentifier string) ([]string,error)
     //GetLatest(PackageIdentifier string) (string, error)
-    GetVersionInfo(identifier, version string) (VersionInfo, error)
-    GetLatestVersionForArch(identifier string, arch Arch) (VersionInfo ,bool ,error)
+    //GetVersionInfo(identifier, version string) (VersionInfo, error)
+    //GetLatestVersionForArch(identifier string, arch Arch) (VersionInfo ,bool ,error)
 
 }
 
@@ -137,50 +154,45 @@ type Command struct {
 }
 
 
+////////////////////////
 
 
-type Package struct {   // size=144 (0x90) /use a pointer ? 
-    Identifier  string `hcl:"identifier"`
-    Name        string `hcl:"name"`
-    Type        string  `hcl:"type"`  
-    Versioning  string `hcl:"versioning"`
-    Description string `hcl:"description,optional"`
-    Homepage    string `hcl:"homepage,optional"`
-    License     string `hcl:"license,optional"`
-    Shortcuts   []Shortcut `hcl:"shortcut,block"`
-    Commands    []Command  `hcl:"command,block"`
+
+type PackageInfo struct {
+    Package     string `hcl:"package"`
+    Name        string `hcl:"name"`   
+    Description string `hcl:"description"`
+    Homepage    string `hcl:"homepage"`
+    License     string `hcl:"license"`
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-type ReleaseSource struct {
-    URL    string `hcl:"url"`
-    SHA256 string `hcl:"sha256"`
-}
-
-type ReleaseSourceBlock struct {
-    X64      *ReleaseSource `hcl:"x64,block"`
-    ARM64    *ReleaseSource `hcl:"arm64,block"`
-    X86      *ReleaseSource `hcl:"x86,block"`
-    Universal *ReleaseSource `hcl:"universal,block"`
-    NoArch   *ReleaseSource `hcl:"noarch,block"`
-}
 
 type Release struct {
-    Version string             `hcl:"version"`
-    Source  ReleaseSourceBlock `hcl:"source,block"`
+    Package         string `hcl:"package"`
+    FullVersion     string `hcl:"version"` 
+    UpstreamVersion string `hcl:"upstream_version"` 
+    Revision        int     `hcl:"revision"` 
+    URL             string  `hcl:"url"` 
+    SHA256          string `hcl:"sha256"` 
+    SizeMB          int  `hcl:"size_mb"` 
+    Architecture    string `hcl:"architecture"` 
 }
+
+
+
+
+type ReleaseIndex struct {
+    LatestVersion   string
+    VersionMappings map[string]string // upstream -> full version
+    Yanked          map[string]string // full version -> reason
+}
+
+
+
+
+
+
 
 
 
@@ -188,13 +200,6 @@ type Release struct {
 
 
 ////version
-
-
-type VersionInfo struct {
-    Version           string
-    Archs             []Arch 
-    ArchFallbackSafe  bool        // per-version optin only meaningful for x86 
-}
 
 
 

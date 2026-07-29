@@ -16,13 +16,13 @@ import (
 	//"github.com/kasperjack/pact/core/internal/runtime"
 	//"github.com/nyaosorg/go-windows-junction"
 	//"github.com/kasperjack/pact/core/internal/win"
-	"github.com/kasperjack/pact/core/internal/install"
+	//"github.com/kasperjack/pact/core/internal/install"
 )
 
 
 
 
-func (m *pkgManager) Install(agrs core.InstallArgs) error {
+func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
 	//valid pkg
@@ -31,18 +31,27 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 	// NewManaged constructor should hanndle version and arch validation 
 
 
-	ok,pType, err := m.repo.PackageExists(agrs.PackageIdentifier)
+	ok,err := m.repo.PackageExists(args.PackageIdentifier)
 	if err != nil{
 		// fetching errors 
 		return err
 	}
 
+
+
 	if ok {
 
-		fmt.Println(pType)
+		fmt.Printf("found package %s in repo \n",args.PackageIdentifier)
+		
+		pi,err := m.repo.LoadPackageInfo(args.PackageIdentifier)
+		if err != nil {return err}
 
-	
+		fmt.Println(pi)
+
+
 		return nil
+	
+		/*
 
 		switch pType {
 
@@ -62,7 +71,7 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 			return fmt.Errorf("only manged install is implmanted, unkown tpye: %q ",pType)
 
 
-		}
+		}*/
 		
 	
 	}
@@ -70,8 +79,8 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 	
 	
 
-
-	return fmt.Errorf("pkg %s not found",agrs.PackageIdentifier)
+	//return nil		
+	return fmt.Errorf("pkg %s not found",args.PackageIdentifier)
 
 
 }

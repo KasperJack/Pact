@@ -227,3 +227,16 @@ def install():      pass
 
 
 
+
+here is what i want for now tell me whatt to use 
+
+
+pcat install <pkg>
+pcat install <pkg@ver>
+pcat install <pkg@ver> --arch
+
+pcat install <pkg> --arch
+
+pact list
+
+pact list --all 

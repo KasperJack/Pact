@@ -6,14 +6,14 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
-func Pacakge(pkgData []byte) (core.Package,error) {
+func PackageInfo(pkgData []byte) (core.PackageInfo,error) {
 
 
-	var config core.Package
+	var config core.PackageInfo
 	
     err := hclsimple.Decode("package.hcl", pkgData, nil, &config)
     if err != nil {
-        return  core.Package{},err
+        return  core.PackageInfo{},err
     }
 
 	return config,nil
