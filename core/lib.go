@@ -72,7 +72,7 @@ type Repo interface {
                                                                 // LAST, after the value(s), matching map-lookup style: v, ok := m[k]
                                                                 // Right:   (string, bool, error)   -- bool last, right before error
 
-	LoadPackage(PackageIdentifier string, version string) (PackageBundle,error)
+	LoadPackage(PackageIdentifier string, version string, arch Arch) (*Package,ReleaseSource ,error)
 	GetVersions(PackageIdentifier string) ([]string,error)
     //GetLatest(PackageIdentifier string) (string, error)
     GetVersionInfo(identifier, version string) (VersionInfo, error)

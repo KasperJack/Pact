@@ -214,3 +214,16 @@ def install():      pass
 - **Migration from Scoop/Chocolatey** — can existing manifests be ported?
 - **Registry at scale** — search and index performance with thousands of packages?
 - **Legal** — licensing and terms of service for a central registry?
+
+
+
+
+
+
+
+
+
+
+
+
+

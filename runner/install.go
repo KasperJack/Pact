@@ -18,7 +18,7 @@ func install (pkg string, version string, arch core.Arch) error {
 	exeDir := filepath.Dir(exePath)
 
 
-	repo,err := NewLocalRepo(filepath.Join(exeDir, "test-buckets"))
+	repo,err := NewLocalRepo(filepath.Join(exeDir, "repo"))  // test-buckets
 	if err != nil {
 		return err
 	}

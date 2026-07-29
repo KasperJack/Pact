@@ -28,14 +28,15 @@ type manager struct {
 
 
 type installer struct {
-    args          core.InstallArgs
+    //args          core.InstallArgs
 	
 	manager manager
 
 	kind         installKind
-	bundle        *core.PackageBundle
-    resolvedRel   core.ReleaseSource
-    resolvedArch  string
+	pkg        *core.Package 
+	resolvedVersion string
+    resolvedSource   core.ReleaseSource
+    resolvedArch  core.Arch
     stagingDir    string
     installDir    string
     currentDir    string
@@ -48,17 +49,18 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 		//resolve arch
 		// resolve install type 
 
-
-
+		i :=installer{}
 
 		ver,arch, err := resolveArchVersion(args,repo)
-
 		if err!= nil {
 			return nil,err
 		}
 		
-		fmt.Println(ver)
-		fmt.Println(arch)
+		i.resolvedVersion = ver
+		i.resolvedArch = arch
+
+		//here
+		repo.LoadPackage(args.PackageIdentifier,ver,arch)
 
 	m := manager{
 		localState: localState,
@@ -67,7 +69,7 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 	}
 
 
-	return &installer{args: args,manager: m},nil
+	return &i,nil
 
 }
 

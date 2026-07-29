@@ -39,6 +39,10 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 	if ok {
 
+		fmt.Println(pType)
+
+	
+		return nil
 
 		switch pType {
 
@@ -59,16 +63,12 @@ func (m *pkgManager) Install(agrs core.InstallArgs) error {
 
 
 		}
-
-
-		return nil
+		
+	
 	}
 
 	
 	
-
-
-
 
 
 	return fmt.Errorf("pkg %s not found",agrs.PackageIdentifier)

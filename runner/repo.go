@@ -35,7 +35,7 @@ func NewLocalRepo(repoRoot string) (core.Repo,error) {
 //index //fetch error
 func (r *repo) PackageExists(PackageIdentifier string) (bool,string,error) { //add type of package 
 
-	pkgFilePath := filepath.Join(r.repoRoot,PackageIdentifier,fmt.Sprintf("%s.hcl",PackageIdentifier))
+	pkgFilePath := filepath.Join(r.repoRoot,"packages",PackageIdentifier,"package.hcl")
 
 
     //fmt.Println(pkgFilePath)
@@ -106,16 +106,20 @@ func (r *repo) GetVersions(PackageIdentifier string) ([]string, error) { //error
 
 
 
-func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.PackageBundle,error) {
+func (r *repo) LoadPackage(PackageIdentifier string, version string, arch core.Arch) (*core.Package,core.ReleaseSource ,error) {
+
+    /*
     
     pkgFilePath := filepath.Join(r.repoRoot, PackageIdentifier, fmt.Sprintf("%s.hcl", PackageIdentifier))
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return core.PackageBundle{}, err
+        return nil,core.ReleaseSource{},err
     }
+
+
     pkg, err := parce.Pacakge(pkgData)
     if err != nil {
-        return core.PackageBundle{}, err
+        return nil,core.ReleaseSource{},err
     }
 
     // read and parse release manifest
@@ -140,11 +144,11 @@ func (r *repo) LoadPackage(PackageIdentifier string, version string) (core.Packa
 		Release: release,
 		Package: pkg,
 		Script: script,
-	}
+	}*/
 
 
 
-    return f,nil
+    return nil,core.ReleaseSource{},nil
 }
 
 

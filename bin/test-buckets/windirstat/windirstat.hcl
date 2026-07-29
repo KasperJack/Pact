@@ -1,6 +1,6 @@
 identifier  = "windirstat"
 name        = "WinDirStat"
-type = "portable"
+type =        "portable"
 versioning  = "semver"
 description = "Disk usage viewer"
 homepage    = "https://windirstat.net"
