@@ -89,6 +89,17 @@ type Repo interface {
 
 
 
+
+    //add documanation
+    LoadLatestFullVersion(arch Arch, packageIdentifier string) (string, error)
+
+
+    PackageExistsForArch(arch Arch, packageIdentifier string) (bool, error)
+
+
+
+
+
 	//LoadPackage(PackageIdentifier string, version string, arch Arch) (*Package,ReleaseSource ,error)
 	//GetVersions(PackageIdentifier string) ([]string,error)
     //GetLatest(PackageIdentifier string) (string, error)
@@ -183,9 +194,9 @@ type Release struct {
 
 
 type ReleaseIndex struct {
-    LatestVersion   string
-    VersionMappings map[string]string // upstream -> full version
-    Yanked          map[string]string // full version -> reason
+    LatestVersion   string `hcl:"latest_version"`
+    VersionMappings map[string]string `hcl:"version_mappings"`          //upstream -> full version
+    Yanked          map[string]string  `hcl:"yanked"`             //full version -> reason
 }
 
 
@@ -327,7 +338,12 @@ func HostArch() Arch {
 
 /////////////////
 
+var (
 
+    ErrPkgNotFound = errors.New("not found")
+    ErrFetch = errors.New("fetch failed")
+    ErrVersionNotFound = errors.New("version not found")
+    ErrPackageNotFound  = errors.New("package not found")
+    ErrPackageNotFoundForArch = errors.New("package not found for arch")
+)
 
-var ErrPkgNotFound = errors.New("not found")
-var ErrFetch = errors.New("fetch failed")

@@ -16,7 +16,7 @@ import (
 	//"github.com/kasperjack/pact/core/internal/runtime"
 	//"github.com/nyaosorg/go-windows-junction"
 	//"github.com/kasperjack/pact/core/internal/win"
-	//"github.com/kasperjack/pact/core/internal/install"
+	"github.com/kasperjack/pact/core/internal/install"
 )
 
 
@@ -26,64 +26,93 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
 	//valid pkg
+	err := packageExists(args.PackageIdentifier,args.TargetArch,m.repo)
 
-
-	// NewManaged constructor should hanndle version and arch validation 
-
-
-	ok,err := m.repo.PackageExists(args.PackageIdentifier)
-	if err != nil{
-		// fetching errors 
+	if err != nil {
+		
 		return err
 	}
 
 
+	// NewManaged constructor should hanndle version and arch validation 
 
-	if ok {
+	_,err = install.NewManaged(args,m.localState,m.repo,m.lockFile)
 
-		fmt.Printf("found package %s in repo \n",args.PackageIdentifier)
-		
-		pi,err := m.repo.LoadPackageInfo(args.PackageIdentifier)
-		if err != nil {return err}
+	if err != nil{
+		return err
+	}
 
-		fmt.Println(pi)
-
-
-		return nil
-	
-		/*
-
-		switch pType {
-
-		case "portable":
 			
-			_,err := install.NewManaged(agrs,m.localState,m.repo,m.lockFile)
-
-			if err != nil{
-				return err
-			}
-
-			return nil
-			//i.Run()
+			
 
 
-		default:
-			return fmt.Errorf("only manged install is implmanted, unkown tpye: %q ",pType)
+	
 
 
-		}*/
 		
 	
+
+
+	
+	
+
+	return nil		
+	
+}
+
+
+
+
+
+
+
+
+
+func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
+
+	ok, err := repo.PackageExists(pkg)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("[i]intearn: pkg %s not found", pkg)
+	}
+
+	target := arch
+	if target == core.ArchUndefined {
+		target = core.HostArch()
+	}
+
+	ok, err = repo.PackageExistsForArch(target, pkg)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+
+
+	if core.HostArch() == core.ArchX64 && arch == core.ArchUndefined {
+		ok, err = repo.PackageExistsForArch(core.ArchX86, pkg)
+		if err != nil {
+			return err
+		}
+
+		if ok {
+			return nil
+		}else{
+			return fmt.Errorf("[i]intearn: pkg %s has no release for arch %s/%s", pkg, core.ArchX64.String(),core.ArchX86.String())
+
+		}
+
+
 	}
 
 	
-	
-
-	//return nil		
-	return fmt.Errorf("pkg %s not found",args.PackageIdentifier)
-
-
+	return fmt.Errorf("pkg %s has no release for arch %s", pkg, target.String())
 }
+
+
 
 
 

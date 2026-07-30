@@ -11,7 +11,7 @@ func Release(rlsData []byte) (core.Release,error) {
 
 	var config core.Release
 	
-    err := hclsimple.Decode("release.hcl", rlsData, nil, &config)
+    err := hclsimple.Decode("package.hcl", rlsData, nil, &config)
     if err != nil {
         return  core.Release{},err
     }

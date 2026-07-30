@@ -3,20 +3,13 @@ package install
 import (
 	"fmt"
 	//"go/version"
-	"slices"
-
+	//"slices"
+	"errors"
 	"github.com/kasperjack/pact/core"
 	//"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 
-type installKind int
-
-const (
-	installKindUnknown installKind = iota
-	installKindFirst              // no versions of this package installed yet
-	installKindAlongside          // installing a new version next to existing ones
-)
 
 
 type manager struct {
@@ -32,11 +25,9 @@ type installer struct {
 	
 	manager manager
 
-	kind         installKind
-	pkg        *core.Package 
-	resolvedVersion string
-    resolvedSource   core.ReleaseSource
-    resolvedArch  core.Arch
+	metadata core.PackageInfo
+    release  core.Release
+
     stagingDir    string
     installDir    string
     currentDir    string
@@ -45,29 +36,36 @@ type installer struct {
 
 
 func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
-		//resolve version 
-		//resolve arch
-		// resolve install type 
+	//resolve version 
+	//resolve arch
+	// resolve install type 
 
-		i :=installer{}
+	i :=installer{}
 
-		ver,arch, err := resolveArchVersion(args,repo)
-		if err!= nil {
-			return nil,err
-		}
-		
-		i.resolvedVersion = ver
-		i.resolvedArch = arch
 
-		//here
-		repo.LoadPackage(args.PackageIdentifier,ver,arch)
+	metadata, err := repo.LoadPackageInfo(args.PackageIdentifier)
+	if err != nil {
+		return nil,err
+	}
+	i.metadata = metadata
+
+
+	
+	r,err := resolveRelease(args,repo)
+
+	if err != nil {
+		return nil,err
+	}
+
+
+	fmt.Println(r)
 
 	m := manager{
 		localState: localState,
 		repo: repo,
 		lockFile: lf,
 	}
-
+	i. manager = m
 
 	return &i,nil
 
@@ -77,7 +75,7 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 func (i *installer) Run()error{
 	// pcakge already exists at this point 
 
-
+/*
 	err := i.checkNotInstalled()
 	if err != nil {
 		return nil
@@ -87,73 +85,11 @@ func (i *installer) Run()error{
 
 	i.checkVersionExists()
 
-
-
-
-	return nil
-}
-
-
-
-
-
-
-func (i *installer) checkNotInstalled() error {
-
-
-	// pacakgeid /version 
-	installed  := i.manager.lockFile.GetInstalled(i.args.PackageIdentifier)
-
-
-	if i.args.Version.IsDefined() {
-		if _, exists := installed[i.args.Version.String()]; exists {
-			return fmt.Errorf("package %q version %q already installed",
-				i.args.PackageIdentifier, i.args.Version.String())
-		}
-
-		if len(installed) > 0 {
-			i.kind = installKindAlongside
-			// installing a version along side another version
-		} else {
-			i.kind = installKindFirst
-		}
-
-
-
-		return nil
-	}
-	
-
-	if len(installed) > 0 {
-		return fmt.Errorf(
-			"package %q already installed with other version(s); specify a version to install alongside them",
-			i.args.PackageIdentifier,
-		)
-	}
-
-
-
-	i.kind = installKindFirst
-	return nil // first install — version will be resolved to latest downstream
-
-}
-
-
-func (i *installer) checkVersionExists() error {
-
-	if i.args.Version.IsDefined() {
-
-
-	}
-
+*/
 
 
 	return nil
 }
-
-
-
-
 
 
 
@@ -182,7 +118,7 @@ func resolveTargetArch(target core.Arch) core.Arch {
 
 
 
-func resolveArchVersion(args core.InstallArgs, repo core.Repo) (string, core.Arch, error) {
+func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
 
 
@@ -191,90 +127,89 @@ func resolveArchVersion(args core.InstallArgs, repo core.Repo) (string, core.Arc
 
 
 		if args.Version.IsDefined() {
-			return resolveRequestedVersion(args, repo, target)
+			return resolveReleaseRequestedVersion(args, repo, target)
 		}
 
 
-		return resolveLatestVersion(args, repo, target)
+		return resolveReleaseLatestVersion(args, repo, target)
 }
 
 
 
-func resolveLatestVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (string, core.Arch, error) {
+func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (core.Release, error) {
 
-	v, ok, err := repo.GetLatestVersionForArch(args.PackageIdentifier, resolvedArch)
-	if err != nil {
-		return "", core.ArchUndefined, err
+	fmt.Println("loading latest version")
+	fullVer, err := repo.LoadLatestFullVersion(resolvedArch,args.PackageIdentifier)
+
+	if err == nil {
+		fmt.Printf("found latest version %s",fullVer)
+
+		release, ferr := repo.LoadReleaseByFullVersion(resolvedArch,args.PackageIdentifier,fullVer)
+	
+		if ferr != nil {
+			return core.Release{},ferr
+		}
+		return release,nil
 	}
-	if ok {
-		return v.Version, resolvedArch, nil
-	}
 
+	if errors.Is(err, core.ErrPackageNotFoundForArch){
 
+		if core.HostArch() == core.ArchX64 {
+			if args.TargetArch == core.ArchUndefined {
 
-	if core.HostArch() == core.ArchX64 {
-		if args.TargetArch == core.ArchUndefined {
-			v, ok, err := repo.GetLatestVersionForArch(args.PackageIdentifier, core.ArchX86)
-			if err != nil {
-				return "", core.ArchUndefined, err
+				fFullVer, _ := repo.LoadLatestFullVersion(core.ArchX86,args.PackageIdentifier)
+
+				release, aerr := repo.LoadReleaseByFullVersion(core.ArchX86,args.PackageIdentifier,fFullVer)
+				fmt.Println(aerr)
+				if aerr == nil {return release,nil }
+
 			}
-			if ok && v.ArchFallbackSafe {
-				return v.Version, core.ArchX86, nil
+	
+		}
+
+	}
+
+
+
+	return core.Release{},err
+
+}
+
+
+
+
+
+
+
+
+
+
+func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resolvedArch core.Arch) (core.Release, error) {
+
+	
+
+	release, err := repo.LoadReleaseByUpstreamVersion(resolvedArch, args.PackageIdentifier, args.Version.String())
+
+	if err == nil {
+		return release, nil
+	}
+
+	if errors.Is(err, core.ErrPackageNotFoundForArch) {
+		if core.HostArch() == core.ArchX64 {
+			if args.TargetArch == core.ArchUndefined {
+
+				release, fallbackErr := repo.LoadReleaseByUpstreamVersion(core.ArchX86, args.PackageIdentifier, args.Version.String())
+				if fallbackErr == nil {
+					return release, nil
+				}
 			}
-
-		}
-	
-	}
-
-	return "", core.ArchUndefined,
-    fmt.Errorf("package %s has no %q compatible version",
-        args.PackageIdentifier,
-        resolvedArch.String())
-
-	
-}
-
-
-
-func resolveRequestedVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (string, core.Arch, error) {
-
-	
-	versions,err:= repo.GetVersions(args.PackageIdentifier)
-	if err != nil {return "",core.ArchUndefined,err}
-
-	if !slices.Contains(versions,args.Version.String()) {
-		return "",core.ArchUndefined,fmt.Errorf("pkg %s does not have version %s",args.PackageIdentifier,args.Version.String())
-	}
-
-	// if the pkg no arch 
-
-	versionInfo,err := repo.GetVersionInfo(args.PackageIdentifier,args.Version.String())
-	if err != nil {return "",core.ArchUndefined,err}
-
-
-
-	if slices.Contains(versionInfo.Archs, resolvedArch) {
-		return args.Version.String(), resolvedArch, nil
-	}
-
-	if core.HostArch() == core.ArchX64 {
-		if args.TargetArch == core.ArchUndefined && slices.Contains(versionInfo.Archs, core.ArchX86) && versionInfo.ArchFallbackSafe {
-			return args.Version.String(), core.ArchX86, nil
 		}
 	}
 
-	return "", core.ArchUndefined,
-    fmt.Errorf("package %s version %s has no compatible architecture",
-        args.PackageIdentifier,
-        args.Version.String())
 
+	// version not found /io
+	return core.Release{}, err
 }
-
-
-
-
-
-
 
 
 

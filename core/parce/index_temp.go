@@ -1,16 +1,34 @@
 package parce
 
 import (
-	"fmt"
+	//"fmt"
 
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/gohcl"
-	"github.com/hashicorp/hcl/v2/hclparse"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
-
+	//"github.com/hashicorp/hcl/v2"
+	//"github.com/hashicorp/hcl/v2/gohcl"
+	//"github.com/hashicorp/hcl/v2/hclparse"
+	//"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/kasperjack/pact/core"
+	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
 
+
+
+func ReleaseIndex(indexData []byte)(core.ReleaseIndex,error) {
+
+	var config core.ReleaseIndex
+	
+    err := hclsimple.Decode("index.hcl", indexData, nil, &config)
+
+    if err != nil {
+        return  core.ReleaseIndex{},err
+    }
+
+	return config,nil
+
+}
+
+/*
 
 func GetType(pkgData []byte) (string, error) {
 	attr, err := getAttr(pkgData, "type")
@@ -180,3 +198,4 @@ func getAttrOpt(pkgData []byte, name string) (*hcl.Attribute,bool ,error) {
 	}
 	return attr, true,nil
 }
+*/
