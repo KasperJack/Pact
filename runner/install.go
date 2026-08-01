@@ -7,6 +7,7 @@ import (
 
 	"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/manager"
+	"github.com/kasperjack/pact/core/repo"
 )
 
 func install (pkg string, version string, arch core.Arch) error {
@@ -18,7 +19,7 @@ func install (pkg string, version string, arch core.Arch) error {
 	exeDir := filepath.Dir(exePath)
 
 
-	repo,err := NewLocalRepo(filepath.Join(exeDir, "repo"))  // test-buckets
+	repo,err := repo.NewLocalRepo(filepath.Join(exeDir, "repo"))  // test-buckets
 	if err != nil {
 		return err
 	}

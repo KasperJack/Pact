@@ -14,11 +14,11 @@ ls:
 build: build-x64 build-x86 ## Build debug binaries for x64 and x86 (DEFAULT)
 
 build-x64: ## Build debug binary for Windows x64
-	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='amd64'; go build -o $(BIN_DIR)/runner-x64.exe ."
+	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='amd64'; go build -o $(BIN_DIR)/pact64.exe ."
 
 
 build-x86: ## Build debug binary for Windows x86
-	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='386'; go build -o $(BIN_DIR)/runner-x86.exe ."
+	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='386'; go build -o $(BIN_DIR)/runner86.exe ."
 
 
 
@@ -27,10 +27,10 @@ build-x86: ## Build debug binary for Windows x86
 release: release-x64 release-x86 ## Build stripped release binaries for x64 and x86
 
 release-x64: ## Build stripped release binary for Windows x64
-	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='amd64'; go build -ldflags='-s -w' -o $(BIN_DIR)/runner-x64.exe ."
+	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='amd64'; go build -ldflags='-s -w' -o $(BIN_DIR)/pact64.exe ."
 
 release-x86: ## Build stripped release binary for Windows x86
-	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='386'; go build -ldflags='-s -w' -o $(BIN_DIR)/runner-x86.exe ."
+	powershell -Command "$$env:GOOS='windows'; $$env:GOARCH='386'; go build -ldflags='-s -w' -o $(BIN_DIR)/runner86.exe ."
 
 
 

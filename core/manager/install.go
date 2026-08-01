@@ -70,20 +70,13 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
 
-	ok, err := repo.PackageExists(pkg)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("[i]intearn: pkg %s not found", pkg)
-	}
 
 	target := arch
 	if target == core.ArchUndefined {
 		target = core.HostArch()
 	}
 
-	ok, err = repo.PackageExistsForArch(target, pkg)
+	ok, err := repo.PackageExistsForArch(target, pkg)
 	if err != nil {
 		return err
 	}
@@ -97,19 +90,14 @@ func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
 		if err != nil {
 			return err
 		}
-
 		if ok {
 			return nil
-		}else{
-			return fmt.Errorf("[i]intearn: pkg %s has no release for arch %s/%s", pkg, core.ArchX64.String(),core.ArchX86.String())
-
 		}
-
 
 	}
 
 	
-	return fmt.Errorf("pkg %s has no release for arch %s", pkg, target.String())
+	return fmt.Errorf("pkg not found ")
 }
 
 

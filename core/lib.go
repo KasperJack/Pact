@@ -195,7 +195,9 @@ type Release struct {
 
 type ReleaseIndex struct {
     LatestVersion   string `hcl:"latest_version"`
-    VersionMappings map[string]string `hcl:"version_mappings"`          //upstream -> full version
+    VersionMappings map[string]string `hcl:"version_mappings"`         //upstream -> full version
+    RevisionHistory map[string][]string  `hcl:"revision_history"`
+    UpstreamOf map[string]string  `hcl:"upstream_of"`
     Yanked          map[string]string  `hcl:"yanked"`             //full version -> reason
 }
 

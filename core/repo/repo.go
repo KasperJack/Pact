@@ -1,4 +1,5 @@
-package main
+package repo
+
 
 import(
 	"path/filepath"
@@ -107,7 +108,7 @@ func (r *repo) LoadReleaseByUpstreamVersion(arch core.Arch, packageIdentifier, u
 
 	fullVersion, ok := index.VersionMappings[upstreamVersion]
 	if !ok {
-		return core.Release{}, fmt.Errorf("%w: unknown upstream version %q for %s fn:LoadReleaseByUpstreamVersion", core.ErrVersionNotFound, upstreamVersion, packageIdentifier)
+		return core.Release{}, fmt.Errorf("%w: unknown upstream version %q for %s/%s fn:LoadReleaseByUpstreamVersion", core.ErrVersionNotFound, upstreamVersion, arch.String(),packageIdentifier)
 	}
 
 	return r.LoadReleaseByFullVersion(arch, packageIdentifier, fullVersion)

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"github.com/alecthomas/kong"
 	"github.com/kasperjack/pact/core"
-	"os"
+	//"os"
 )
 
 
@@ -38,20 +38,38 @@ import (
 type CLI struct {
 	Install InstallCmd `cmd:"" help:"Install a package."`
 	List    ListCmd    `cmd:"" help:"List packages."`
-}
+	LSRemote LSRemoteCmd `cmd:"" name:"ls-remote" help:"List available remote versions of a package."`
+
+}	
  
+func main() {
+	cli := CLI{}
+	ctx := kong.Parse(&cli,
+		kong.Name("Pcat"),
+		kong.Description("a package manager CLI"),
+		kong.UsageOnError(),
+	)
+	err := ctx.Run()
+	ctx.FatalIfErrorf(err)
+}
+
+
+
+
+
+
+
+
 type InstallCmd struct {
-	Pkg  string `arg:"" name:"pkg" help:"Package name, optionally pkg@version (e.g. ripgrep@14.1.0)."`
+	Package  string `arg:"" name:"pkg" help:"Package name, optionally pkg@version (e.g. ripgrep@14.1.0)."`
 	Arch string `help:"Target architecture (e.g. amd64, arm64)." short:"a"`
-	// add more flags here as needed, e.g.:
-	// Force  bool `help:"Reinstall even if already installed."`
-	// DryRun bool `help:"Show what would happen without doing it." name:"dry-run"`
+
 }
  
 func (c *InstallCmd) Run() error {
-	pkg, version := parsePkgSpec(c.Pkg)
+	packageIdentifier, version := parsePkgSpec(c.Package)
  
-	fmt.Printf("Installing package: %s\n", pkg)
+	fmt.Printf("Installing package: %s\n", packageIdentifier)
 	if version != "" {
 		fmt.Printf("  version: %s\n", version)
 	} else {
@@ -63,10 +81,33 @@ func (c *InstallCmd) Run() error {
 		fmt.Printf("  arch: auto\n")
 	}
  
-	linstallDeck(pkg,version,c.Arch)
-	return nil
+	
+	return linstallDeck(packageIdentifier,version,c.Arch)
+
 }
  
+
+type LSRemoteCmd struct {
+	Package string `arg:"" help:"Package name."`
+}
+
+func (c *LSRemoteCmd) Run() error {
+	
+	return LsRemote(c.Package)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 type ListCmd struct {
 	All bool `help:"List all available packages, not just installed ones."`
 }
@@ -82,21 +123,38 @@ func (c *ListCmd) Run() error {
 	return nil
 }
  
-func main() {
-	cli := CLI{}
-	ctx := kong.Parse(&cli,
-		kong.Name("Pcat"),
-		kong.Description("a package manager CLI"),
-		kong.UsageOnError(),
-	)
-	err := ctx.Run()
-	ctx.FatalIfErrorf(err)
-}
+
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // parsePkgSpec splits "pkg@version" into its parts.
 // "ripgrep" -> ("ripgrep", "")
 // "ripgrep@14.1.0" -> ("ripgrep", "14.1.0")
-func parsePkgSpec(spec string) (pkg, version string) {
+func parsePkgSpec(spec string) (packageIdentifier, version string) {
 	if i := strings.Index(spec, "@"); i != -1 {
 		return spec[:i], spec[i+1:]
 	}
@@ -142,35 +200,32 @@ func parsePkgSpec(spec string) (pkg, version string) {
 
 
 
-func linstallDeck(pkg string, version string, arch string){
+func linstallDeck(packageIdentifier string, version string, arch string) error{
 
 	
 	carch, err := ParseArchFlag(arch)
 	if err != nil {
-		fmt.Fprintln(os.Stderr,err)
-		os.Exit(1)
+		return err
 	}
 
 
 	if err := ValidateArchForHost(carch, core.HostArch()); err != nil {
-		fmt.Fprintln(os.Stderr,err)
-		os.Exit(1)
+		return err
 	}
 		
 
 
 	//fmt.Printf("%s\n",arch)
 	
-	err = install(pkg,version,carch)
+	err = install(packageIdentifier,version,carch)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr,err)
-		os.Exit(1)
+		return err
 	}
 
 	//a := platform.Arch("stringFromCli")
 	fmt.Println("everything run ok")
-	
+	return nil
 }
 
 

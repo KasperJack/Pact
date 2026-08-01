@@ -194,17 +194,23 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resol
 		return release, nil
 	}
 
+
 	if errors.Is(err, core.ErrPackageNotFoundForArch) {
 		if core.HostArch() == core.ArchX64 {
 			if args.TargetArch == core.ArchUndefined {
-
+				fmt.Println("didfall")
 				release, fallbackErr := repo.LoadReleaseByUpstreamVersion(core.ArchX86, args.PackageIdentifier, args.Version.String())
 				if fallbackErr == nil {
 					return release, nil
 				}
+
+				return core.Release{}, fallbackErr
 			}
 		}
 	}
+
+
+	// eheck for version not found error 
 
 
 	// version not found /io
