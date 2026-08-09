@@ -17,7 +17,7 @@ $RepoRoot = $PSScriptRoot
 
 $DirsToAdd = @(
     (Join-Path $RepoRoot 'bin')
-    (Join-Path $RepoRoot 'bin\repo')
+    #(Join-Path $RepoRoot 'bin\repo')
 )
 
 # Split current PATH into a set for quick membership checks (case-insensitive)

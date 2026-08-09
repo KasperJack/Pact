@@ -1,4 +1,4 @@
-BIN_DIR=../bin/repo
+BIN_DIR=../bin
 
 .DEFAULT_GOAL := build
 

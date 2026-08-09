@@ -1,78 +1,3 @@
-package main
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
 
 package main
 
@@ -130,7 +55,7 @@ func buildCmd(pkg string) {
 	exeDir := filepath.Dir(exePath)
 	log.Printf("using repo in %s", exeDir)
 
-	r, err := repo.NewLocalRepo(exeDir)
+	r, err := repo.NewLocalRepo(filepath.Join(exeDir, "repo"))
 	if err != nil {
 		log.Fatalf("error: failed to initialize repository at %s: %v", exeDir, err)
 	}
@@ -185,4 +110,3 @@ func checkRelease(arch core.Arch, pkg string, r core.Repo) {
 	log.Printf("no release found for arch: %s", arch)
 }
 
-*/
