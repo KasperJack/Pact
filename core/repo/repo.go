@@ -23,7 +23,7 @@ func NewLocalRepo(repoRoot string) (core.Repo,error) {
     if err != nil {
 
         return nil,fmt.Errorf("can't find the test bucket") //RF:E
-    } // check if is a a valid pact repo . ? 
+    }
 
 
 	return &repo{repoRoot: repoRoot},nil
@@ -31,40 +31,63 @@ func NewLocalRepo(repoRoot string) (core.Repo,error) {
 
 
 
+func (r *repo) Package(arch core.Arch,packageIdentifier string) (core.Package, error) {
 
+    ok, err := r.HasPackage(arch, packageIdentifier)
+    if err != nil {
+        return nil, err
+    }
 
-//index //fetch error
-func (r *repo) PackageExists(packageIdentifier string) (bool,error) { //add type of package 
+    if !ok {
+        return nil, fmt.Errorf(
+            "%w: %s for arch %s",
+            core.ErrPkgNotFound,
+            packageIdentifier,
+            arch.String(),
+        )
+    }
 
-	pkgFilePath := filepath.Join(r.repoRoot,"packages",packageIdentifier,"package.hcl")
+    index, err := r.LoadIndex(arch, packageIdentifier)
+    if err != nil {
+        return nil, err
+    }
 
-
-	_, err := os.Stat(pkgFilePath)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false,nil 
-		}
-    	return false,fmt.Errorf("%w: loading :%s : %v", core.ErrFetch, packageIdentifier, err)  // permission or something else
-	}
-
-	return true,nil
+    return &Package{
+        repo:  r,
+        arch:  arch,
+        id:    packageIdentifier,
+        index: index,
+    }, nil
 }
 
 
 
 
-//index ? 
+
+
+
+
+func (r *repo) HasPackage(arch core.Arch, packageIdentifier string) (bool, error) {
+	dirPath := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier)
+
+	info, err := os.Stat(dirPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return info.IsDir(), nil
+}
+
+
+
+
+
 func (r *repo) LoadPackageInfo(packageIdentifier string) (core.PackageInfo,error) {
 
     pkgFilePath := filepath.Join(r.repoRoot,"packages",packageIdentifier,"package.hcl")
 
-    ok, err := r.PackageExists(packageIdentifier)
-
-    if err !=nil {
-        return core.PackageInfo{},err
-    }
-    if !ok {return core.PackageInfo{},fmt.Errorf("pkg %s not found fn:LoadPackageInfo",packageIdentifier)}
 
 
     pkgData, err := os.ReadFile(pkgFilePath)
@@ -78,19 +101,110 @@ func (r *repo) LoadPackageInfo(packageIdentifier string) (core.PackageInfo,error
 
 
 
+
+
+
+func (r *repo) LoadIndex(arch core.Arch, packageIdentifier string) (core.ReleaseIndex, error) {
+
+
+	indexFilePath := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier, "index.hcl")
+
+	indexData, err := os.ReadFile(indexFilePath)
+	if err != nil {
+		return core.ReleaseIndex{}, fmt.Errorf("%w: loading index %s fn:LoadReleaseByUpstreamVersion: %v", core.ErrFetch, packageIdentifier, err)
+	}
+
+	index, err := parce.ReleaseIndex(indexData)
+	if err != nil {
+		return core.ReleaseIndex{}, fmt.Errorf("%w: parsing index %s fn:LoadReleaseByUpstreamVersion: %v", core.ErrFetch, packageIdentifier, err)
+	}
+
+
+
+	return index,nil
+
+}
+
+
+
+
+
+
+
+func (r *repo) LoadRelease(arch core.Arch, packageIdentifier, fullVersion string) (core.Release, error) {
+
+
+	pkgFile := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier, fullVersion, "package.hcl")
+
+	fullVersionData, err := os.ReadFile(pkgFile)
+	if err != nil {
+		return core.Release{}, fmt.Errorf("%w: loading package %s@%s fn:LoadReleaseByFullVersion: %v", core.ErrFetch, packageIdentifier, fullVersion, err)
+	}
+
+	return parce.Release(fullVersionData)
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+
 func (r *repo) LoadReleaseByUpstreamVersion(arch core.Arch, packageIdentifier, upstreamVersion string) (core.Release, error) {
-
-
-
-
-    ok, err := r.PackageExistsForArch(arch,packageIdentifier)
-    if err != nil {
-		return core.Release{}, err
-	}
-
-    if !ok {
-		return core.Release{}, fmt.Errorf("%w: %s for arch %s fn:LoadReleaseByUpstreamVersion", core.ErrPackageNotFoundForArch, packageIdentifier, arch.String())
-	}
 
 
 
@@ -120,7 +234,7 @@ func (r *repo) LoadReleaseByUpstreamVersion(arch core.Arch, packageIdentifier, u
 func (r *repo) LoadReleaseByFullVersion(arch core.Arch, packageIdentifier, fullVersion string) (core.Release, error) {
 
 
-    ok, err := r.PackageExistsForArch(arch,packageIdentifier)
+    ok, err := r.PackageExists(arch,packageIdentifier)
     if err != nil {
 		return core.Release{}, err
 	}
@@ -144,15 +258,16 @@ func (r *repo) LoadReleaseByFullVersion(arch core.Arch, packageIdentifier, fullV
 
 
 
+// get upstream versions 
+// get full versions 
+
+
+func (r *repo) GetLatestFullVersion(arch core.Arch, packageIdentifier string) (string, error) {
 
 
 
-func (r *repo) LoadLatestFullVersion(arch core.Arch, packageIdentifier string) (string, error) {
 
-
-
-
-    ok, err := r.PackageExistsForArch(arch,packageIdentifier)
+    ok, err := r.PackageExists(arch,packageIdentifier)
     if err != nil {
 		return "", err
 	}
@@ -185,19 +300,4 @@ func (r *repo) LoadLatestFullVersion(arch core.Arch, packageIdentifier string) (
 
 
 
-
-
-
-
-func (r *repo) PackageExistsForArch(arch core.Arch, packageIdentifier string) (bool, error) {
-	dirPath := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier)
-
-	info, err := os.Stat(dirPath)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return info.IsDir(), nil
-}
+*/

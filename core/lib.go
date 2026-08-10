@@ -59,54 +59,34 @@ type LocalState interface {
 	PackageExists(string) (bool, error)
 
 }
+
+
+
+
+
+
+
+
+
 type Repo interface {
 
-    // checks whether a package exists in the repository.
-	// Returns true if the package is present, false otherwise.
-	// Errors on I/O/parse failure
-	PackageExists(PackageIdentifier string) (bool,error) 
-                                                                
-                                                              
-
-    // loads version-independent package metadata.
-    // Errors if the package doesn't exist or on I/O/parse failure
-    LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
-
-     
-
-    // resolves an upstream version (e.g. "2.7.0")
-    // to its latest release for the given arch (2.7.0 ---> 2.7.0-5 --> retrun Release )
-    // Errors if the package doesn't exist, the upstream version is unknown,
-    // or on I/O/parse failure
-    LoadReleaseByUpstreamVersion(arch Arch, packageIdentifier, upstreamVersion string) (Release, error)
-
-
-    // loads an exact release by its full version
-    // (e.g. "2.7.0-1"), bypassing the "latest revision" lookup.
-    // Errors if the package doesn't exist, the full version is unknown,
-    // or on I/O/parse failure.
-    LoadReleaseByFullVersion(arch Arch, packageIdentifier, fullVersion string) (Release, error)
-
-
-
-
-    //add documanation
-    LoadLatestFullVersion(arch Arch, packageIdentifier string) (string, error)
-
-
-    PackageExistsForArch(arch Arch, packageIdentifier string) (bool, error)
-
-
-
-
-
-	//LoadPackage(PackageIdentifier string, version string, arch Arch) (*Package,ReleaseSource ,error)
-	//GetVersions(PackageIdentifier string) ([]string,error)
-    //GetLatest(PackageIdentifier string) (string, error)
-    //GetVersionInfo(identifier, version string) (VersionInfo, error)
-    //GetLatestVersionForArch(identifier string, arch Arch) (VersionInfo ,bool ,error)
-
+    Package(arch Arch, PackageIdentifier string) (Package, error)                                                   
+    HasPackage(arch Arch,PackageIdentifier string) (bool, error)
 }
+
+type Package interface {
+
+    Info() (PackageInfo, error)
+    LatestReleaseVersion() string
+    LatestUpstreamVersion() string 
+    ReleaseVersions() []string
+    UpstreamVersions() []string
+    LatestReleaseForUpstream(upstreamVersion string) string
+    Release(releaseVersion string) (Release, error)
+}
+
+
+
 
 type LockFile interface {
     
@@ -195,9 +175,10 @@ type Release struct {
 
 type ReleaseIndex struct {
     LatestVersion   string `hcl:"latest_version"`
+
     VersionMappings map[string]string `hcl:"version_mappings"`         //upstream -> full version
     RevisionHistory map[string][]string  `hcl:"revision_history"`
-    UpstreamOf map[string]string  `hcl:"upstream_of"`
+    UpstreamOf      map[string]string  `hcl:"upstream_of"`
     Yanked          map[string]string  `hcl:"yanked"`             //full version -> reason
 }
 
@@ -342,7 +323,7 @@ func HostArch() Arch {
 
 var (
 
-    ErrPkgNotFound = errors.New("not found")
+    ErrPkgNotFound = errors.New("pkg not found")
     ErrFetch = errors.New("fetch failed")
     ErrVersionNotFound = errors.New("version not found")
     ErrPackageNotFound  = errors.New("package not found")

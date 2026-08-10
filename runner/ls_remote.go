@@ -31,7 +31,7 @@ func LsRemote(packageIdentifier string) error {
 	case core.ArchX64:
 
 	case core.ArchX86:	
-		r.PackageExistsForArch(core.ArchX86,packageIdentifier)
+		r.HasPackage(core.ArchX86,packageIdentifier)
 
 
 	case core.ArchArm64:

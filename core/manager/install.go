@@ -41,17 +41,10 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 	if err != nil{
 		return err
 	}
-
+	
 			
-			
-
 
 	
-
-
-		
-	
-
 
 	
 	
@@ -76,7 +69,7 @@ func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
 		target = core.HostArch()
 	}
 
-	ok, err := repo.PackageExistsForArch(target, pkg)
+	ok, err := repo.HasPackage(target, pkg)
 	if err != nil {
 		return err
 	}
@@ -86,7 +79,7 @@ func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
 
 
 	if core.HostArch() == core.ArchX64 && arch == core.ArchUndefined {
-		ok, err = repo.PackageExistsForArch(core.ArchX86, pkg)
+		ok, err = repo.HasPackage(core.ArchX86, pkg)
 		if err != nil {
 			return err
 		}

@@ -3,7 +3,7 @@ package install
 import (
 	"fmt"
 	//"go/version"
-	//"slices"
+	"slices"
 	"errors"
 	"github.com/kasperjack/pact/core"
 	//"golang.org/x/tools/go/analysis/passes/nilfunc"
@@ -42,15 +42,8 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 	i :=installer{}
 
+	//i.metadata := repo.HasPackage()
 
-	metadata, err := repo.LoadPackageInfo(args.PackageIdentifier)
-	if err != nil {
-		return nil,err
-	}
-	i.metadata = metadata
-
-
-	
 	r,err := resolveRelease(args,repo)
 
 	if err != nil {
@@ -136,42 +129,37 @@ func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error)
 
 
 
+
+
+
+
 func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (core.Release, error) {
 
-	fmt.Println("loading latest version")
-	fullVer, err := repo.LoadLatestFullVersion(resolvedArch,args.PackageIdentifier)
 
-	if err == nil {
-		fmt.Printf("found latest version %s",fullVer)
 
-		release, ferr := repo.LoadReleaseByFullVersion(resolvedArch,args.PackageIdentifier,fullVer)
-	
-		if ferr != nil {
-			return core.Release{},ferr
-		}
-		return release,nil
-	}
+	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
 
-	if errors.Is(err, core.ErrPackageNotFoundForArch){
+	if err != nil {
 
-		if core.HostArch() == core.ArchX64 {
-			if args.TargetArch == core.ArchUndefined {
+		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
 
-				fFullVer, _ := repo.LoadLatestFullVersion(core.ArchX86,args.PackageIdentifier)
+			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
+			if ferr != nil {return core.Release{},ferr}
 
-				release, aerr := repo.LoadReleaseByFullVersion(core.ArchX86,args.PackageIdentifier,fFullVer)
-				fmt.Println(aerr)
-				if aerr == nil {return release,nil }
+			return fp.Release(fp.LatestReleaseVersion())
 
-			}
-	
 		}
 
+
+
+		return core.Release{}, err	
 	}
 
+	latestVersion := p.LatestReleaseVersion()
+
+	return p.Release(latestVersion)
 
 
-	return core.Release{},err
 
 }
 
@@ -186,35 +174,62 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolve
 
 func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resolvedArch core.Arch) (core.Release, error) {
 
+
+
+
+
+	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
+
+	if err != nil {  // fallback here 
+
+		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
+
 	
+			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
 
-	release, err := repo.LoadReleaseByUpstreamVersion(resolvedArch, args.PackageIdentifier, args.Version.String())
+			if ferr != nil {return core.Release{},ferr}
 
-	if err == nil {
-		return release, nil
-	}
-
-
-	if errors.Is(err, core.ErrPackageNotFoundForArch) {
-		if core.HostArch() == core.ArchX64 {
-			if args.TargetArch == core.ArchUndefined {
-				fmt.Println("didfall")
-				release, fallbackErr := repo.LoadReleaseByUpstreamVersion(core.ArchX86, args.PackageIdentifier, args.Version.String())
-				if fallbackErr == nil {
-					return release, nil
-				}
-
-				return core.Release{}, fallbackErr
+			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
+				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // did not find a pkg for x64 found x86 no requested version
 			}
+
+			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
+
+
+
 		}
+
+
+
+		return core.Release{}, err
 	}
 
 
-	// eheck for version not found error 
+	if !slices.Contains(p.UpstreamVersions(),args.Version.String()){
+
+		if core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
 
 
-	// version not found /io
-	return core.Release{}, err
+			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
+
+			if ferr != nil {return core.Release{},ferr}
+
+			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
+				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // found x64 pkg no version found x86 no version 
+			}
+
+			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
+
+
+		}
+
+
+		return core.Release{},fmt.Errorf("version %s not found",args.Version.String())
+	}
+
+	return p.Release(p.LatestReleaseForUpstream(args.Version.String())) 
+
+
 }
 
 
