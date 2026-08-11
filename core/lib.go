@@ -72,6 +72,7 @@ type Repo interface {
 
     Package(arch Arch, PackageIdentifier string) (Package, error)                                                   
     HasPackage(arch Arch,PackageIdentifier string) (bool, error)
+    LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
 }
 
 type Package interface {

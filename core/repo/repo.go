@@ -131,14 +131,14 @@ func (r *repo) LoadIndex(arch core.Arch, packageIdentifier string) (core.Release
 
 
 
-func (r *repo) LoadRelease(arch core.Arch, packageIdentifier, fullVersion string) (core.Release, error) {
+func (r *repo) LoadRelease(arch core.Arch, packageIdentifier, releaseVersion string) (core.Release, error) {
 
 
-	pkgFile := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier, fullVersion, "package.hcl")
+	pkgFile := filepath.Join(r.repoRoot, "releases", arch.String(), packageIdentifier, releaseVersion, "package.hcl")
 
 	fullVersionData, err := os.ReadFile(pkgFile)
 	if err != nil {
-		return core.Release{}, fmt.Errorf("%w: loading package %s@%s fn:LoadReleaseByFullVersion: %v", core.ErrFetch, packageIdentifier, fullVersion, err)
+		return core.Release{}, fmt.Errorf("%w: loading package %s@%s fn:LoadReleaseByFullVersion: %v", core.ErrFetch, packageIdentifier, releaseVersion, err)
 	}
 
 	return parce.Release(fullVersionData)

@@ -36,22 +36,29 @@ type installer struct {
 
 
 func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
-	//resolve version 
-	//resolve arch
-	// resolve install type 
+
+
+	// check not installed 
+
+
 
 	i :=installer{}
 
-	//i.metadata := repo.HasPackage()
+	md,err  := repo.LoadPackageInfo(args.PackageIdentifier)
+	if err != nil {
+		return nil,err
+	}
+
+	i.metadata = md
+
 
 	r,err := resolveRelease(args,repo)
-
 	if err != nil {
 		return nil,err
 	}
 
 
-	fmt.Println(r)
+	i.release = r
 
 	m := manager{
 		localState: localState,
@@ -66,19 +73,13 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 
 func (i *installer) Run()error{
-	// pcakge already exists at this point 
-
-/*
-	err := i.checkNotInstalled()
-	if err != nil {
-		return nil
-	}
-
 	
-
-	i.checkVersionExists()
-
-*/
+	fmt.Println("installing:")
+	fmt.Println(i.metadata.Package)
+	fmt.Println(i.release.Architecture)
+	fmt.Println(i.release.URL)
+	fmt.Println(i.release.FullVersion)
+	fmt.Println(i.release.UpstreamVersion)
 
 
 	return nil
