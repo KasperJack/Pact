@@ -2,9 +2,6 @@ package install
 
 import (
 	"fmt"
-	//"go/version"
-	"slices"
-	"errors"
 	"github.com/kasperjack/pact/core"
 	//"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
@@ -37,10 +34,15 @@ type installer struct {
 
 func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
 
+	
+	_,ok := lf.GetInstalled(args.PackageIdentifier)
+	if ok {
+		return nil,fmt.Errorf("package %s is already installed",args.PackageIdentifier)
+	}
+	
 
-	// check not installed 
-
-
+	//lf.Test()
+	
 
 	i :=installer{}
 
@@ -71,15 +73,20 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 }
 
-
+// Run executes the installation process
 func (i *installer) Run()error{
 	
-	fmt.Println("installing:")
-	fmt.Println(i.metadata.Package)
-	fmt.Println(i.release.Architecture)
-	fmt.Println(i.release.URL)
-	fmt.Println(i.release.FullVersion)
-	fmt.Println(i.release.UpstreamVersion)
+	//fmt.Println("installing:")
+	//fmt.Println(i.metadata.Package)
+	//fmt.Println(i.release.Architecture)
+	//fmt.Println(i.release.URL)
+	//fmt.Println(i.release.FullVersion)
+	//fmt.Println(i.release.UpstreamVersion)
+
+
+
+
+
 
 
 	return nil
@@ -88,10 +95,7 @@ func (i *installer) Run()error{
 
 
 
-func (i *installer) loadBundle() error {
 
-	return nil
-}
 
 
 
@@ -100,138 +104,6 @@ func (i *installer) loadBundle() error {
 
 
 
-func resolveTargetArch(target core.Arch) core.Arch {
-
-	if target == core.ArchUndefined{
-		target = core.HostArch()
-	}
-
-	return target
-}
-
-
-
-
-func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error) {
-
-
-
-		target := resolveTargetArch(args.TargetArch)
-
-
-
-		if args.Version.IsDefined() {
-			return resolveReleaseRequestedVersion(args, repo, target)
-		}
-
-
-		return resolveReleaseLatestVersion(args, repo, target)
-}
-
-
-
-
-
-
-
-func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (core.Release, error) {
-
-
-
-	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
-
-	if err != nil {
-
-		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
-
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
-			if ferr != nil {return core.Release{},ferr}
-
-			return fp.Release(fp.LatestReleaseVersion())
-
-		}
-
-
-
-		return core.Release{}, err	
-	}
-
-	latestVersion := p.LatestReleaseVersion()
-
-	return p.Release(latestVersion)
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resolvedArch core.Arch) (core.Release, error) {
-
-
-
-
-
-	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
-
-	if err != nil {  // fallback here 
-
-		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
-
-	
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
-
-			if ferr != nil {return core.Release{},ferr}
-
-			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
-				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // did not find a pkg for x64 found x86 no requested version
-			}
-
-			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
-
-
-
-		}
-
-
-
-		return core.Release{}, err
-	}
-
-
-	if !slices.Contains(p.UpstreamVersions(),args.Version.String()){
-
-		if core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
-
-
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
-
-			if ferr != nil {return core.Release{},ferr}
-
-			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
-				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // found x64 pkg no version found x86 no version 
-			}
-
-			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
-
-
-		}
-
-
-		return core.Release{},fmt.Errorf("version %s not found",args.Version.String())
-	}
-
-	return p.Release(p.LatestReleaseForUpstream(args.Version.String())) 
-
-
-}
 
 
 

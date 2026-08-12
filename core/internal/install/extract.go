@@ -1,4 +1,4 @@
-package manager
+package install
 
 import (
     "archive/zip"

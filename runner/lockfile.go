@@ -5,6 +5,7 @@ package main
 import (
     "fmt"
     "os"
+    "path/filepath"
     "sync"
 	"time"
 
@@ -34,22 +35,18 @@ type lockFile struct {
 
 
 
-// GetInstalled returns all installed versions of a package, keyed by version.
-// Returns an empty map (not an error) if the package has no installed versions —
-// "not installed" is a valid normal state, not a failure
-
-func (f *lockFile) GetInstalled(packageIdentifier string) (map[string]core.LockedPackage) {
+func (f *lockFile) GetInstalled(packageIdentifier string) (core.LockedPackage, bool) {
     f.mu.RLock()
     defer f.mu.RUnlock()
 
-    result := make(map[string]core.LockedPackage)
     for _, p := range f.content.Packages {
-        if p.Name == packageIdentifier {
-            result[p.Version] = p
+        if p.Identifier == packageIdentifier {
+            return p, true
         }
     }
-    return result
+    return core.LockedPackage{}, false
 }
+
 
 func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
     f.mu.Lock()
@@ -57,7 +54,7 @@ func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
 
     // replace if already present
     for i, p := range f.content.Packages {
-        if p.Name == pkg.Name {
+        if p.Identifier == pkg.Identifier {
             f.content.Packages[i] = pkg
             return f.flush()
         }
@@ -66,26 +63,32 @@ func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
     return f.flush()
 }
 
-func (f *lockFile) RecordRemove(PackageIdentifier string, version string) error {
+
+func (f *lockFile) RecordRemove(packageIdentifier string) error {
     f.mu.Lock()
     defer f.mu.Unlock()
 
     packages := f.content.Packages
     for i, p := range packages {
-        if p.Name == PackageIdentifier {
+        if p.Identifier == packageIdentifier {
             f.content.Packages = append(packages[:i], packages[i+1:]...)
             return f.flush()
         }
     }
-    return fmt.Errorf("package %q not found", PackageIdentifier)
+    return fmt.Errorf("%w: %s",core.ErrPkgNotFound,packageIdentifier)
 }
 
+
+
 func (f *lockFile) Test() error {
+
+    testPath := filepath.Join("ass,hole","test-install-dir")
+
     pkg := core.LockedPackage{
-        Name:        "test-package2",
+        Identifier:        "test-package",
         Version:     "1.0.0",
         InstalledAt: time.Now().Format(time.RFC3339),
-        InstallDir:  "/usr/local/test-package",
+        InstallDir:  testPath,
     }
     return f.RecordInstall(pkg)
 }

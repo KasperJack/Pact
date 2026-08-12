@@ -279,3 +279,24 @@ elsewhere in code without updating this section:
 - Epoch support
 - Dependency resolution between packages
 - Any GUI — CLI only for now
+
+
+
+
+
+
+
+
+
+
+             MANIFEST
+                 │
+        ┌────────┴─────────┐
+        │                  │
+   desired state       lifecycle hooks
+        │                  │
+        │             Starlark
+        │                  │
+        └────────┬─────────┘
+                 ▼
+          Package Manager

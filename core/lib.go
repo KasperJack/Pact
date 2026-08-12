@@ -91,9 +91,12 @@ type Package interface {
 
 type LockFile interface {
     
-    GetInstalled(PackageIdentifier string) (map[string]LockedPackage)
+    GetInstalled(packageIdentifier string) (LockedPackage, bool)
+
     RecordInstall(pkg LockedPackage) error
-    RecordRemove(PackageIdentifier string, version string) error
+
+    RecordRemove(packageIdentifier string) error
+
 	Test() error
 
 }
@@ -111,8 +114,9 @@ type LockFile interface {
 
 
 type LockedPackage struct {
-    Name        string `hcl:"name,label"`
+    Identifier        string `hcl:"identifier,label"`
     Version     string `hcl:"version"`
+    UpstreamVersion string `hcl:"upstream_version"`
     InstalledAt string `hcl:"installed_at"`
     InstallDir  string `hcl:"install_dir"`
     Arch        string `hcl:"arch"`
