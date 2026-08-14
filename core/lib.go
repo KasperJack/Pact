@@ -73,6 +73,7 @@ type Repo interface {
     Package(arch Arch, PackageIdentifier string) (Package, error)                                                   
     HasPackage(arch Arch,PackageIdentifier string) (bool, error)
     LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
+    PackageExists(packageIdentifier string) (bool, error)
 }
 
 type Package interface {
@@ -284,6 +285,33 @@ func (a Arch) String() string {
     }
 }
 
+
+
+func (a Arch) CompatibleArchs() []Arch {
+    switch a {
+    case ArchArm64:
+
+        return []Arch{ArchArm64}
+
+    case ArchX64:
+        return []Arch{ArchX64, ArchX86,}
+
+    case ArchX86:
+        return []Arch{ArchX86}
+
+    default:
+        return nil
+    }
+}
+
+func (a Arch) Priority(target Arch) (int, bool) {
+    for i, arch := range a.CompatibleArchs() {
+        if arch == target {
+            return i, true
+        }
+    }
+    return 0, false
+}
 
 
 func ParseArch(s string) (Arch, error) {

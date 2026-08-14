@@ -35,15 +35,8 @@ type installer struct {
 func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
 
 	
-	_,ok := lf.GetInstalled(args.PackageIdentifier)
-	if ok {
-		return nil,fmt.Errorf("package %s is already installed",args.PackageIdentifier)
-	}
-	
 
-	//lf.Test()
 	
-
 	i :=installer{}
 
 	md,err  := repo.LoadPackageInfo(args.PackageIdentifier)
@@ -76,12 +69,12 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 // Run executes the installation process
 func (i *installer) Run()error{
 	
-	//fmt.Println("installing:")
-	//fmt.Println(i.metadata.Package)
-	//fmt.Println(i.release.Architecture)
-	//fmt.Println(i.release.URL)
-	//fmt.Println(i.release.FullVersion)
-	//fmt.Println(i.release.UpstreamVersion)
+	fmt.Println("installing:")
+	fmt.Println(i.metadata.Package)
+	fmt.Println(i.release.Architecture)
+	fmt.Println(i.release.URL)
+	fmt.Println(i.release.FullVersion)
+	fmt.Println(i.release.UpstreamVersion)
 
 
 

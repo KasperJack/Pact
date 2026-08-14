@@ -37,16 +37,16 @@ func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error)
 
 
 
-		target := resolveTargetArch(args.TargetArch)
+		//target := resolveTargetArch(args.TargetArch)
 
 
 
 		if args.Version.IsDefined() {
-			return resolveReleaseRequestedVersion(args, repo, target)
+			return resolveReleaseRequestedVersion(args, repo,)
 		}
 
 
-		return resolveReleaseLatestVersion(args, repo, target)
+		return resolveReleaseLatestVersion(args, repo)
 }
 
 
@@ -56,24 +56,46 @@ func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error)
 
 
 
-func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolvedArch core.Arch) (core.Release, error) {
+func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
 
+	if args.TargetArch == core.ArchUndefined {
 
-	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
+		host := core.HostArch()
+		compat := host.CompatibleArchs()
 
-	if err != nil {
+		for _,arch := range compat {
 
-		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
+			p, err := repo.Package(arch,args.PackageIdentifier)
 
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
-			if ferr != nil {return core.Release{},ferr}
+			if err != nil {
+				if errors.Is(err, core.ErrPkgNotFound) {
+					continue
+				}
+				return core.Release{}, err
+			}
 
-			return fp.Release(fp.LatestReleaseVersion())
+			latestVersion := p.LatestReleaseVersion()
+
+			return p.Release(latestVersion)
 
 		}
 
+		return core.Release{}, fmt.Errorf("package %s not found for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, compat)
 
+	}
+
+	// explicit target arch specified, try to get the package for that arch
+
+
+	p, err := repo.Package(args.TargetArch,args.PackageIdentifier)
+
+	if err != nil {
+
+		if errors.Is(err, core.ErrPkgNotFound){
+
+			return core.Release{}, fmt.Errorf("package %s not found for architecture %s", args.PackageIdentifier, args.TargetArch.String())
+		}
 
 		return core.Release{}, err	
 	}
@@ -88,34 +110,70 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo , resolve
 
 
 
-func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resolvedArch core.Arch) (core.Release, error) {
 
 
 
+func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
 
-	p, err := repo.Package(resolvedArch,args.PackageIdentifier)
+	if args.TargetArch == core.ArchUndefined {
 
-	if err != nil {  // fallback here 
+		host := core.HostArch()
+		compat := host.CompatibleArchs()
 
-		if errors.Is(err, core.ErrPkgNotFound) && core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
+		// make a slice of existing packages for the compatible archs
 
-	
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
+		pks := []core.Package{}
 
-			if ferr != nil {return core.Release{},ferr}
+		for _,arch := range compat {
 
-			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
-				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // did not find a pkg for x64 found x86 no requested version
+			p, err := repo.Package(arch,args.PackageIdentifier)
+		
+
+			if err != nil {
+				if errors.Is(err, core.ErrPkgNotFound) {
+					continue
+				}
+
+				return core.Release{}, err
 			}
 
-			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
+			pks = append(pks, p)
+		}
+
+		if len(pks) == 0 {
+			return core.Release{}, fmt.Errorf("package %s not found for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, compat)
+		}
 
 
+
+		for _,p := range pks {
+
+			if slices.Contains(p.UpstreamVersions(),args.Version.String()){
+
+				return p.Release(p.LatestReleaseForUpstream(args.Version.String()))
+			}
+			
 
 		}
 
 
+
+		return core.Release{}, fmt.Errorf("version %s of package %s not found for any compatible architecture ([debug]:tried: %v)", args.Version.String(), args.PackageIdentifier, compat)		
+
+	}
+
+
+
+
+	p, err := repo.Package(args.TargetArch,args.PackageIdentifier)
+
+	if err != nil {  // fallback here 
+
+		if errors.Is(err, core.ErrPkgNotFound) {
+
+			return core.Release{}, fmt.Errorf("package %s not found for architecture %s", args.PackageIdentifier, args.TargetArch.String())
+		}
 
 		return core.Release{}, err
 	}
@@ -123,24 +181,8 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo, resol
 
 	if !slices.Contains(p.UpstreamVersions(),args.Version.String()){
 
-		if core.HostArch() == core.ArchX64 && args.TargetArch == core.ArchUndefined {
+		return core.Release{}, fmt.Errorf("version %s of package %s not found for architecture %s", args.Version.String(), args.PackageIdentifier, args.TargetArch.String())
 
-
-			fp, ferr := repo.Package(core.ArchX86,args.PackageIdentifier)
-
-			if ferr != nil {return core.Release{},ferr}
-
-			if !slices.Contains(fp.UpstreamVersions(),args.Version.String()){
-				return core.Release{},fmt.Errorf("version %s not found",args.Version.String()) // found x64 pkg no version found x86 no version 
-			}
-
-			return fp.Release(fp.LatestReleaseForUpstream(args.Version.String())) 
-
-
-		}
-
-
-		return core.Release{},fmt.Errorf("version %s not found",args.Version.String())
 	}
 
 	return p.Release(p.LatestReleaseForUpstream(args.Version.String())) 

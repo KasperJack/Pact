@@ -80,6 +80,30 @@ func (r *repo) HasPackage(arch core.Arch, packageIdentifier string) (bool, error
 	return info.IsDir(), nil
 }
 
+func (r *repo) PackageExists(packageIdentifier string) (bool, error) {
+	dirPath := filepath.Join(r.repoRoot, "packages",packageIdentifier)
+
+	info, err := os.Stat(dirPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return info.IsDir(), nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

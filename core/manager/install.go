@@ -25,13 +25,30 @@ import (
 func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
-	//valid pkg
-	err := packageExists(args.PackageIdentifier,args.TargetArch,m.repo)
 
+	// check if package is already installed
+	_,ok := m.lockFile.GetInstalled(args.PackageIdentifier)
+
+	if ok {
+		return fmt.Errorf("package %s is already installed",args.PackageIdentifier)
+	}
+
+
+
+
+
+	// check if package exists in repo top level
+	ok, err := m.repo.PackageExists(args.PackageIdentifier)
 	if err != nil {
 		
 		return err
 	}
+
+	if !ok {
+		return fmt.Errorf("package %s not found [debug: top level check]", args.PackageIdentifier)
+	}
+
+
 
 
 	// NewManaged constructor should hanndle version and arch validation 
@@ -55,43 +72,6 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
 
-
-
-
-
-
-
-func packageExists(pkg string, arch core.Arch, repo core.Repo) error {
-
-
-	target := arch
-	if target == core.ArchUndefined {
-		target = core.HostArch()
-	}
-
-	ok, err := repo.HasPackage(target, pkg)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return nil
-	}
-
-
-	if core.HostArch() == core.ArchX64 && arch == core.ArchUndefined {
-		ok, err = repo.HasPackage(core.ArchX86, pkg)
-		if err != nil {
-			return err
-		}
-		if ok {
-			return nil
-		}
-
-	}
-
-	
-	return fmt.Errorf("pkg not found ")
-}
 
 
 

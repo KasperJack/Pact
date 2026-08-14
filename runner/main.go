@@ -209,8 +209,12 @@ func linstallDeck(packageIdentifier string, version string, arch string) error{
 	}
 
 
-	if err := ValidateArchForHost(carch, core.HostArch()); err != nil {
-		return err
+	if carch != core.ArchUndefined {
+
+		_, ok := core.HostArch().Priority(carch)
+		if !ok {
+			return fmt.Errorf("architecture %s is not supported on this host (%s)", carch.String(), core.HostArch().String())
+		}
 	}
 		
 
@@ -227,10 +231,6 @@ func linstallDeck(packageIdentifier string, version string, arch string) error{
 	fmt.Println("everything run ok")
 	return nil
 }
-
-
-
-
 
 
 
@@ -253,7 +253,7 @@ func ParseArchFlag(s string) (core.Arch, error) {
 
 
 
-
+/*
 func ValidateArchForHost(requested, host core.Arch) error {
     if requested == core.ArchUndefined {
         return nil 
@@ -271,7 +271,7 @@ func ValidateArchForHost(requested, host core.Arch) error {
 }
 
 
-
+*/
 
 
 
