@@ -1,10 +1,14 @@
 .vscode/
-# pact-tools
-#bin/
+
 
 bin/*
-
-
+!bin/repo/
+bin/repo/*
+!bin/repo/releases/
+bin/repo/releases/*
+!bin/repo/releases/x86/
+bin/repo/releases/x86/*
+!bin/repo/releases/x86/windirstat/
 
 
 
