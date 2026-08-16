@@ -12,7 +12,7 @@ import (
 )
 
 // chnage to private func 
-func Download(source string, hash string, targetDir string) error { // download check hash delete file hash missmatch 
+func download(source string, hash string, targetDir string) error { // download check hash delete file hash missmatch 
     resp, err := http.Get(source)
     if err != nil {
         return err

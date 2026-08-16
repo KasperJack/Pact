@@ -12,7 +12,7 @@ import (
 type manager struct {
     localState core.LocalState
     repo       core.Repo
-    lockFile   core.LockFile
+    lockM   core.LockManager
 }
 
 
@@ -32,7 +32,7 @@ type installer struct {
 
 
 
-func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lf core.LockFile) (*installer,error) {
+func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm core.LockManager) (*installer,error) {
 
 	
 
@@ -58,8 +58,9 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 	m := manager{
 		localState: localState,
 		repo: repo,
-		lockFile: lf,
+		lockM: lm,
 	}
+	
 	i. manager = m
 
 	return &i,nil
@@ -94,7 +95,10 @@ func (i *installer) Run()error{
 
 
 
-
+func (i *installer) downloadPackage()error{
+	
+	return nil
+}
 
 
 

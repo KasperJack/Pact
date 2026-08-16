@@ -3,46 +3,55 @@ package main
 import(
 
 	"github.com/kasperjack/pact/core"
-	"os"
-	"path/filepath"
-	"fmt"
-	"strings"
+	//"os"
+	//"path/filepath"
+	//"fmt"
+	//"strings"
 )
 
 
+
 type localState struct {
-	baseDir string
+	desktop    string
+	cacheDir   string
+	installDir string
+	repo       string
+	lockFile   string
 }
 
-
-
-func NewLocalState(baseDir string) core.LocalState {
- return &localState{
-	baseDir: baseDir,
- }
+func (l *localState) Desktop() string {
+	return l.desktop
 }
 
-
-
-
-func (l *localState) PackageExists(PackageIdentifier string) (bool, error) {
-
-    return true, nil
+func (l *localState) CacheDir() string {
+	return l.cacheDir
 }
 
+func (l *localState) InstallDir() string {
+	return l.installDir
+}
 
+func (l *localState) Repo() string {
+	return l.repo
+}
 
-func (l *localState) CreateInstallDir(PackageIdentifier string, version string) (string, error) {
-	dir := filepath.Join(l.baseDir, PackageIdentifier, version)
+func (l *localState) LockFile() string {
+	return l.lockFile
+}
 
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create install dir for %s@%s: %w", PackageIdentifier, version, err)
+// repo and lockfile will be use if manager gets a nil Repo or LockFile interface
+func NewLocalState(desktop string, cacheDir string, installDir string, repo string, lockFile string) core.LocalState {
+	return &localState{
+		desktop:    desktop,
+		cacheDir:   cacheDir,
+		installDir: installDir,
+		repo:       repo,
+		lockFile:   lockFile,
 	}
-
-	return dir, nil
 }
 
 
+/*
 func (l *localState) RemovePackageDir(path string) error {
 
 	// add safety checks
@@ -69,4 +78,4 @@ func (l *localState) RemovePackageDir(path string) error {
 
 	return nil
 }
-
+*/

@@ -25,9 +25,9 @@ import (
 func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
-
+	
 	// check if package is already installed
-	_,ok := m.lockFile.GetInstalled(args.PackageIdentifier)
+	_,ok := m.lockM.GetInstalled(args.PackageIdentifier)
 
 	if ok {
 		return fmt.Errorf("package %s is already installed",args.PackageIdentifier)
@@ -53,7 +53,7 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 	// NewManaged constructor should hanndle version and arch validation 
 
-	i,err := install.NewManaged(args,m.localState,m.repo,m.lockFile)
+	i,err := install.NewManaged(args,m.localState,m.repo,m.lockM)
 
 	if err != nil{
 		return err
@@ -63,7 +63,6 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 	
 
-	
 	
 
 	return nil		

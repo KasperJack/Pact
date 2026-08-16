@@ -2,9 +2,6 @@ package manager
 
 import (
 		"github.com/kasperjack/pact/core"
-		"os"
-	//"path"
-		"path/filepath"
 )
 
 type Manager interface {
@@ -13,18 +10,13 @@ type Manager interface {
 
 
 
-func NewManager(localState core.LocalState, repo core.Repo,lf core.LockFile) Manager {
-
-	exePath, _ := os.Executable()
-
-	exeDir := filepath.Dir(exePath)
+func NewManager(localState core.LocalState, repo core.Repo,lm core.LockManager) Manager {
 
 
 	return &pkgManager{
 		localState: localState,
 		repo:       repo,
-		lockFile: lf,
-		staging: NewStagingArea(filepath.Join(exeDir, "staging")),
+		lockM: lm,
 	}
 
 }
@@ -32,7 +24,6 @@ func NewManager(localState core.LocalState, repo core.Repo,lf core.LockFile) Man
 type pkgManager struct { 
 	localState core.LocalState
 	repo       core.Repo
-	lockFile core.LockFile
-	staging *StagingArea //EC: change to an interface 
+	lockM core.LockManager
 }
 

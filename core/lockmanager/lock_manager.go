@@ -1,6 +1,5 @@
-// lockfile.go — full implementation
+package lockmanager
 
-package main
 
 import (
     "fmt"
@@ -13,7 +12,7 @@ import (
     "github.com/kasperjack/pact/core/parce"
 )
                                     //interface                
-func NewLockFile(filePath string) (core.LockFile, error) {
+func New(filePath string) (core.LockManager, error) {
     f, err := os.ReadFile(filePath)
     if err != nil {
         return nil, fmt.Errorf("error loading the lock file") //RF:E
@@ -24,10 +23,10 @@ func NewLockFile(filePath string) (core.LockFile, error) {
         return nil, err
     }
 
-    return &lockFile{path: filePath, content: c}, nil
+    return &lockmanager{path: filePath, content: c}, nil
 }
 
-type lockFile struct {
+type lockmanager struct {
     mu      sync.RWMutex
     path    string
     content core.LockFileC
@@ -35,7 +34,7 @@ type lockFile struct {
 
 
 
-func (f *lockFile) GetInstalled(packageIdentifier string) (core.LockedPackage, bool) {
+func (f *lockmanager) GetInstalled(packageIdentifier string) (core.LockedPackage, bool) {
     f.mu.RLock()
     defer f.mu.RUnlock()
 
@@ -48,7 +47,7 @@ func (f *lockFile) GetInstalled(packageIdentifier string) (core.LockedPackage, b
 }
 
 
-func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
+func (f *lockmanager) RecordInstall(pkg core.LockedPackage) error {
     f.mu.Lock()
     defer f.mu.Unlock()
 
@@ -64,7 +63,7 @@ func (f *lockFile) RecordInstall(pkg core.LockedPackage) error {
 }
 
 
-func (f *lockFile) RecordRemove(packageIdentifier string) error {
+func (f *lockmanager) RecordRemove(packageIdentifier string) error {
     f.mu.Lock()
     defer f.mu.Unlock()
 
@@ -80,7 +79,7 @@ func (f *lockFile) RecordRemove(packageIdentifier string) error {
 
 
 
-func (f *lockFile) Test() error {
+func (f *lockmanager) Test() error {
 
     testPath := filepath.Join("ass,hole","test-install-dir")
 
@@ -94,7 +93,7 @@ func (f *lockFile) Test() error {
 }
 
 
-func (f *lockFile) flush() error {
+func (f *lockmanager) flush() error {
     data := parce.WriteLockFile(f.content)
     return os.WriteFile(f.path, data, 0644)
 }

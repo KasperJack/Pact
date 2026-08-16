@@ -50,14 +50,12 @@ type InstallArgs struct {
 
 
 
-
-
 type LocalState interface {
-	// this is an fs pov
-	//CreatePackage(string) error
-	CreateInstallDir(PackageIdentifier string, version string) (string,error)
-	PackageExists(string) (bool, error)
-
+	Desktop() string
+	CacheDir() string
+	InstallDir() string
+	Repo() string
+	LockFile() string
 }
 
 
@@ -90,7 +88,7 @@ type Package interface {
 
 
 
-type LockFile interface {
+type LockManager interface {
     
     GetInstalled(packageIdentifier string) (LockedPackage, bool)
 

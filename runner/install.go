@@ -8,41 +8,50 @@ import (
 	"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/manager"
 	"github.com/kasperjack/pact/core/repo"
+	"github.com/kasperjack/pact/core/lockmanager"
 )
 
-func install (pkg string, version string, arch core.Arch) error {
 
+
+
+
+func install(pkg string, version string, arch core.Arch) error {
 	exePath, err := os.Executable()
 	if err != nil {
 		return err
 	}
 	exeDir := filepath.Dir(exePath)
 
+	localState := NewLocalState(
+		filepath.Join(exeDir, "desktop"),
+		filepath.Join(exeDir, "cache"),
+		filepath.Join(exeDir, "pkg"),
+		filepath.Join(exeDir, "repo"),
+		filepath.Join(exeDir, "lock.hcl"),
+	)
 
-	repo,err := repo.NewLocalRepo(filepath.Join(exeDir, "repo"))  // test-buckets
+	localRepo, err := repo.NewLocalRepo(localState.Repo())
 	if err != nil {
 		return err
 	}
 
-	localState := NewLocalState(filepath.Join(exeDir, "installed")) // local state should contain the lockFile ? 
-	lockFile, err := NewLockFile(filepath.Join(exeDir, "installed", "lock.hcl"))
+	lm, err := lockmanager.New(localState.LockFile())
 	if err != nil {
 		return err
 	}
 
-	m := manager.NewManager(localState,repo,lockFile)
+	m := manager.NewManager(localState, localRepo, lm)
 
-
-	err = m.Install(core.InstallArgs{PackageIdentifier: pkg,Version: core.ParseVersion(version),TargetArch: arch}) // move InstallArgs to core 
-	if err != nil {
-		return err
-	}
+	err = m.Install(core.InstallArgs{
+		PackageIdentifier: pkg,
+		Version:           core.ParseVersion(version),
+		TargetArch:        arch,
+	})
 
 	
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
-
-//TODO: 
-// lib will take 3 manifest of the pcakge + install location that the pkmg uses 
-// it will retrun an interface install update remove 
