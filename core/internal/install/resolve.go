@@ -6,7 +6,7 @@ package install
 import (
 	"fmt"
 	"slices"
-	"errors"
+	//"errors"
 	"github.com/kasperjack/pact/core"
 	
 )
@@ -20,33 +20,74 @@ import (
 
 
 
-func resolveTargetArch(target core.Arch) core.Arch {
 
-	if target == core.ArchUndefined{
-		target = core.HostArch()
+																// retrun also metadata 
+func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo, core.Release, error) {
+
+
+	
+	md,err  := repo.LoadPackageInfo(args.PackageIdentifier)
+
+	if err != nil {
+
+		return core.PackageInfo{},core.Release{},err
 	}
 
-	return target
-}
+
+
+	if args.TargetArch == core.ArchUndefined {
+
+		foundArch := false
+
+		for _,arch := range core.HostArch().CompatibleArchs() {
+			if slices.Contains(md.Architectures,arch) {
+				foundArch = true
+				break
+			}
+			
+		}
+
+		if !foundArch {
+			return core.PackageInfo{},core.Release{} ,fmt.Errorf("package %s does not support any compatible architecture for this host", args.PackageIdentifier)
+		}
+
+	}else{
+
+		if !slices.Contains(md.Architectures,args.TargetArch) {
+			return core.PackageInfo{},core.Release{} ,fmt.Errorf("package %s does not support architecture %s", args.PackageIdentifier, args.TargetArch.String())
+		}
+
+	}
 
 
 
 
 
-func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
-
-
-		//target := resolveTargetArch(args.TargetArch)
 
 
 
 		if args.Version.IsDefined() {
-			return resolveReleaseRequestedVersion(args, repo,)
+			r , err := resolveReleaseRequestedVersion(args, repo)
+
+			if err != nil {
+				return core.PackageInfo{},core.Release{},err
+			}
+
+			
+			return md,r,nil
 		}
 
 
-		return resolveReleaseLatestVersion(args, repo)
+
+		r, err := resolveReleaseLatestVersion(args, repo)
+
+		if err != nil {
+				return core.PackageInfo{},core.Release{},err
+			}
+
+		return md,r,nil
+		
 }
 
 
@@ -59,6 +100,16 @@ func resolveRelease(args core.InstallArgs, repo core.Repo) (core.Release, error)
 func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
 
+	index, err := repo.LoadPackageIndex(args.PackageIdentifier)
+
+	if err != nil {
+		return core.Release{}, err
+	}
+
+
+	archMap := index.ArchMap.AsMap()
+
+
 	if args.TargetArch == core.ArchUndefined {
 
 		host := core.HostArch()
@@ -66,47 +117,45 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Re
 
 		for _,arch := range compat {
 
-			p, err := repo.Package(arch,args.PackageIdentifier)
+			
 
-			if err != nil {
-				if errors.Is(err, core.ErrPkgNotFound) {
-					continue
-				}
-				return core.Release{}, err
+
+			archInfo,ok := archMap[arch]
+
+			if ok{
+
+				return repo.LoadArchRelease(args.PackageIdentifier,archInfo.Version,arch,archInfo.Revision)
+
 			}
 
-			latestVersion := p.LatestReleaseVersion()
-
-			return p.Release(latestVersion)
-
 		}
 
-		return core.Release{}, fmt.Errorf("package %s not found for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, compat)
+
+
+		return core.Release{}, fmt.Errorf("package %s has no avalable relase ? for any compatible architecture ", args.PackageIdentifier)
 
 	}
 
-	// explicit target arch specified, try to get the package for that arch
 
 
-	p, err := repo.Package(args.TargetArch,args.PackageIdentifier)
 
-	if err != nil {
+	archInfo,ok := archMap[args.TargetArch]
 
-		if errors.Is(err, core.ErrPkgNotFound){
+	if ok{
 
-			return core.Release{}, fmt.Errorf("package %s not found for architecture %s", args.PackageIdentifier, args.TargetArch.String())
-		}
+		return repo.LoadArchRelease(args.PackageIdentifier,archInfo.Version,args.TargetArch,archInfo.Revision)
 
-		return core.Release{}, err	
 	}
 
-	latestVersion := p.LatestReleaseVersion()
-
-	return p.Release(latestVersion)
-
-
-
+	return core.Release{}, fmt.Errorf("package %s has no avalable relase ? for %s architecture ", args.PackageIdentifier,args.TargetArch.String())
 }
+
+
+
+
+
+
+
 
 
 
@@ -116,76 +165,62 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Re
 func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
 
 
+	index, err := repo.LoadPackageIndex(args.PackageIdentifier)
+
+	if err != nil {
+		return core.Release{}, err
+	}
+
+	
+	if !slices.Contains(index.Versions,args.Version.String()) {
+		return core.Release{}, fmt.Errorf("version %s of package %s not found", args.Version.String(), args.PackageIdentifier)
+	}
+
+
+
+
 	if args.TargetArch == core.ArchUndefined {
 
 		host := core.HostArch()
 		compat := host.CompatibleArchs()
 
-		// make a slice of existing packages for the compatible archs
-
-		pks := []core.Package{}
 
 		for _,arch := range compat {
 
-			p, err := repo.Package(arch,args.PackageIdentifier)
-		
+			s, err := repo.LoadArchStatus(args.PackageIdentifier,args.Version.String(),arch)
 
 			if err != nil {
-				if errors.Is(err, core.ErrPkgNotFound) {
-					continue
-				}
-
 				return core.Release{}, err
 			}
 
-			pks = append(pks, p)
-		}
 
-		if len(pks) == 0 {
-			return core.Release{}, fmt.Errorf("package %s not found for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, compat)
-		}
-
-
-
-		for _,p := range pks {
-
-			if slices.Contains(p.UpstreamVersions(),args.Version.String()){
-
-				return p.Release(p.LatestReleaseForUpstream(args.Version.String()))
+			if s.Status == "available" {
+				return repo.LoadArchRelease(args.PackageIdentifier,args.Version.String(),arch,s.CurrentRevision)
 			}
-			
+
+
 
 		}
 
 
-
-		return core.Release{}, fmt.Errorf("version %s of package %s not found for any compatible architecture ([debug]:tried: %v)", args.Version.String(), args.PackageIdentifier, compat)		
+		return core.Release{}, fmt.Errorf("package %s version %s not available for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, args.Version.String(), compat)
 
 	}
 
 
+	s, err := repo.LoadArchStatus(args.PackageIdentifier,args.Version.String(),args.TargetArch)
 
-
-	p, err := repo.Package(args.TargetArch,args.PackageIdentifier)
-
-	if err != nil {  // fallback here 
-
-		if errors.Is(err, core.ErrPkgNotFound) {
-
-			return core.Release{}, fmt.Errorf("package %s not found for architecture %s", args.PackageIdentifier, args.TargetArch.String())
+	if err != nil {
+			return core.Release{}, err
 		}
 
-		return core.Release{}, err
+	if s.Status == "available" {
+		return repo.LoadArchRelease(args.PackageIdentifier,args.Version.String(),args.TargetArch,s.CurrentRevision)
 	}
 
 
-	if !slices.Contains(p.UpstreamVersions(),args.Version.String()){
 
-		return core.Release{}, fmt.Errorf("version %s of package %s not found for architecture %s", args.Version.String(), args.PackageIdentifier, args.TargetArch.String())
-
-	}
-
-	return p.Release(p.LatestReleaseForUpstream(args.Version.String())) 
+	return core.Release{}, fmt.Errorf("package %s version %s not available for architecture %s", args.PackageIdentifier, args.Version.String(), args.TargetArch.String())
 
 
 }

@@ -26,7 +26,7 @@ func install(pkg string, version string, arch core.Arch) error {
 		filepath.Join(exeDir, "desktop"),
 		filepath.Join(exeDir, "cache"),
 		filepath.Join(exeDir, "pkg"),
-		filepath.Join(exeDir, "repo"),
+		filepath.Join(exeDir, "repo2"),
 		filepath.Join(exeDir, "lock.hcl"),
 	)
 

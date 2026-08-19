@@ -3,14 +3,14 @@ package main
 import (
 	//"fmt"
 	"strings"
-	"errors"
+	//"errors"
 	"fmt"
-	"os"
-	"path/filepath"
+	//"os"
+	//"path/filepath"
 
 	//"github.com/go-delve/delve/pkg/version"
 	"github.com/kasperjack/pact/core"
-	"github.com/kasperjack/pact/core/repo"
+	//"github.com/kasperjack/pact/core/repo"
 )
 
 
@@ -22,6 +22,9 @@ type archVersions struct {
 }
 
 func LsRemote(packageIdentifier string) error {
+
+
+	/*
 
 	exePath, err := os.Executable()
 	if err != nil {
@@ -105,6 +108,9 @@ func LsRemote(packageIdentifier string) error {
 
 
 	return nil	
+	*/
+
+	return fmt.Errorf("ls-remote not implmented yet")
 }
 
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/kasperjack/pact/core"
 	//"golang.org/x/tools/go/analysis/passes/nilfunc"
+
+	//"errors"
 )
 
 
@@ -32,28 +34,56 @@ type installer struct {
 
 
 
-func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm core.LockManager) (*installer,error) {
+func New(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm core.LockManager) (*installer,error) {
+
+	
+		
+	// check if package is already installed
+
+
+	/*
+	
+	_,ok := lm.GetInstalled(args.PackageIdentifier)
+
+	if ok {
+		return nil, fmt.Errorf("package %s is already installed",args.PackageIdentifier)
+	}
+	*/
+
+
+
+
+	ok, err := repo.PackageExists(args.PackageIdentifier)
+	if err != nil {
+		
+		return nil, err
+	}
+
+	if !ok {
+		return nil, fmt.Errorf("package %s not found [debug: top level check]", args.PackageIdentifier)
+	}
+
+
 
 	
 
-	
+
+
+	metadata,archRelease,err := resolveArchRelease(args,repo)
+
+
+	if err != nil {
+		return nil,err
+	}
+
+
+
+
+
 	i :=installer{}
 
-	md,err  := repo.LoadPackageInfo(args.PackageIdentifier)
-	if err != nil {
-		return nil,err
-	}
-
-	i.metadata = md
-
-
-	r,err := resolveRelease(args,repo)
-	if err != nil {
-		return nil,err
-	}
-
-
-	i.release = r
+	i.release = archRelease
+	i.metadata = metadata
 
 	m := manager{
 		localState: localState,
@@ -67,14 +97,24 @@ func NewManaged(args core.InstallArgs, localState core.LocalState, repo core.Rep
 
 }
 
+
+
+
+
+
+
+
+
 // Run executes the installation process
-func (i *installer) Run()error{
+func (i *installer) Run() error {
 	
 	fmt.Println("installing:")
+
 	fmt.Println(i.metadata.Package)
+
+	fmt.Println(i.metadata.Architectures)
 	fmt.Println(i.release.Architecture)
 	fmt.Println(i.release.URL)
-	fmt.Println(i.release.FullVersion)
 	fmt.Println(i.release.UpstreamVersion)
 
 

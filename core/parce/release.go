@@ -9,12 +9,22 @@ import (
 func Release(rlsData []byte) (core.Release,error) {
 
 
-	var config core.Release
+	var config *core.Release = &core.Release{}
 	
-    err := hclsimple.Decode("package.hcl", rlsData, nil, &config)
+    err := hclsimple.Decode("release.hcl", rlsData, nil, config)
     if err != nil {
         return  core.Release{},err
     }
 
-	return config,nil
+	
+	err = config.Validate()
+	if err != nil {
+        return  core.Release{},err
+    }
+
+	return *config,nil
 }
+
+
+
+

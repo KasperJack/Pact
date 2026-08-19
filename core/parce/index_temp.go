@@ -14,19 +14,53 @@ import (
 
 
 
-func ReleaseIndex(indexData []byte)(core.ReleaseIndex,error) {
+func PackageIndex(indexData []byte)(core.PackageIndex,error) {
 
-	var config core.ReleaseIndex
+	var config *core.PackageIndex = &core.PackageIndex{}
 	
-    err := hclsimple.Decode("index.hcl", indexData, nil, &config)
+
+
+    err := hclsimple.Decode("index.hcl", indexData, nil, config)
 
     if err != nil {
-        return  core.ReleaseIndex{},err
+        return  core.PackageIndex{},err
     }
 
-	return config,nil
+
+
+
+	err = config.Validate()
+
+	if err != nil {
+        return  core.PackageIndex{},err
+    }
+
+
+
+
+	return *config,nil
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 

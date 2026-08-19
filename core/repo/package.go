@@ -3,18 +3,22 @@ package repo
 import(
 	//"path/filepath"
 	//"os"
-	"github.com/kasperjack/pact/core"
+	//"github.com/kasperjack/pact/core"
     //"github.com/kasperjack/pact/core/parce"
 	//"fmt"
     //"slices"
 )
 
+
+/*
 type Package struct {
     repo *repo
     arch core.Arch
     id   string
 	index core.ReleaseIndex
 }
+
+
 
 
 
@@ -72,3 +76,4 @@ func (p *Package) Release(releaseVersion string) (core.Release, error){
 
 	return p.repo.LoadRelease(p.arch,p.id,releaseVersion)
 }
+*/

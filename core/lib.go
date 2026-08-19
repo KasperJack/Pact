@@ -68,10 +68,11 @@ type LocalState interface {
 
 type Repo interface {
 
-    Package(arch Arch, PackageIdentifier string) (Package, error)                                                   
-    HasPackage(arch Arch,PackageIdentifier string) (bool, error)
     LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
     PackageExists(packageIdentifier string) (bool, error)
+    LoadPackageIndex(packageIdentifier string) (PackageIndex, error)
+    LoadArchStatus(packageIdentifier, Version string, arch Arch) (ArchStatus, error)
+    LoadArchRelease(packageIdentifier, Version string, arch Arch, revision int) (Release, error)
 }
 
 type Package interface {
@@ -129,27 +130,8 @@ type LockFileC struct {
 
 
 
-
-
-
-
-
-type Shortcut struct {
-    Name string `hcl:"name,optional"`
-    Exe  string `hcl:"exe"`
-    Icon string `hcl:"icon,optional"`
-    Args string `hcl:"args,optional"`
-}
-
-
-
-type Command struct {
-    Exe  string `hcl:"exe"`
-    Args string `hcl:"args,optional"`   // default args baked into shim
-}
-
-
 ////////////////////////
+
 
 
 
@@ -159,36 +141,131 @@ type PackageInfo struct {
     Description string `hcl:"description"`
     Homepage    string `hcl:"homepage"`
     License     string `hcl:"license"`
+    ArchitecturesRaw []string `hcl:"architectures"`
+    Architectures   []Arch 
+
 }
+
+
+
+func (p *PackageInfo) Validate() error {
+    p.Architectures = make([]Arch, 0, len(p.ArchitecturesRaw))
+
+    for _, raw := range p.ArchitecturesRaw {
+        arch, err := ParseArch(raw)
+        if err != nil {
+            return fmt.Errorf("invalid architecture %q: %w", raw, err)
+        }
+
+        p.Architectures = append(p.Architectures, arch)
+    }
+
+    return nil
+}
+
+
+
+
+
+
+
+
+
+
+
+type PackageIndex struct {
+    LatestVersion string   `hcl:"latest_version"`
+    Versions      []string `hcl:"versions"`
+    ArchMap       ArchMap  `hcl:"arch_map,block"`
+}
+
+type ArchMap struct {
+    Archs []ArchInfo `hcl:"arch,block"`
+}
+
+type ArchInfo struct {
+    ArchRaw     string `hcl:"name,label"`
+    Arch       Arch //RT:V
+    Version  string `hcl:"version"`
+    Revision int    `hcl:"revision"`
+}
+
+
+func (p *PackageIndex) Validate() error {
+
+    for i := range p.ArchMap.Archs {
+
+        a, err := ParseArch(p.ArchMap.Archs[i].ArchRaw)
+
+
+        if err != nil {
+            return fmt.Errorf("index: %w", err)
+        }
+
+        p.ArchMap.Archs[i].Arch = a
+
+    }
+
+
+    return nil
+}
+
+
+
+
+
+func (a ArchMap) AsMap() map[Arch]ArchInfo {
+    m := make(map[Arch]ArchInfo, len(a.Archs))
+    for _, arch := range a.Archs {
+
+        m[arch.Arch] = arch
+    }
+    return m
+}
+
+
+
+
+
+type ArchStatus struct {
+    Status string `hcl:"status"`
+    ReleasedAt string `hcl:"released_at,optional"`
+    CurrentRevision int `hcl:"current_revision,optional"`
+}
+
+
+
+
+
+
+
+
 
 
 
 type Release struct {
     Package         string `hcl:"package"`
-    FullVersion     string `hcl:"version"` 
     UpstreamVersion string `hcl:"upstream_version"` 
     Revision        int     `hcl:"revision"` 
     URL             string  `hcl:"url"` 
     SHA256          string `hcl:"sha256"` 
     SizeMB          int  `hcl:"size_mb"` 
-    Architecture    string `hcl:"architecture"` 
+
+    ArchitectureRaw string `hcl:"architecture"`
+    
+    Architecture Arch //RT:V
 }
 
 
+func (r *Release) Validate() error {
+    a, err := ParseArch(r.ArchitectureRaw)
 
-
-type ReleaseIndex struct {
-    LatestVersion   string `hcl:"latest_version"`
-
-    VersionMappings map[string]string `hcl:"version_mappings"`         //upstream -> full version
-    RevisionHistory map[string][]string  `hcl:"revision_history"`
-    UpstreamOf      map[string]string  `hcl:"upstream_of"`
-    Yanked          map[string]string  `hcl:"yanked"`             //full version -> reason
+    if err != nil {
+        return fmt.Errorf("release %q: %w", r.Package, err)
+    }
+    r.Architecture = a 
+    return nil
 }
-
-
-
-
 
 
 

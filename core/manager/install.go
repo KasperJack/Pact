@@ -1,9 +1,6 @@
 package manager
 
 import (
-	"fmt"
-
-	
 
 	//"path"
 	//"os"
@@ -25,35 +22,13 @@ import (
 func (m *pkgManager) Install(args core.InstallArgs) error {
 
 
-	
-	// check if package is already installed
-	_,ok := m.lockM.GetInstalled(args.PackageIdentifier)
-
-	if ok {
-		return fmt.Errorf("package %s is already installed",args.PackageIdentifier)
-	}
-
-
-
-
-
-	// check if package exists in repo top level
-	ok, err := m.repo.PackageExists(args.PackageIdentifier)
-	if err != nil {
-		
-		return err
-	}
-
-	if !ok {
-		return fmt.Errorf("package %s not found [debug: top level check]", args.PackageIdentifier)
-	}
 
 
 
 
 	// NewManaged constructor should hanndle version and arch validation 
 
-	i,err := install.NewManaged(args,m.localState,m.repo,m.lockM)
+	i,err := install.New(args,m.localState,m.repo,m.lockM)
 
 	if err != nil{
 		return err
