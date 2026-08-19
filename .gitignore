@@ -4,14 +4,13 @@
 bin/*
 !bin/repo/
 bin/repo/*
-!bin/repo/releases/
-bin/repo/releases/*
-!bin/repo/releases/x86/
-bin/repo/releases/x86/*
-!bin/repo/releases/x86/windirstat/
+!bin/repo/packages/
+bin/repo/packages/*
 
+!bin/repo/packages/windirstat/
+bin/repo/packages/windirstat/*
 
-
+!bin/repo/packages/windirstat/2.7.0
 
 
 

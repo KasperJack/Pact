@@ -3,6 +3,9 @@ package core
 
 
 type Shortcut struct {
+	ID   string `hcl:"name,label"`
+
+
     Name string `hcl:"name,optional"`
     Exe  string `hcl:"exe"`
     Icon string `hcl:"icon,optional"`
