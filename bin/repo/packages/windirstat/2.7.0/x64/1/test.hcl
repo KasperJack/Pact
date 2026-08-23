@@ -1,18 +1,17 @@
 
-scope {
-
-  user {
-    install_path = "%LOCALAPPDATA%\\windirstat"
-  }
 
 
-/*
-  system {
-    install_path = "%%PROGRAMFILES(X86)%/windirstat"
-  }
- */
 
-}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -29,10 +28,62 @@ shortcut {
 
 
 
-shortcut "desktop"{  
-    display_name = "hole" // optional fall back to name from exe  
-    exe  = "WinDirStat.exe"
+
+
+
+
+runtime_pact {
+
+    filesystem {
+        
+        config {
+            path = "%APPDATA%\\pkg.name\\pkg.name"
+            policy_on_uninstall = "preserve_prompt"
+        }
+
+        logs {}
+
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+scope {     
+    "per_machine" = "%SystemDrive%\\ProramFiles" // main app data storage, this is where the app will store its data can be a path or  engine_managed, ("engine_managed" eveything will be linked against a junction manger will own the junctions and will manage the data) 
+    // data = "engine_managed"
+    "per_user" = "%APPDATA%"
+}
+
+
+
+
+
+scope {     
+    data = "engine_managed" // or an exact path
+}
+
+
+
+
+
+lifecycle {
+    update_strategy = "engine_managed" 
+}
+
+
+
+
+
 
 
 
@@ -53,3 +104,4 @@ command  "b"{
 command  "t"{
         exe  = "cli/wdhs.exe" // this will create a shim 
     }
+*/

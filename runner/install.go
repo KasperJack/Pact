@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	//"os"
 	"fmt"
 	"reflect"
 	
@@ -19,8 +19,8 @@ func install(pkg string, version string, arch core.Arch) error {
 	localState := NewLocalState()
 
 
-	printStruct(localState)
-	os.Exit(0)
+	//printStruct(localState)
+	//os.Exit(0)
 
 
 

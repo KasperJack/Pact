@@ -17,9 +17,17 @@ option "desktop_shortcut" {
   default     = true
   label       = "Create Desktop Shortcut"
   description = "Adds a shortcut to your desktop for quick access."
-  binding     = ["engine.shortcut.desktop"]
+  binding     = ["engine.shortcut.uni.desktop"]
 }
 
+
+
+
+
+
+
+
+/*
 
 
 option "progamfiles_install" {
@@ -51,7 +59,7 @@ option "install_scope" {
 
 
 
-/*
+
 option "install_scope" {
   type        = "Path" // will be checked if the path is valid and if the user has permission to write to it
   default     = "some/path"

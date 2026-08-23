@@ -1,49 +1,54 @@
 
+scope {
 
-scope {     
-    "per_machine" = "%SystemDrive%\\ProramFiles" // main app data storage, this is where the app will store its data can be a path or  engine_managed, ("engine_managed" eveything will be linked against a junction manger will own the junctions and will manage the data) 
-    // data = "engine_managed"
-    "per_user" = "%APPDATA%"
+  user {
+    install_path = "%LOCALAPPDATA%\\windirstat"
+  }
+
+
+
+  system {
+    install_path = "%PROGRAMFILES(X86)%\\windirstat"
+  }
+
+
 }
 
 
+system {
+
+    shortcut {  // in the system the short does not have an id it will run uncontianly 
+        display_name = "hole" 
+        exe  = "WinDirStat.exe"
+    }
 
 
+    
 
-scope {     
-    data = "engine_managed" // or an exact path
-}
-
-
-
-
-
-scope {     
-    // this is the case where scope was passed as a path
-}
-
-
-
-
-
-//integrations
-
-
-
-
-
-runtime_pact {
-
-    filesystem {
-        
-        config {
-            path = "%APPDATA%\\pkg.name\\pkg.name"
-            policy_on_uninstall = "preserve_prompt"
+    add_path "system" {
+        dir  = "cli"
         }
 
-        logs {}
 
+
+
+}
+
+
+
+user {
+
+    shortcut "desktop" {  
+        display_name = "hole" 
+        exe  = "WinDirStat.exe"
     }
+
+
+    
+
+    add_path "system" {
+        dir  = "cli"
+        }
 
 }
 
@@ -60,27 +65,11 @@ runtime_pact {
 
 
 
-shortcut "desktop"{  
-    display_name = "hole" // optional fall back to name from exe  
-    exe  = "WinDirStat.exe"
-    icon = "WinDirStat.exe" // optional fall back to exe icon 
-    args = "--ass --hole" // optional
-}
 
 
 
 
 
-
-
-
-
-
-
-
-command  {
-        exe  = "cli/wds.exe" // this will create a shim 
-    }
 
 
 
@@ -106,11 +95,6 @@ command  {
 
 //state defention
 
-
-
-lifecycle {
-    update_strategy = "engine_managed" 
-}
 
 
 

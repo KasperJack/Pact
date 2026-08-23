@@ -44,6 +44,8 @@ type ShortcutBody struct {
 }
 
 
+
+
 type Manifest struct {
 	Scope     *Scope
 	Shortcuts *ActionSet[ShortcutBody]

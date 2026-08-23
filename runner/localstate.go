@@ -38,8 +38,8 @@ func NewLocalState() *core.LocalState {
 		CacheDir: filepath.Join(exeDir, "cache"),
 		Repo:     filepath.Join(exeDir, "repo"),
 
-		UserLockFile:   filepath.Join(localAppData, "pact", "user.lock"),
-		SystemLockFile: filepath.Join(programFiles, "pact", "system.lock"),
+		UserLockFile:   filepath.Join(localAppData, "pact", "user.hcl"),
+		SystemLockFile: filepath.Join(programFiles, "pact", "system.hcl"),
 
 		UserDesktop:   filepath.Join(userProfile, "Desktop"),
 		PublicDesktop: filepath.Join(publicProfile, "Desktop"),
