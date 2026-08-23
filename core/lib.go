@@ -50,15 +50,34 @@ type InstallArgs struct {
 
 
 
-type LocalState interface {
-	Desktop() string
-	CacheDir() string
-	InstallDir() string
-	Repo() string
-	LockFile() string
+
+
+type LocalState struct {
+
+    
+	CacheDir       string
+	Repo           string
+	UserLockFile   string
+	SystemLockFile string
+
+	UserDesktop   string
+	PublicDesktop string
+
+	UserPackagesDir   string
+	SystemPackagesDir string
+
+	LocalAppData  string
+
+	ProgramData string
+
+	UserProfile string
+
+	PublicProfile string
+
+	ProgramFiles string
+
+	AppData  string
 }
-
-
 
 
 
@@ -97,12 +116,14 @@ type LockManager interface {
 
     RecordRemove(packageIdentifier string) error
 
-	Test() error
+
 
 }
-    //InstallDir(pkg string) string
-	//IsInstalled(pkg string) error
 
+type LockManagers struct {
+    System LockManager
+    User   LockManager
+}
 
 
 
@@ -234,7 +255,12 @@ type ArchStatus struct {
 }
 
 
+type ArchRelease struct {
 
+    Manifest *Manifest
+    Release   Release
+
+}
 
 
 

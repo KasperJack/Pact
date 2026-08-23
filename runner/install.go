@@ -2,13 +2,12 @@ package main
 
 import (
 	"os"
-	//"path"
-	"path/filepath"
-
+	"fmt"
+	"reflect"
+	
 	"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/manager"
-	"github.com/kasperjack/pact/core/repo"
-	"github.com/kasperjack/pact/core/lockmanager"
+
 )
 
 
@@ -16,32 +15,23 @@ import (
 
 
 func install(pkg string, version string, arch core.Arch) error {
-	exePath, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	exeDir := filepath.Dir(exePath)
 
-	localState := NewLocalState(
-		filepath.Join(exeDir, "desktop"),
-		filepath.Join(exeDir, "cache"),
-		filepath.Join(exeDir, "pkg"),
-		filepath.Join(exeDir, "repo"),
-		filepath.Join(exeDir, "lock.hcl"),
-	)
+	localState := NewLocalState()
 
-	localRepo, err := repo.NewLocalRepo(localState.Repo())
+
+	printStruct(localState)
+	os.Exit(0)
+
+
+
+	m,err := manager.NewManager(localState)
 	if err != nil {
 		return err
 	}
 
-	lm, err := lockmanager.New(localState.LockFile())
-	if err != nil {
-		return err
-	}
 
-	m := manager.NewManager(localState, localRepo, lm)
 
+	
 	err = m.Install(core.InstallArgs{
 		PackageIdentifier: pkg,
 		Version:           core.ParseVersion(version),
@@ -54,4 +44,18 @@ func install(pkg string, version string, arch core.Arch) error {
 	}
 
 	return nil
+}
+
+
+func printStruct(v any) {
+    rv := reflect.ValueOf(v)
+    if rv.Kind() == reflect.Pointer {
+        rv = rv.Elem()
+    }
+
+    rt := rv.Type()
+
+    for i := 0; i < rv.NumField(); i++ {
+        fmt.Printf("%s: %v\n", rt.Field(i).Name, rv.Field(i).Interface())
+    }
 }

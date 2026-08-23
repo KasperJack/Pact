@@ -28,13 +28,16 @@ func (m *pkgManager) Install(args core.InstallArgs) error {
 
 	// NewManaged constructor should hanndle version and arch validation 
 
-	i,err := install.New(args,m.localState,m.repo,m.lockM)
+	i,err := install.New(args,m.localState,m.repo,m.LockManagers)
 
 	if err != nil{
 		return err
 	}
 	
-	i.Run()		
+	
+	if err := i.Run(); err != nil {
+		return err
+	}	
 
 	
 

@@ -1,5 +1,17 @@
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 option "desktop_shortcut" {
   type        = "boolean"
   default     = true
@@ -7,6 +19,19 @@ option "desktop_shortcut" {
   description = "Adds a shortcut to your desktop for quick access."
   binding     = ["engine.shortcut.desktop"]
 }
+
+
+
+option "progamfiles_install" {
+  type        = "boolean"
+  label       = "Install Scope"
+  description = "Install pkg in program files"
+
+  binding     = "engine.scope.1"
+}
+
+
+
 
 
 
@@ -18,6 +43,12 @@ option "install_scope" {
   description = "Install for current user only or all system users."
   binding     = "engine.scope"
 }
+
+
+
+
+
+
 
 
 /*

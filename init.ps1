@@ -47,7 +47,7 @@ foreach ($dir in $DirsToAdd) {
 }
 
 if ($added.Count -gt 0) {
-    Write-Host "Added to PATH (this session):" -ForegroundColor Green
+    Write-Host "Added to PATH:" -ForegroundColor Green
     $added | ForEach-Object { Write-Host "  $_" -ForegroundColor Green }
 } else {
     Write-Host "No new directories added (already on PATH or none existed)." -ForegroundColor Yellow

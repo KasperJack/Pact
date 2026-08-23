@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"github.com/kasperjack/pact/core"
 	//"golang.org/x/tools/go/analysis/passes/nilfunc"
-
 	//"errors"
+	"os"
+	"strings"
+	"github.com/kasperjack/pact/core/parce" // remove 
 )
 
 
 
 
 type manager struct {
-    localState core.LocalState
+    localState *core.LocalState
     repo       core.Repo
-    lockM   core.LockManager
+    lockManagers   core.LockManagers
 }
 
 
@@ -34,7 +36,7 @@ type installer struct {
 
 
 
-func New(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm core.LockManager) (*installer,error) {
+func New(args core.InstallArgs, localState *core.LocalState, repo core.Repo, lockMangers core.LockManagers) (*installer,error) {
 
 	
 		
@@ -88,7 +90,7 @@ func New(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm c
 	m := manager{
 		localState: localState,
 		repo: repo,
-		lockM: lm,
+		lockManagers: lockMangers,
 	}
 	
 	i. manager = m
@@ -108,17 +110,37 @@ func New(args core.InstallArgs, localState core.LocalState, repo core.Repo, lm c
 // Run executes the installation process
 func (i *installer) Run() error {
 	
-	fmt.Println("installing:")
+	fmt.Println("installing:gg")
 
 	fmt.Println(i.metadata.Package)
 
-	fmt.Println(i.metadata.Architectures)
+
 	fmt.Println(i.release.Architecture)
 	fmt.Println(i.release.URL)
 	fmt.Println(i.release.UpstreamVersion)
+	
 
 
 
+
+	s,err := parce.Manifest("C:\\Users\\kasper\\Documents\\projects\\pact\\bin\\repo\\packages\\windirstat\\2.7.0\\x64\\1\\test.hcl")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(s.Commands.Tagged["b"].Args)
+
+	if len(s.Shortcuts.Tagged) == 0 && len(s.Shortcuts.Unconditional) == 0 {
+		fmt.Println("no shirts")
+	}else{
+		if len(s.Shortcuts.Unconditional) > 0 {
+			fmt.Println(len(s.Shortcuts.Unconditional))
+		}
+
+	}
+
+	fmt.Println(ExpandWindowsPath(s.Scope.User.InstallPath))
 
 
 
@@ -129,6 +151,17 @@ func (i *installer) Run() error {
 
 
 
+
+func ExpandWindowsPath(raw string) string {
+	replacer := strings.NewReplacer(
+		"%LOCALAPPDATA%", os.Getenv("LOCALAPPDATA"),
+		"%APPDATA%", os.Getenv("APPDATA"),
+		"%PROGRAMFILES%", os.Getenv("PROGRAMFILES"),
+		"%PROGRAMDATA%", os.Getenv("PROGRAMDATA"),
+		"%USERPROFILE%", os.Getenv("USERPROFILE"),
+	)
+	return replacer.Replace(raw)
+}
 
 
 

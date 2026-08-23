@@ -227,7 +227,6 @@ func linstallDeck(packageIdentifier string, version string, arch string) error{
 		return err
 	}
 
-	//a := platform.Arch("stringFromCli")
 	fmt.Println("everything run ok")
 	return nil
 }

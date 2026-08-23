@@ -1,3 +1,5 @@
+
+
 scope {     
     "per_machine" = "%SystemDrive%\\ProramFiles" // main app data storage, this is where the app will store its data can be a path or  engine_managed, ("engine_managed" eveything will be linked against a junction manger will own the junctions and will manage the data) 
     // data = "engine_managed"
@@ -6,9 +8,14 @@ scope {
 
 
 
+
+
 scope {     
     data = "engine_managed" // or an exact path
 }
+
+
+
 
 
 scope {     
@@ -16,7 +23,12 @@ scope {
 }
 
 
+
+
+
 //integrations
+
+
 
 
 
@@ -48,15 +60,8 @@ runtime_pact {
 
 
 
-
-
-
-
-
-
-
 shortcut "desktop"{  
-    name = "hole" // optional fall back to name from exe  
+    display_name = "hole" // optional fall back to name from exe  
     exe  = "WinDirStat.exe"
     icon = "WinDirStat.exe" // optional fall back to exe icon 
     args = "--ass --hole" // optional
@@ -64,9 +69,26 @@ shortcut "desktop"{
 
 
 
+
+
+
+
+
+
+
+
+
 command  {
         exe  = "cli/wds.exe" // this will create a shim 
     }
+
+
+
+
+
+
+
+
 
 // add to path 
 // add environment variable

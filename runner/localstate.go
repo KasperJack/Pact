@@ -3,79 +3,62 @@ package main
 import(
 
 	"github.com/kasperjack/pact/core"
-	//"os"
-	//"path/filepath"
-	//"fmt"
-	//"strings"
+	"os"
+	"path/filepath"
+
+
 )
 
+func NewLocalState() *core.LocalState {
 
-
-type localState struct {
-	desktop    string
-	cacheDir   string
-	installDir string
-	repo       string
-	lockFile   string
-}
-
-func (l *localState) Desktop() string {
-	return l.desktop
-}
-
-func (l *localState) CacheDir() string {
-	return l.cacheDir
-}
-
-func (l *localState) InstallDir() string {
-	return l.installDir
-}
-
-func (l *localState) Repo() string {
-	return l.repo
-}
-
-func (l *localState) LockFile() string {
-	return l.lockFile
-}
-
-// repo and lockfile will be use if manager gets a nil Repo or LockFile interface
-func NewLocalState(desktop string, cacheDir string, installDir string, repo string, lockFile string) core.LocalState {
-	return &localState{
-		desktop:    desktop,
-		cacheDir:   cacheDir,
-		installDir: installDir,
-		repo:       repo,
-		lockFile:   lockFile,
-	}
-}
-
-
-/*
-func (l *localState) RemovePackageDir(path string) error {
-
-	// add safety checks
-	if path == "" {
-		return fmt.Errorf("cannot remove package dir: path is empty")
-	}
-
-	absBase, err := filepath.Abs(l.baseDir)
+	
+	exePath, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to resolve base dir: %w", err)
+		panic(err)
 	}
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return fmt.Errorf("failed to resolve path %q: %w", path, err)
-	}
-	rel, err := filepath.Rel(absBase, absPath)
-	if err != nil || strings.HasPrefix(rel, "..") {
-		return fmt.Errorf("refusing to remove path outside base dir: %q", path)
-	}
+	exeDir := filepath.Dir(exePath)
 
-	if err := os.RemoveAll(absPath); err != nil {
-		return fmt.Errorf("failed to remove package dir %q: %w", path, err)
-	}
 
-	return nil
+	userProfile := os.Getenv("USERPROFILE")
+	appData := os.Getenv("APPDATA")
+	localAppData := os.Getenv("LOCALAPPDATA")
+
+
+
+	
+	publicProfile := os.Getenv("PUBLIC")
+	programFiles := os.Getenv("PROGRAMFILES")
+	programData := os.Getenv("PROGRAMDATA")
+
+
+
+
+
+	return &core.LocalState{
+		CacheDir: filepath.Join(exeDir, "cache"),
+		Repo:     filepath.Join(exeDir, "repo"),
+
+		UserLockFile:   filepath.Join(localAppData, "pact", "user.lock"),
+		SystemLockFile: filepath.Join(programFiles, "pact", "system.lock"),
+
+		UserDesktop:   filepath.Join(userProfile, "Desktop"),
+		PublicDesktop: filepath.Join(publicProfile, "Desktop"),
+
+		UserPackagesDir:   filepath.Join(localAppData, "pact", "packages"),
+		SystemPackagesDir: filepath.Join(programFiles, "pact", "packages"),
+
+
+		UserProfile: userProfile,
+		AppData: appData,
+		LocalAppData: localAppData,
+
+
+		PublicProfile: publicProfile,
+		ProgramFiles: programFiles,
+		ProgramData: programData,
+	}
 }
-*/
+
+
+
+
