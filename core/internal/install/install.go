@@ -123,24 +123,30 @@ func (i *installer) Run() error {
 
 
 
-	s,err := parce.Manifest("C:\\Users\\kasper\\Documents\\projects\\pact\\bin\\repo\\packages\\windirstat\\2.7.0\\x64\\1\\test.hcl")
+	m,err := parce.Manifest("C:\\Users\\kasper\\Documents\\projects\\pact\\bin\\repo\\packages\\windirstat\\2.7.0\\x64\\1\\test.hcl")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(s.Commands.Tagged["b"].Args)
 
-	if len(s.Shortcuts.Tagged) == 0 && len(s.Shortcuts.Unconditional) == 0 {
-		fmt.Println("no shirts")
-	}else{
-		if len(s.Shortcuts.Unconditional) > 0 {
-			fmt.Println(len(s.Shortcuts.Unconditional))
+	if m.HasSystem() {
+		for _,k := range m.System.Shortcuts.Unconditional {
+
+			fmt.Println(k.DisplayName)
 		}
-
 	}
 
-	fmt.Println(ExpandWindowsPath(s.Scope.User.InstallPath))
+
+	if m.HasUser() {
+		fmt.Println(m.Scope.User.InstallPath)
+		for _,k := range m.User.Shortcuts.Unconditional {
+
+			fmt.Println(k.DisplayName)
+		}
+
+
+	}
 
 
 

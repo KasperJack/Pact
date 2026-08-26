@@ -8,7 +8,7 @@ scope {
 
 
   system {
-    install_path = "%PROGRAMFILES(X86)%\\windirstat"
+    install_path = "%PROGRAMFILES%\\windirstat"
   }
 
 
@@ -17,19 +17,10 @@ scope {
 
 system {
 
-    shortcut {  // in the system the short does not have an id it will run uncontianly 
-        display_name = "hole" 
+    shortcut "desktop" {
+        display_name = "wds" 
         exe  = "WinDirStat.exe"
     }
-
-
-    
-
-    add_path "system" {
-        dir  = "cli"
-        }
-
-
 
 
 }
@@ -39,16 +30,9 @@ system {
 user {
 
     shortcut "desktop" {  
-        display_name = "hole" 
+        display_name = "wds" 
         exe  = "WinDirStat.exe"
     }
-
-
-    
-
-    add_path "system" {
-        dir  = "cli"
-        }
 
 }
 

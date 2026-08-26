@@ -1,24 +1,34 @@
 
 
+system {
+
+  option "desktop_shortcut" {
+    type        = "boolean"
+    default     = true
+    label       = "Create Desktop Shortcut"
+    description = "Adds a shortcut to your desktop for quick access."
+    binding     = ["engine.shortcut.desktop"]
+  }
 
 
-
-
-
-
-
-
-
-
-
-
-option "desktop_shortcut" {
-  type        = "boolean"
-  default     = true
-  label       = "Create Desktop Shortcut"
-  description = "Adds a shortcut to your desktop for quick access."
-  binding     = ["engine.shortcut.uni.desktop"]
 }
+
+
+
+
+user {
+
+  option "desktop_shortcut" {
+    type        = "boolean"
+    default     = true
+    label       = "Create Desktop Shortcut"
+    description = "Adds a shortcut to your desktop for quick access."
+    binding     = ["engine.shortcut.desktop"]
+  }
+
+
+}
+
 
 
 
