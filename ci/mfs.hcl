@@ -1,33 +1,24 @@
 user {
 
 
-  install_path = "%LOCALAPPDATA%\\windirstat"
+
+  install_path = " k  "
 
 
+  shortcut   {
+    exe    = "ff"
 
-  shortcut  {
-    display_name = "wds"
-    exe          = "WinDirStat.exe"
   }
 
 
-}
 
+  shortcut "zz"  {
+    exe    = " fdf  "
 
+    args = " --ass --hole"
 
-system {
-
-
-
-
-
-
-  install_path = "%PROGRAMFILES%\\windirstat"
-
-  shortcut "desktop" {
-    display_name = "wds"
-    exe          = "WinDirStat.exe"
   }
+
 
 
 

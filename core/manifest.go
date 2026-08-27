@@ -32,6 +32,7 @@ func (s *ActionSet[T]) AddTagged(id string, body T) error {
 
 type AddPathBody struct {
 	Dir string `hcl:"dir"`
+
 }
 
 
@@ -46,6 +47,7 @@ type ShortcutBody struct {
 	Exe         string `hcl:"exe"`
 	Icon        string `hcl:"icon,optional"`
 	Args        string `hcl:"args,optional"`
+
 }
 
 

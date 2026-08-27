@@ -4,11 +4,16 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2/gohcl"
+
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
 	"github.com/zclconf/go-cty/cty"
 )
+
+
+
+
 
 func Manifest(path string) (*core.Manifest, error) {
 	parser := hclparse.NewParser()
@@ -108,6 +113,7 @@ func parseOneBlock(block *hclsyntax.Block, mb *core.ManifestBody) error {
 		if diags := gohcl.DecodeBody(block.Body, nil, &sb); diags.HasErrors() {
 			return fmt.Errorf("decoding shortcut block: %w", diags)
 		}
+
 		if err := addByLabel(block.Labels, sb, mb.Shortcuts); err != nil {
 			return fmt.Errorf("shortcut: %w", err)
 		}
@@ -148,3 +154,5 @@ func addByLabel[T any](labels []string, body T, set *core.ActionSet[T]) error {
 		return fmt.Errorf("block takes 0 or 1 labels, got %d", len(labels))
 	}
 }
+
+
