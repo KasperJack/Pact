@@ -5,15 +5,15 @@ user {
   install_path = " k  "
 
 
-  shortcut   {
+  shortcut  "zz" {
     exe    = "ff"
 
   }
 
 
 
-  shortcut "zz"  {
-    exe    = " fdf  "
+  shortcut "zaz"  {
+    exe    = " ff2  "
 
     args = " --ass --hole"
 

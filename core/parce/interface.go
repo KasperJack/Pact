@@ -3,94 +3,174 @@ package parce
 import (
 	"fmt"
 
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
-	"github.com/hashicorp/hcl/v2/gohcl"
-
+	"strings"
 )
 
-func Interface(path string) (*core.Interface, error) {
+func Interface(src []byte) (*core.Interface, hcl.Diagnostics) {
 	parser := hclparse.NewParser()
-	f, diags := parser.ParseHCLFile(path)
+	f, diags := parser.ParseHCL(src, "interface.hcl")
 	if diags.HasErrors() {
-		return nil, fmt.Errorf("parsing %s: %w", path, diags)
+		return nil, diags
 	}
 
 	syntaxBody, ok := f.Body.(*hclsyntax.Body)
 	if !ok {
-		return nil, fmt.Errorf("unexpected body type for %s", path)
+		return nil, hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "unexpected body type",
+			Detail:   "could not parse interface as HCL native syntax",
+		}}
 	}
 
-	iface := core.NewInterface()
+	iface := &core.Interface{}
+	var allDiags hcl.Diagnostics
+	found := false
 
 	for _, block := range syntaxBody.Blocks {
 		switch block.Type {
-
 		case "user":
-			if iface.User != nil {
-				return nil, fmt.Errorf("interface declares more than one user block")
-			}
-			ib, err := parseInterfaceBody(block.Body)
-			if err != nil {
-				return nil, fmt.Errorf("user: %w", err)
-			}
-			iface.User = ib
+			found = true
+			opts, d := parseOptionScope(block.Body)
+			allDiags = append(allDiags, d...)
+			iface.User = opts
 
 		case "system":
-			if iface.System != nil {
-				return nil, fmt.Errorf("interface declares more than one system block")
-			}
-			ib, err := parseInterfaceBody(block.Body)
-			if err != nil {
-				return nil, fmt.Errorf("system: %w", err)
-			}
-			iface.System = ib
+			found = true
+			opts, d := parseOptionScope(block.Body)
+			allDiags = append(allDiags, d...)
+			iface.System = opts
 
 		default:
-			return nil, fmt.Errorf("unknown block type %q", block.Type)
+			allDiags = append(allDiags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("unknown top-level block type %q", block.Type),
+				Detail:   `only "user" and "system" blocks are allowed at the top level`,
+				Subject:  block.DefRange().Ptr(),
+			})
 		}
 	}
 
-	if iface.User == nil && iface.System == nil {
-		return nil, fmt.Errorf("interface must declare at least one of user or system")
+	if !found {
+		allDiags = append(allDiags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "interface declares no user or system block",
+			Detail:   "an interface file must declare at least one of user{} or system{}",
+			Subject:  syntaxBody.SrcRange.Ptr(),
+		})
 	}
 
-	return iface, nil
+	if allDiags.HasErrors() {
+		return nil, allDiags
+	}
+	return iface, allDiags
 }
 
-func parseInterfaceBody(body *hclsyntax.Body) (*core.InterfaceBody, error) {
-	ib := core.NewInterfaceBody()
+
+
+
+
+
+
+func parseOptionScope(body *hclsyntax.Body) ([]core.Option, hcl.Diagnostics) {
+	var opts []core.Option
+	var diags hcl.Diagnostics
 
 	for _, block := range body.Blocks {
 		if block.Type != "option" {
-			return nil, fmt.Errorf("unknown block type %q inside user/system block", block.Type)
-		}
-		if len(block.Labels) != 1 {
-			return nil, fmt.Errorf("option block takes exactly 1 label, got %d", len(block.Labels))
-		}
-		id := block.Labels[0]
-		if _, exists := ib.Options[id]; exists {
-			return nil, fmt.Errorf("duplicate option %q", id)
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("unknown block type %q", block.Type),
+				Detail:   `only "option" blocks are allowed here`,
+				Subject:  block.DefRange().Ptr(),
+			})
+			continue
 		}
 
-		opt, err := parseOption(block.Body)
-		if err != nil {
-			return nil, fmt.Errorf("option %q: %w", id, err)
+		opt, d := parseOption(block)
+		diags = append(diags, d...)
+		if d.HasErrors() {
+			continue
 		}
-		ib.Options[id] = opt
+		opts = append(opts, opt)
 	}
 
-	return ib, nil
+	return opts, diags
 }
 
-func parseOption(body *hclsyntax.Body) (core.OptionBody, error) {
-	var opt core.OptionBody
-	if diags := gohcl.DecodeBody(body, nil, &opt); diags.HasErrors() {
-		return opt, fmt.Errorf("decoding option block: %w", diags)
+func parseOption(block *hclsyntax.Block) (core.Option, hcl.Diagnostics) {
+	id, diags := optionLabel(block) // same 0-or-1-label + validIDPattern rule as blockLabel
+	if diags.HasErrors() {
+		return core.Option{}, diags
 	}
-	if len(opt.Binding) == 0 {
-		return opt, fmt.Errorf("binding must contain at least one entry")
+	c := core.Common{ID: id, Range: block.DefRange()}
+
+	var attrs struct {
+		Default     bool     `hcl:"default"`
+		Label       *string  `hcl:"label,optional"`
+		Description *string  `hcl:"description,optional"`
+		Binding     []string `hcl:"binding"`
 	}
-	return opt, nil
+	if d := gohcl.DecodeBody(block.Body, nil, &attrs); d.HasErrors() {
+		return core.Option{}, d
+	}
+
+	diags = append(diags, checkOptional(attrs.Label, "label", attrRangeOf(block, "label"))...)
+	diags = append(diags, checkOptional(attrs.Description, "description", attrRangeOf(block, "description"))...)
+
+	if len(attrs.Binding) == 0 {
+		diags = append(diags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("option %q must have at least one binding", id),
+			Detail:   "binding must not be an empty list",
+			Subject:  attrRangeOf(block, "binding").Ptr(),
+		})
+	}
+
+	if diags.HasErrors() {
+		return core.Option{}, diags
+	}
+
+	return core.Option{
+		Common:      c,
+		Default:     attrs.Default,
+		Label:       strings.TrimSpace(derefOr(attrs.Label, "")),
+		Description: strings.TrimSpace(derefOr(attrs.Description, "")),
+		Binding:     attrs.Binding,
+	}, diags
+}
+
+// optionLabel mirrors blockLabel's 0-or-1-label rule, but requires exactly 1
+// (options are never unlabeled), reusing validIDPattern.
+func optionLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
+	if len(block.Labels) != 1 {
+		return "", hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("option requires exactly 1 label, got %d", len(block.Labels)),
+			Detail:   `e.g. option "desktop_shortcut" { ... }`,
+			Subject:  block.DefRange().Ptr(),
+		}}
+	}
+
+	label := block.Labels[0]
+	if strings.TrimSpace(label) == "" {
+		return "", hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "option has an empty id",
+			Subject:  block.DefRange().Ptr(),
+		}}
+	}
+	if !validIDPattern.MatchString(label) {
+		return "", hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("invalid id %q", label),
+			Detail:   "ids may only contain letters, digits, underscore, and hyphen — no whitespace",
+			Subject:  block.DefRange().Ptr(),
+		}}
+	}
+	return label, nil
 }

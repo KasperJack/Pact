@@ -22,7 +22,7 @@ import (
 
 
 																// retrun also metadata 
-func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo, core.Release, error) {
+func resolveArchRelease(args core.InstallArgs, repo core.Repo) (*core.PackageInfo, *core.ArchRelease, error) {
 
 
 	
@@ -30,7 +30,7 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo
 
 	if err != nil {
 
-		return core.PackageInfo{},core.Release{},err
+		return nil,nil,err
 	}
 
 
@@ -48,13 +48,13 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo
 		}
 
 		if !foundArch {
-			return core.PackageInfo{},core.Release{} ,fmt.Errorf("package %s does not support any compatible architecture for this host", args.PackageIdentifier)
+			return nil,nil ,fmt.Errorf("package %s does not support any compatible architecture for this host", args.PackageIdentifier)
 		}
 
 	}else{
 
 		if !slices.Contains(md.Architectures,args.TargetArch) {
-			return core.PackageInfo{},core.Release{} ,fmt.Errorf("package %s does not support architecture %s", args.PackageIdentifier, args.TargetArch.String())
+			return nil,nil ,fmt.Errorf("package %s does not support architecture %s", args.PackageIdentifier, args.TargetArch.String())
 		}
 
 	}
@@ -71,7 +71,7 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo
 			r , err := resolveReleaseRequestedVersion(args, repo)
 
 			if err != nil {
-				return core.PackageInfo{},core.Release{},err
+				return nil,nil,err
 			}
 
 			
@@ -83,7 +83,7 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo
 		r, err := resolveReleaseLatestVersion(args, repo)
 
 		if err != nil {
-				return core.PackageInfo{},core.Release{},err
+				return nil,nil,err
 			}
 
 		return md,r,nil
@@ -97,13 +97,13 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (core.PackageInfo
 
 
 
-func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
+func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (*core.ArchRelease, error) {
 
 
 	index, err := repo.LoadPackageIndex(args.PackageIdentifier)
 
 	if err != nil {
-		return core.Release{}, err
+		return nil, err
 	}
 
 
@@ -132,7 +132,7 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Re
 
 
 
-		return core.Release{}, fmt.Errorf("package %s has no avalable relase ? for any compatible architecture ", args.PackageIdentifier)
+		return nil, fmt.Errorf("package %s has no avalable relase ? for any compatible architecture ", args.PackageIdentifier)
 
 	}
 
@@ -147,7 +147,7 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Re
 
 	}
 
-	return core.Release{}, fmt.Errorf("package %s has no avalable relase ? for %s architecture ", args.PackageIdentifier,args.TargetArch.String())
+	return nil, fmt.Errorf("package %s has no avalable relase ? for %s architecture ", args.PackageIdentifier,args.TargetArch.String())
 }
 
 
@@ -162,18 +162,18 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (core.Re
 
 
 
-func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core.Release, error) {
+func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (*core.ArchRelease, error) {
 
 
 	index, err := repo.LoadPackageIndex(args.PackageIdentifier)
 
 	if err != nil {
-		return core.Release{}, err
+		return nil, err
 	}
 
 	
 	if !slices.Contains(index.Versions,args.Version.String()) {
-		return core.Release{}, fmt.Errorf("version %s of package %s not found", args.Version.String(), args.PackageIdentifier)
+		return nil, fmt.Errorf("version %s of package %s not found", args.Version.String(), args.PackageIdentifier)
 	}
 
 
@@ -190,7 +190,7 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core
 			s, err := repo.LoadArchStatus(args.PackageIdentifier,args.Version.String(),arch)
 
 			if err != nil {
-				return core.Release{}, err
+				return nil, err
 			}
 
 
@@ -203,7 +203,7 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core
 		}
 
 
-		return core.Release{}, fmt.Errorf("package %s version %s not available for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, args.Version.String(), compat)
+		return nil, fmt.Errorf("package %s version %s not available for any compatible architecture ([debug]:tried: %v)", args.PackageIdentifier, args.Version.String(), compat)
 
 	}
 
@@ -211,7 +211,7 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core
 	s, err := repo.LoadArchStatus(args.PackageIdentifier,args.Version.String(),args.TargetArch)
 
 	if err != nil {
-			return core.Release{}, err
+			return nil, err
 		}
 
 	if s.Status == "available" {
@@ -220,7 +220,7 @@ func resolveReleaseRequestedVersion(args core.InstallArgs, repo core.Repo) (core
 
 
 
-	return core.Release{}, fmt.Errorf("package %s version %s not available for architecture %s", args.PackageIdentifier, args.Version.String(), args.TargetArch.String())
+	return nil, fmt.Errorf("package %s version %s not available for architecture %s", args.PackageIdentifier, args.Version.String(), args.TargetArch.String())
 
 
 }

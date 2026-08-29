@@ -70,7 +70,7 @@ func (r *repo) PackageExists(packageIdentifier string) (bool, error) {
 
 
 
-func (r *repo) LoadPackageInfo(packageIdentifier string) (core.PackageInfo,error) {
+func (r *repo) LoadPackageInfo(packageIdentifier string) (*core.PackageInfo,error) {
 
     pkgFilePath := filepath.Join(r.repoRoot,"packages",packageIdentifier,"package.hcl")
 
@@ -78,10 +78,18 @@ func (r *repo) LoadPackageInfo(packageIdentifier string) (core.PackageInfo,error
 
     pkgData, err := os.ReadFile(pkgFilePath)
     if err != nil {
-        return core.PackageInfo{},fmt.Errorf("%w: loading %s fn:LoadPackageInfo: %v", core.ErrFetch, packageIdentifier, err)
+        return nil,fmt.Errorf("%w: loading %s fn:LoadPackageInfo: %v", core.ErrFetch, packageIdentifier, err)
     }
 
-    return parce.PackageInfo(pkgData)
+	p, diags := parce.PackageInfo(pkgData)
+
+	if diags.HasErrors(){
+		return  nil,diags
+	}
+
+
+
+    return p,nil
 
 }
 
@@ -117,17 +125,48 @@ func (r *repo) LoadPackageIndex(packageIdentifier string) (core.PackageIndex, er
 
 
 
-func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch, revision int) (core.Release, error) {
+func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch, revision int) (*core.ArchRelease, error) {
+
+
+	manifetFilePath := filepath.Join(r.repoRoot, "packages",packageIdentifier, Version, arch.String() ,strconv.Itoa(revision), "manifest.hcl")
+
+	data, err := os.ReadFile(manifetFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("%w: loading manifest %s@%s for arch %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, Version, arch.String(), err)
+	}
+
+
+	m, diags :=  parce.Manifest(data)
+
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+
+
 
 	releaseFilePath := filepath.Join(r.repoRoot, "packages",packageIdentifier, Version,arch.String() ,strconv.Itoa(revision), "release.hcl")
 
 
-	data, err := os.ReadFile(releaseFilePath)
+	data, err = os.ReadFile(releaseFilePath)
+
 	if err != nil {
-		return core.Release{}, fmt.Errorf("%w: loading release %s@%s for arch %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, Version, arch.String(), err)
+		return nil, fmt.Errorf("%w: loading release %s@%s for arch %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, Version, arch.String(), err)
 	}
 
-	return parce.Release(data)
+	re, err := parce.Release(data)
+
+	if err != nil {
+
+		return nil,fmt.Errorf("%w: parsing release %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, err)
+	}
+
+	return &core.ArchRelease{
+		Manifest: m,
+		Release: re,
+		Interface: core.Interface{},
+
+	},nil
 }
 
 

@@ -1,92 +1,55 @@
 package core
 
 
-import("fmt")
+import(
+	//"fmt"
+	"github.com/hashicorp/hcl/v2"
+
+
+)
 
 
 
-type ActionSet[T any] struct {
-	Unconditional []T
-	Tagged        map[string]T
+type ResolvedBlock interface {
+	blockID() string
+	blockRange() hcl.Range
+	isResolvedBlock()
 }
 
-func NewActionSet[T any]() *ActionSet[T] {
-	return &ActionSet[T]{
-		Tagged: make(map[string]T),
-	}
+type Common struct {
+	ID    string
+	Range hcl.Range
 }
 
-func (s *ActionSet[T]) AddUnconditional(body T) {
-	s.Unconditional = append(s.Unconditional, body)
+func (c Common) blockID() string       { return c.ID }
+func (c Common) blockRange() hcl.Range { return c.Range }
+func (c Common) isResolvedBlock()      {}
+
+type Shortcut struct {
+	Common
+	DisplayName string //optianl // // trim tarling and ending spacse 
+	Exe         string // required // trim tarling and ending spacse  //check in path 
+	Icon        string //optianl // trim tarling and ending spacse    //check in path
+	Args        string //optianl // // trim tarling and ending spacse 
 }
 
-func (s *ActionSet[T]) AddTagged(id string, body T) error {
-	if _, exists := s.Tagged[id]; exists {
-		return fmt.Errorf("duplicate label %q", id)
-	}
-	s.Tagged[id] = body
-	return nil
+type Command struct {
+	Common
+	Exe  string  // required // trim tarling and ending spacse  //check in path
+	Args string //optianl // // trim tarling and ending spacse 
 }
 
-
-
-type AddPathBody struct {
-	Dir string `hcl:"dir"`
-
+type AddPath struct {
+	Common
+	Dir string // required // trim tarling and ending spacse  //check in path
 }
 
-
-type CommandBody struct {
-	Exe  string `hcl:"exe"`
-	Args string `hcl:"args,optional"`
+type ResolvedScope struct {
+	InstallPath string
+	Blocks      []ResolvedBlock // all types, file order preserved
 }
 
-
-type ShortcutBody struct {
-	DisplayName string `hcl:"display_name,optional"`
-	Exe         string `hcl:"exe"`
-	Icon        string `hcl:"icon,optional"`
-	Args        string `hcl:"args,optional"`
-
-}
-
-
-
-
-
-
-
-
-type ManifestBody struct {
-	InstallPath string `hcl:"install_path"`
-	Shortcuts   *ActionSet[ShortcutBody]
-	Commands    *ActionSet[CommandBody]
-	AddPaths    *ActionSet[AddPathBody]
-}
-
-type Manifest struct {
-	User   *ManifestBody
-	System *ManifestBody
-}
-
-func (m *Manifest) HasUser() bool {
-	return m.User != nil
-}
-
-func (m *Manifest) HasSystem() bool {
-	return m.System != nil
-}
-
-func NewManifest() *Manifest {
-	return &Manifest{}
-}
-
-// NewManifestBody allocates an empty body with its ActionSets initialized.
-// Call this when the parser encounters a user{} or system{} block.
-func NewManifestBody() *ManifestBody {
-	return &ManifestBody{
-		Commands:  NewActionSet[CommandBody](),
-		Shortcuts: NewActionSet[ShortcutBody](),
-		AddPaths:  NewActionSet[AddPathBody](),
-	}
+type ResolvedManifest struct {
+	User   *ResolvedScope
+	System *ResolvedScope
 }

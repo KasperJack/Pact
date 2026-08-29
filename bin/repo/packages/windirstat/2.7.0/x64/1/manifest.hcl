@@ -1,46 +1,39 @@
 
-scope {
-
-  user {
-    install_path = "%LOCALAPPDATA%\\windirstat"
-  }
-
-
-
-  system {
-    install_path = "%PROGRAMFILES%\\windirstat"
-  }
-
-
-}
-
-
-system {
-
-    shortcut "desktop" {
-        display_name = "wds" 
-        exe  = "WinDirStat.exe"
-    }
-
-
-}
-
-
-
 user {
 
-    shortcut "desktop" {  
-        display_name = "wds" 
-        exe  = "WinDirStat.exe"
-    }
+
+
+  install_path = "home"
+
+
+  shortcut   {
+    exe    = "ff"
+  }
+
+  shortcut   {
+    exe    = "gg"
+  }
+
+  shortcut   {
+    exe    = "tt"
+    args = "--ass --hole"
+
+  }
+
+
+  command {
+    exe = "wtf"
+
+  }
+
+  add_path {
+
+    dir = "home/me/gg"
+  }
+
+
 
 }
-
-
-
-
-
-
 
 
 

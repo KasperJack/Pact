@@ -87,11 +87,11 @@ type LocalState struct {
 
 type Repo interface {
 
-    LoadPackageInfo(packageIdentifier string) (PackageInfo,error)
+    LoadPackageInfo(packageIdentifier string) (*PackageInfo,error)
     PackageExists(packageIdentifier string) (bool, error)
     LoadPackageIndex(packageIdentifier string) (PackageIndex, error)
     LoadArchStatus(packageIdentifier, Version string, arch Arch) (ArchStatus, error)
-    LoadArchRelease(packageIdentifier, Version string, arch Arch, revision int) (Release, error)
+    LoadArchRelease(packageIdentifier, Version string, arch Arch, revision int) (*ArchRelease, error) 
 }
 
 type Package interface {
@@ -157,31 +157,13 @@ type LockFileC struct {
 
 
 type PackageInfo struct {
-    Package     string `hcl:"package"`
-    Name        string `hcl:"name"`   
-    Description string `hcl:"description"`
-    Homepage    string `hcl:"homepage"`
-    License     string `hcl:"license"`
-    ArchitecturesRaw []string `hcl:"architectures"`
-    Architectures   []Arch 
-
-}
-
-
-
-func (p *PackageInfo) Validate() error {
-    p.Architectures = make([]Arch, 0, len(p.ArchitecturesRaw))
-
-    for _, raw := range p.ArchitecturesRaw {
-        arch, err := ParseArch(raw)
-        if err != nil {
-            return fmt.Errorf("invalid architecture %q: %w", raw, err)
-        }
-
-        p.Architectures = append(p.Architectures, arch)
-    }
-
-    return nil
+	Package       string
+	Name          string
+	Description   string
+	Homepage      string
+	License       string
+	Architectures []Arch
+	Scopes        []Scope
 }
 
 
@@ -257,9 +239,9 @@ type ArchStatus struct {
 
 type ArchRelease struct {
 
-    Manifest *Manifest
+    Manifest *ResolvedManifest
     Release   Release
-
+    Interface Interface
 }
 
 
@@ -464,3 +446,24 @@ var (
     ErrPackageNotFoundForArch = errors.New("package not found for arch")
 )
 
+
+
+
+
+type Scope string
+
+const (
+	ScopeUser   Scope = "user"
+	ScopeSystem Scope = "system"
+)
+
+func ParseScope(raw string) (Scope, error) {
+	switch raw {
+	case string(ScopeUser):
+		return ScopeUser, nil
+	case string(ScopeSystem):
+		return ScopeSystem, nil
+	default:
+		return "", fmt.Errorf("unknown scope %q, expected \"user\" or \"system\"", raw)
+	}
+}

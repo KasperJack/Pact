@@ -1,6 +1,11 @@
 system {
 
-  option "desktop_shortcut" {
+  // ALL OPTIONS MUST HAVE ID 
+
+
+
+          //ID 
+  option  {
     default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."
@@ -8,9 +13,19 @@ system {
   }
 
 
-option "4k_text" {
-    default     = "true"
+  option "4k_text" {
+      default     = true
+      label       = "Create Desktop Shortcut"
+      binding     = ["engine.shortcut.desktop"]
+    }
+
+
+
+  
+  option "4k_text"{
+    default     = true
     label       = "Create Desktop Shortcut"
+    description = "Adds a shortcut to your desktop for quick access."
     binding     = ["engine.shortcut.desktop"]
   }
 
@@ -24,7 +39,7 @@ option "4k_text" {
 user {
 
   option "desktop_shortcut" {
-    default     = "true"
+    default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."
     binding     = ["engine.shortcut.desktop"]

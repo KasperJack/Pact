@@ -7,7 +7,7 @@ import (
 	//"errors"
 	"os"
 	"strings"
-	"github.com/kasperjack/pact/core/parce" // remove 
+	//"github.com/kasperjack/pact/core/parce" // remove 
 )
 
 
@@ -22,12 +22,11 @@ type manager struct {
 
 
 type installer struct {
-    //args          core.InstallArgs
 	
 	manager manager
 
-	metadata core.PackageInfo
-    release  core.Release
+	metadata *core.PackageInfo
+    archRelease  *core.ArchRelease
 
     stagingDir    string
     installDir    string
@@ -84,7 +83,7 @@ func New(args core.InstallArgs, localState *core.LocalState, repo core.Repo, loc
 
 	i :=installer{}
 
-	i.release = archRelease
+	i.archRelease = archRelease
 	i.metadata = metadata
 
 	m := manager{
@@ -110,44 +109,17 @@ func New(args core.InstallArgs, localState *core.LocalState, repo core.Repo, loc
 // Run executes the installation process
 func (i *installer) Run() error {
 	
-	fmt.Println("installing:gg")
 
 	fmt.Println(i.metadata.Package)
 
 
-	fmt.Println(i.release.Architecture)
-	fmt.Println(i.release.URL)
-	fmt.Println(i.release.UpstreamVersion)
+	fmt.Println(i.archRelease.Release.Architecture)
+	fmt.Println(i.archRelease.Release.URL)
+	fmt.Println(i.archRelease.Release.UpstreamVersion)
 	
-
-
-
-
-	m,err := parce.Manifest("C:\\Users\\kasper\\Documents\\projects\\pact\\bin\\repo\\packages\\windirstat\\2.7.0\\x64\\1\\test.hcl")
-
-	if err != nil {
-		return err
-	}
-
-
-	if m.HasSystem() {
-		for _,k := range m.System.Shortcuts.Unconditional {
-
-			fmt.Println(k.DisplayName)
-		}
-	}
-
-
-	if m.HasUser() {
-		fmt.Println(m.Scope.User.InstallPath)
-		for _,k := range m.User.Shortcuts.Unconditional {
-
-			fmt.Println(k.DisplayName)
-		}
-
-
-	}
-
+	
+	printScope("user", i.archRelease.Manifest.User)
+	printScope("system", i.archRelease.Manifest.System)
 
 
 
@@ -156,7 +128,27 @@ func (i *installer) Run() error {
 
 
 
+func printScope(name string, scope *core.ResolvedScope) {
+	if scope == nil {
+		fmt.Printf("%s: (not declared)\n", name)
+		return
+	}
 
+	fmt.Printf("%s: install_path=%q\n", name, scope.InstallPath)
+	for i, b := range scope.Blocks {
+		switch v := b.(type) {
+		case core.Shortcut:
+			fmt.Printf("  [%d] shortcut id=%q display_name=%q exe=%q icon=%q args=%q\n",
+				i, v.ID, v.DisplayName, v.Exe, v.Icon, v.Args)
+		case core.Command:
+			fmt.Printf("  [%d] command id=%q exe=%q args=%q\n",
+				i, v.ID, v.Exe, v.Args)
+		case core.AddPath:
+			fmt.Printf("  [%d] add_path id=%q dir=%q\n",
+				i, v.ID, v.Dir)
+		}
+	}
+}
 
 func ExpandWindowsPath(raw string) string {
 	replacer := strings.NewReplacer(
