@@ -9,7 +9,12 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
+	"regexp"
+
 )
+
+var validPackageNamePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+
 
 
 
@@ -46,11 +51,17 @@ func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 	var allDiags hcl.Diagnostics
 
 	allDiags = append(allDiags, checkRequired(attrs.Package, "package", attrRangeOfBody(syntaxBody, "package"))...)
+
+	allDiags = append(allDiags, checkValidPackageName(attrs.Package, attrRangeOfBody(syntaxBody, "package"))...)
+
 	allDiags = append(allDiags, checkRequired(attrs.Name, "name", attrRangeOfBody(syntaxBody, "name"))...)
 	allDiags = append(allDiags, checkOptional(attrs.Description, "description", attrRangeOfBody(syntaxBody, "description"))...)
 	allDiags = append(allDiags, checkOptional(attrs.Homepage, "homepage", attrRangeOfBody(syntaxBody, "homepage"))...)
 	allDiags = append(allDiags, checkOptional(attrs.License, "license", attrRangeOfBody(syntaxBody, "license"))...)
 
+
+
+	
 	if len(attrs.Architectures) == 0 {
 		allDiags = append(allDiags, &hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -103,6 +114,7 @@ func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 	}
 
 	return &core.PackageInfo{
+		FileInfo:      core.FileInfo{Range: syntaxBody.SrcRange},
 		Package:       strings.TrimSpace(attrs.Package),
 		Name:          strings.TrimSpace(attrs.Name),
 		Description:   strings.TrimSpace(derefOr(attrs.Description, "")),
@@ -120,4 +132,22 @@ func attrRangeOfBody(body *hclsyntax.Body, name string) hcl.Range {
 		return attr.Expr.Range()
 	}
 	return body.SrcRange
+}
+
+
+
+
+func checkValidPackageName(value string, rng hcl.Range) hcl.Diagnostics {
+	if value == "" {
+		return nil // required-ness handled by checkRequired separately
+	}
+	if !validPackageNamePattern.MatchString(value) {
+		return hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("invalid package name %q", value),
+			Detail:   "package names must be lowercase letters, digits, and hyphens only, e.g. \"libtree\" or \"lib-tree\"",
+			Subject:  rng.Ptr(),
+		}}
+	}
+	return nil
 }

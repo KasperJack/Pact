@@ -6,6 +6,8 @@ import (
 	"errors"
     "runtime"
     "fmt"
+    "github.com/hashicorp/hcl/v2"
+
 )
 
 /*
@@ -155,8 +157,14 @@ type LockFileC struct {
 
 
 
+type FileInfo struct {
+	Range hcl.Range
+}
+
+func (f FileInfo) FileRange() hcl.Range { return f.Range }
 
 type PackageInfo struct {
+	FileInfo
 	Package       string
 	Name          string
 	Description   string
@@ -165,9 +173,6 @@ type PackageInfo struct {
 	Architectures []Arch
 	Scopes        []Scope
 }
-
-
-
 
 
 
