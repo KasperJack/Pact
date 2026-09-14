@@ -244,9 +244,9 @@ type ArchStatus struct {
 
 type ArchRelease struct {
 
-    Manifest *ResolvedManifest
-    Release   Release
-    Interface Interface
+    Manifest *Manifest
+    Release   *Release
+    Interface *Interface
 }
 
 

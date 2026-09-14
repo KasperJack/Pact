@@ -16,14 +16,14 @@ var (
 
 
 type ValidatedManifest struct {
-	User   *core.ResolvedScope
-	System *core.ResolvedScope
+	User   *core.ManifestdScope
+	System *core.ManifestdScope
 }
 
 
 
 
-func ValidateManifest(m *core.ResolvedManifest) (*ValidatedManifest, hcl.Diagnostics) {
+func ValidateManifest(m *core.Manifest) (*ValidatedManifest, hcl.Diagnostics) {
 
 
 	var diags hcl.Diagnostics
@@ -44,7 +44,7 @@ func ValidateManifest(m *core.ResolvedManifest) (*ValidatedManifest, hcl.Diagnos
 
 
 
-func validateScope(scope *core.ResolvedScope) hcl.Diagnostics {
+func validateScope(scope *core.ManifestdScope) hcl.Diagnostics {
 	var diags hcl.Diagnostics
 
 	shortcutIDs := map[string]hcl.Range{}

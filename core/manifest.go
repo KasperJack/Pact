@@ -44,12 +44,12 @@ type AddPath struct {
 	Dir string // required // trim tarling and ending spacse  //check in path
 }
 
-type ResolvedScope struct {
+type ManifestdScope struct {
 	InstallPath string
 	Blocks      []ResolvedBlock // all types, file order preserved
 }
 
-type ResolvedManifest struct {
-	User   *ResolvedScope
-	System *ResolvedScope
+type Manifest struct {
+	User   *ManifestdScope
+	System *ManifestdScope
 }

@@ -128,6 +128,9 @@ func (r *repo) LoadPackageIndex(packageIdentifier string) (core.PackageIndex, er
 func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch, revision int) (*core.ArchRelease, error) {
 
 
+
+
+
 	manifetFilePath := filepath.Join(r.repoRoot, "packages",packageIdentifier, Version, arch.String() ,strconv.Itoa(revision), "manifest.hcl")
 
 	data, err := os.ReadFile(manifetFilePath)
@@ -141,6 +144,9 @@ func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch
 	if diags.HasErrors() {
 		return nil, diags
 	}
+
+
+
 
 
 
@@ -161,10 +167,37 @@ func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch
 		return nil,fmt.Errorf("%w: parsing release %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, err)
 	}
 
+
+
+
+
+
+
+
+	interfaceFilePath := filepath.Join(r.repoRoot, "packages",packageIdentifier, Version,arch.String() ,strconv.Itoa(revision), "interface.hcl")
+
+
+	interfaceData, err := os.ReadFile(interfaceFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("%w: loading interface %s fn:LoadArchRelease: %v", core.ErrFetch, packageIdentifier, err)
+	}
+
+	in, diags := parce.Interface(interfaceData)
+
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+
+
+
+
+
+
 	return &core.ArchRelease{
 		Manifest: m,
-		Release: re,
-		Interface: core.Interface{},
+		Release: &re,
+		Interface: in,
 
 	},nil
 }

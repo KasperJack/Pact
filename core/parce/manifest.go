@@ -23,7 +23,7 @@ var (
 )
 
 
-func Manifest(src []byte) (*core.ResolvedManifest, hcl.Diagnostics) {
+func Manifest(src []byte) (*core.Manifest, hcl.Diagnostics) {
 	parser := hclparse.NewParser()
 	f, diags := parser.ParseHCL(src, "manifest.hcl")
 	if diags.HasErrors() {
@@ -39,7 +39,7 @@ func Manifest(src []byte) (*core.ResolvedManifest, hcl.Diagnostics) {
 		}}
 	}
 
-	m := &core.ResolvedManifest{}
+	m := &core.Manifest{}
 	found := false
 
 	for _, block := range syntaxBody.Blocks {
@@ -103,13 +103,13 @@ func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 
 // ---------- scope-level parse ----------
 
-func parseScope(body *hclsyntax.Body) (*core.ResolvedScope, hcl.Diagnostics) {
+func parseScope(body *hclsyntax.Body) (*core.ManifestdScope, hcl.Diagnostics) {
 	var diags hcl.Diagnostics
 
 	installPath, d := decodeInstallPath(body)
 	diags = append(diags, d...)
 
-	scope := &core.ResolvedScope{InstallPath: installPath}
+	scope := &core.ManifestdScope{InstallPath: installPath}
 
 	for _, block := range body.Blocks {
 		b, d := parseBlock(block)

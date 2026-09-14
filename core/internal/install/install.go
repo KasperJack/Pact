@@ -128,7 +128,7 @@ func (i *installer) Run() error {
 
 
 
-func printScope(name string, scope *core.ResolvedScope) {
+func printScope(name string, scope *core.ManifestdScope) {
 	if scope == nil {
 		fmt.Printf("%s: (not declared)\n", name)
 		return

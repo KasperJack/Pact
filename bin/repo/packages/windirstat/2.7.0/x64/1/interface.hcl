@@ -3,7 +3,6 @@
 system {
 
   option "desktop_shortcut" {
-    type        = "boolean"
     default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."
@@ -19,7 +18,6 @@ system {
 user {
 
   option "desktop_shortcut" {
-    type        = "boolean"
     default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."

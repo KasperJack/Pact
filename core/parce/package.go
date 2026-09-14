@@ -109,6 +109,11 @@ func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 		scopes = append(scopes, s)
 	}
 
+
+	allDiags = append(allDiags, checkDuplicateArchs(archs, attrRangeOfBody(syntaxBody, "architectures"))...)
+	allDiags = append(allDiags, checkDuplicateScopes(scopes, attrRangeOfBody(syntaxBody, "scopes"))...)
+
+
 	if allDiags.HasErrors() {
 		return nil, allDiags
 	}
@@ -150,4 +155,50 @@ func checkValidPackageName(value string, rng hcl.Range) hcl.Diagnostics {
 		}}
 	}
 	return nil
+}
+
+
+
+
+
+
+
+func checkDuplicateArchs(archs []core.Arch, rng hcl.Range) hcl.Diagnostics {
+	var diags hcl.Diagnostics
+	seen := map[core.Arch]bool{}
+
+	for _, a := range archs {
+		if seen[a] {
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("duplicate architecture %q", a),
+				Detail:   "each architecture can be listed only once",
+				Subject:  rng.Ptr(),
+			})
+			continue
+		}
+		seen[a] = true
+	}
+
+	return diags
+}
+
+func checkDuplicateScopes(scopes []core.Scope, rng hcl.Range) hcl.Diagnostics {
+	var diags hcl.Diagnostics
+	seen := map[core.Scope]bool{}
+
+	for _, s := range scopes {
+		if seen[s] {
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("duplicate scope %q", s),
+				Detail:   "each scope can be listed only once",
+				Subject:  rng.Ptr(),
+			})
+			continue
+		}
+		seen[s] = true
+	}
+
+	return diags
 }

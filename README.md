@@ -1,21 +1,11 @@
 # pact
 
-Pact is a software distribution platform for Windows. Packages are defined 
-in Starlark — a safe, sandboxed scripting language.
+A package manager for Windows: declarative HCL manifests, strict validation, versioned installs.
 
-> ⚠️ Early stage
+**Status:** early / in development.
 
-## What's here
+## What it does
 
-- **Runtime** — executes Starlark package manifests
-- **Platform bridge** — Windows (PowerShell)
-- **CI runner** — runs manifests in a pipeline
-- **Local runner** — test and debug manifests locally
+Install software from an archive-based package format, per-user or system-wide, defined by an HCL manifest
 
-## Package manifests
-
-```python
-def install():
-    path.add(install_dir)
-    shortcut.create("My App", install_dir + "/app.exe")
-```
+<img src="go.webp" alt="go" width="300">

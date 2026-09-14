@@ -7,6 +7,7 @@ import (
 	"log"
 	"github.com/kasperjack/pact/core/parce"
 	"os"
+	"path/filepath"
 
 )
 
@@ -17,13 +18,33 @@ import (
 
 func main() {
 
+	pkgPath := "C:/Users/kasper/Documents/projects/pact/bin/repo/packages/windirstat"
 
-	mfsSrc, err := os.ReadFile("mfs.hcl")
+	archRelease := filepath.Join(pkgPath, "2.7.0", "x64", "1")
+
+
+
+	packageSrc, err := os.ReadFile(filepath.Join(pkgPath, "package.hcl"))
+
 	if err != nil {
-		log.Fatalf("reading mfs.hcl: %v", err)
+		log.Fatalf("reading package.hcl: %v", err)
+	}
+	_, diags := parce.PackageInfo(packageSrc)
+
+	if diags.HasErrors() {
+		printDiags(diags)
+		log.Fatal("package info parse failed")
 	}
 
-	m, diags := parce.Manifest(mfsSrc)
+
+
+
+	manifestSrc, err := os.ReadFile(filepath.Join(archRelease, "manifest.hcl"))
+	if err != nil {
+		log.Fatalf("reading manifest.hcl: %v", err)
+	}
+
+	m, diags := parce.Manifest(manifestSrc)
 	if diags.HasErrors() {
 		printDiags(diags)
 		log.Fatal("parse failed")
@@ -36,13 +57,16 @@ func main() {
 	}
 
 
+
+
+
 	
-	interSrc, err := os.ReadFile("inter.hcl")
+	interfaceSrc, err := os.ReadFile(filepath.Join(archRelease, "interface.hcl"))
 	if err != nil {
-		log.Fatalf("reading inter.hcl: %v", err)
+		log.Fatalf("reading interface.hcl: %v", err)
 	}
 
-	inter, diags := parce.Interface(interSrc)
+	inter, diags := parce.Interface(interfaceSrc)
 	if diags.HasErrors() {
 		printDiags(diags)
 		log.Fatal("interface parse failed")
