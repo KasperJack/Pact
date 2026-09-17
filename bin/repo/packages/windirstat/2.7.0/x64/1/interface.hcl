@@ -6,13 +6,10 @@ system {
     default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."
-    binding     = ["engine.shortcut.desktop"]
+    binding     = ["shortcut.desktop"]
   }
 
-
 }
-
-
 
 
 user {
@@ -21,7 +18,18 @@ user {
     default     = true
     label       = "Create Desktop Shortcut"
     description = "Adds a shortcut to your desktop for quick access."
-    binding     = ["engine.shortcut.desktop"]
+    binding     = ["shortcut.desktop"] // check for dupliates 
+  }
+
+
+
+
+  
+  option "desktop_shortcut" {
+    default     = true
+    label       = "Create Desktop Shortcut"
+    description = "Adds a shortcut to your desktop for quick access."
+    binding     = ["shortcut.desktop"]
   }
 
 

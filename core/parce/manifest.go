@@ -3,27 +3,24 @@ package parce
 import (
 	"fmt"
 
-	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
 
-	"strings"
 	"regexp"
+	"strings"
 
 	//"/github.com/zclconf/go-cty/cty"
 )
 
-
-
 var (
-	validIDPattern    = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
-	//invalidPathChars  = regexp.MustCompile(`[<>"|?*]`)
+	validIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 )
 
 
-func Manifest(src []byte) (*core.Manifest, hcl.Diagnostics) {
+func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnostics) {
 	parser := hclparse.NewParser()
 	f, diags := parser.ParseHCL(src, "manifest.hcl")
 	if diags.HasErrors() {
@@ -35,35 +32,107 @@ func Manifest(src []byte) (*core.Manifest, hcl.Diagnostics) {
 		return nil, hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "unexpected body type",
-			Detail:   fmt.Sprintf("could not parse %s as HCL native syntax", "manifest.hcl"),
+			Detail:   "could not parse manifest.hcl as HCL native syntax",
 		}}
 	}
 
-	m := &core.Manifest{}
-	found := false
 
-	for _, block := range syntaxBody.Blocks {
+	if len(acceptScope) == 1 {
+		return parseSingleScopeManifest(syntaxBody, acceptScope[0])
+	}
+
+	return parseDualScopeManifest(syntaxBody, acceptScope)
+}
+
+// ---------- single-scope manifest (no wrapper) ----------
+
+func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Manifest, hcl.Diagnostics) {
+	var diags hcl.Diagnostics
+
+	for _, block := range body.Blocks {
+		switch block.Type {
+		case "shortcut", "command", "add_path":
+			// handled below via parseScope
+		case "user", "system":
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("unexpected %q block", block.Type),
+				Detail:   "this package only supports one scope — declare install_path and actions directly at the top level, without a user{}/system{} wrapper",
+				Subject:  block.DefRange().Ptr(),
+			})
+		default:
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("unknown top-level block type %q", block.Type),
+				Detail:   `only "shortcut", "command", or "add_path" are allowed at the top level for a single-scope package`,
+				Subject:  block.DefRange().Ptr(),
+			})
+		}
+	}
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	resolved, d := parseScope(body)
+	diags = append(diags, d...)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	m := &core.Manifest{}
+	switch scope {
+	case core.ScopeUser:
+		m.User = resolved
+	case core.ScopeSystem:
+		m.System = resolved
+	default:
+		return nil, hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("unknown scope %v", scope),
+		}}
+	}
+
+	return m, diags
+}
+
+// ---------- dual-scope manifest (user{}/system{} required) ----------
+
+func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnostics) {
+	m := &core.Manifest{}
+	var diags hcl.Diagnostics
+	seenUser := false
+	seenSystem := false
+
+	for _, block := range body.Blocks {
 		switch block.Type {
 
 		case "user":
-			found = true
-			if m.User != nil {
+			if seenUser {
 				diags = append(diags, dupTopLevelErr("user", block.DefRange()))
 				continue
 			}
+			seenUser = true
 			scope, d := parseScope(block.Body)
 			diags = append(diags, d...)
 			m.User = scope
 
 		case "system":
-			found = true
-			if m.System != nil {
+			if seenSystem {
 				diags = append(diags, dupTopLevelErr("system", block.DefRange()))
 				continue
 			}
+			seenSystem = true
 			scope, d := parseScope(block.Body)
 			diags = append(diags, d...)
 			m.System = scope
+
+		case "shortcut", "command", "add_path":
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("unexpected top-level %q block", block.Type),
+				Detail:   "this package supports multiple scopes — wrap actions in user{} and/or system{}",
+				Subject:  block.DefRange().Ptr(),
+			})
 
 		default:
 			diags = append(diags, &hcl.Diagnostic{
@@ -75,13 +144,19 @@ func Manifest(src []byte) (*core.Manifest, hcl.Diagnostics) {
 		}
 	}
 
-	if !found {
-		diags = append(diags, &hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  "manifest declares no user or system block",
-			Detail:   "a manifest must declare at least one of user{} or system{}",
-			Subject:  syntaxBody.SrcRange.Ptr(),
-		})
+	// require a wrapper for every scope this package is declared to accept —
+	// missing one silently would leave that scope with no install_path/actions
+	for _, s := range acceptScope {
+		switch s {
+		case core.ScopeUser:
+			if !seenUser {
+				diags = append(diags, missingScopeBlockErr("user", body))
+			}
+		case core.ScopeSystem:
+			if !seenSystem {
+				diags = append(diags, missingScopeBlockErr("system", body))
+			}
+		}
 	}
 
 	if diags.HasErrors() {
@@ -90,7 +165,14 @@ func Manifest(src []byte) (*core.Manifest, hcl.Diagnostics) {
 	return m, diags
 }
 
-
+func missingScopeBlockErr(name string, body *hclsyntax.Body) *hcl.Diagnostic {
+	return &hcl.Diagnostic{
+		Severity: hcl.DiagError,
+		Summary:  fmt.Sprintf("missing %q block", name),
+		Detail:   fmt.Sprintf("package accepts %q scope, but manifest.hcl has no %s{} block", name, name),
+		Subject:  body.SrcRange.Ptr(),
+	}
+}
 
 func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 	return &hcl.Diagnostic{
@@ -101,7 +183,7 @@ func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 	}
 }
 
-// ---------- scope-level parse ----------
+// ---------- scope-level parse (shared by both paths) ----------
 
 func parseScope(body *hclsyntax.Body) (*core.ManifestdScope, hcl.Diagnostics) {
 	var diags hcl.Diagnostics
@@ -145,17 +227,12 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 		}}
 	}
 
-
 	installPath := val.AsString()
-
-	
 
 	checkDiags := checkRequired(installPath, "install_path", attr.Expr.Range())
 	if checkDiags.HasErrors() {
 		return "", checkDiags
 	}
-
-
 
 	return strings.TrimSpace(installPath), nil
 }
@@ -216,7 +293,6 @@ func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 		}
 		return label, nil
 
-
 	default:
 		return "", hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -228,9 +304,6 @@ func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 
 // ---------- per-type parse: HCL decode shapes live only here ----------
 
-
-
-
 func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Diagnostics) {
 	var attrs struct {
 		DisplayName *string `hcl:"display_name,optional"`
@@ -239,11 +312,9 @@ func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Di
 		Args        *string `hcl:"args,optional"`
 	}
 
-
 	if diags := gohcl.DecodeBody(block.Body, nil, &attrs); diags.HasErrors() {
 		return core.Shortcut{}, diags
 	}
-
 
 	var diags hcl.Diagnostics
 
@@ -252,7 +323,6 @@ func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Di
 	diags = append(diags, checkOptional(attrs.Icon, "icon", attrRangeOf(block, "icon"))...)
 	diags = append(diags, checkOptional(attrs.Args, "args", attrRangeOf(block, "args"))...)
 
-
 	if diags.HasErrors() {
 		return core.Shortcut{}, diags
 	}
@@ -260,22 +330,18 @@ func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Di
 	return core.Shortcut{
 		Common:      c,
 		Exe:         strings.TrimSpace(attrs.Exe),
-		DisplayName: strings.TrimSpace(derefOr(attrs.DisplayName, "")), 
+		DisplayName: strings.TrimSpace(derefOr(attrs.DisplayName, "")),
 		Icon:        strings.TrimSpace(derefOr(attrs.Icon, "")),
 		Args:        strings.TrimSpace(derefOr(attrs.Args, "")),
 	}, diags
 }
 
-
-
 func parseCommand(block *hclsyntax.Block, c core.Common) (core.Command, hcl.Diagnostics) {
-
 
 	var attrs struct {
 		Exe  string  `hcl:"exe"`
 		Args *string `hcl:"args,optional"`
 	}
-
 
 	if diags := gohcl.DecodeBody(block.Body, nil, &attrs); diags.HasErrors() {
 		return core.Command{}, diags
@@ -285,8 +351,6 @@ func parseCommand(block *hclsyntax.Block, c core.Common) (core.Command, hcl.Diag
 
 	diags = append(diags, checkRequired(attrs.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
 	diags = append(diags, checkOptional(attrs.Args, "args", attrRangeOf(block, "args"))...)
-
-
 
 	if diags.HasErrors() {
 		return core.Command{}, diags
@@ -298,9 +362,6 @@ func parseCommand(block *hclsyntax.Block, c core.Common) (core.Command, hcl.Diag
 		Args:   strings.TrimSpace(derefOr(attrs.Args, "")),
 	}, diags
 }
-
-
-
 
 func parseAddPath(block *hclsyntax.Block, c core.Common) (core.AddPath, hcl.Diagnostics) {
 	var attrs struct {
@@ -321,9 +382,35 @@ func parseAddPath(block *hclsyntax.Block, c core.Common) (core.AddPath, hcl.Diag
 	return core.AddPath{Common: c, Dir: strings.TrimSpace(attrs.Dir)}, diags
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ---------- shared helpers ----------
-
-
 
 func derefOr(p *string, def string) string {
 	if p == nil {
@@ -340,9 +427,6 @@ func requiredErr(field string, rng hcl.Range) *hcl.Diagnostic {
 	}
 }
 
-
-
-
 func checkRequired(value, field string, attrRange hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
 
@@ -352,7 +436,6 @@ func checkRequired(value, field string, attrRange hcl.Range) hcl.Diagnostics {
 	}
 	return diags
 }
-
 
 func checkOptional(value *string, field string, attrRange hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
@@ -372,21 +455,9 @@ func checkOptional(value *string, field string, attrRange hcl.Range) hcl.Diagnos
 	return diags
 }
 
-
 func attrRangeOf(block *hclsyntax.Block, name string) hcl.Range {
 	if attr, ok := block.Body.Attributes[name]; ok {
 		return attr.Expr.Range()
 	}
 	return block.DefRange()
 }
-
-
-
-
-
-
-
-
-
-
-

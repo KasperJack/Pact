@@ -6,11 +6,11 @@ user {
   install_path = "home"
 
 
-  shortcut   {
+  shortcut  "ass" {
     exe    = "ff"
   }
 
-  shortcut   {
+  shortcut  {
     exe    = "gg"
   }
 
@@ -40,6 +40,41 @@ user {
 
 
 
+system {
+
+
+
+  install_path = "home"
+
+
+  shortcut  "ass" {
+    exe    = "ff"
+  }
+
+  shortcut  {
+    exe    = "gg"
+  }
+
+  shortcut   {
+    exe    = "tt"
+    args = "--ass --hole"
+
+  }
+
+
+  command {
+    exe = "wtf"
+
+  }
+
+  add_path {
+
+    dir = "home/me/gg"
+  }
+
+
+
+}
 
 
 
