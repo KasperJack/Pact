@@ -11,14 +11,103 @@ import (
 
 	"regexp"
 	"strings"
-
 	//"/github.com/zclconf/go-cty/cty"
 )
 
 var (
 	validIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
+	//numbers = [5]core.Block{}
 )
 
+var m = map[string]func() localBlock{
+	core.Shortcut{}.Name(): func() localBlock { return &shortcut{} },
+	core.AddPath{}.Name():  func() localBlock { return &addPath{} },
+	core.Command{}.Name():  func() localBlock { return &command{} },
+}
+
+/*
+var m = map[string]localBlock{
+    core.Shortcut{}.Name(): &shortcut{},
+    core.AddPath{}.Name():  &addPath{},
+    core.Command{}.Name():  &command{},
+}
+*/
+
+type localBlock interface {
+	validate() error
+	export() core.Block
+
+	setID(string)
+	setRange(hcl.Range)
+}
+
+// //////////// local types
+type shortcut struct {
+	ID string
+
+	DisplayName *string `hcl:"display_name,optional"`
+	Exe         string  `hcl:"exe"`
+	Icon        *string `hcl:"icon,optional"`
+	Args        *string `hcl:"args,optional"`
+
+	Range hcl.Range
+}
+
+func (s *shortcut) validate() error {
+	return nil
+}
+func (s *shortcut) export() core.Block {
+	return nil
+}
+func (s *shortcut) setID(id string) {
+	s.ID = id
+}
+func (s *shortcut) setRange(r hcl.Range) {
+	s.Range = r
+}
+
+type command struct {
+	ID   string
+	Exe  string  `hcl:"exe"`
+	Args *string `hcl:"args,optional"`
+
+	Range hcl.Range
+}
+
+func (c *command) validate() error {
+	return nil
+}
+func (c *command) export() core.Block {
+	return nil
+}
+func (c *command) setID(id string) {
+	c.ID = id
+}
+func (c *command) setRange(r hcl.Range) {
+	c.Range = r
+}
+
+type addPath struct {
+	ID string
+
+	Dir string `hcl:"dir"`
+
+	Range hcl.Range
+}
+
+func (a *addPath) validate() error {
+	return nil
+}
+func (a *addPath) export() core.Block {
+	return nil
+}
+func (a *addPath) setID(id string) {
+	a.ID = id
+}
+func (a *addPath) setRange(r hcl.Range) {
+	a.Range = r
+}
 
 func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnostics) {
 	parser := hclparse.NewParser()
@@ -36,7 +125,6 @@ func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnos
 		}}
 	}
 
-
 	if len(acceptScope) == 1 {
 		return parseSingleScopeManifest(syntaxBody, acceptScope[0])
 	}
@@ -47,6 +135,7 @@ func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnos
 // ---------- single-scope manifest (no wrapper) ----------
 
 func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Manifest, hcl.Diagnostics) {
+
 	var diags hcl.Diagnostics
 
 	for _, block := range body.Blocks {
@@ -82,9 +171,9 @@ func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Man
 	m := &core.Manifest{}
 	switch scope {
 	case core.ScopeUser:
-		m.User = resolved
+		m.Scope[core.ScopeUser] = resolved
 	case core.ScopeSystem:
-		m.System = resolved
+		m.Scope[core.ScopeSystem] = resolved
 	default:
 		return nil, hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -114,7 +203,7 @@ func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*co
 			seenUser = true
 			scope, d := parseScope(block.Body)
 			diags = append(diags, d...)
-			m.User = scope
+			m.Scope[core.ScopeUser] = scope
 
 		case "system":
 			if seenSystem {
@@ -124,7 +213,7 @@ func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*co
 			seenSystem = true
 			scope, d := parseScope(block.Body)
 			diags = append(diags, d...)
-			m.System = scope
+			m.Scope[core.ScopeSystem] = scope
 
 		case "shortcut", "command", "add_path":
 			diags = append(diags, &hcl.Diagnostic{
@@ -185,13 +274,13 @@ func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 
 // ---------- scope-level parse (shared by both paths) ----------
 
-func parseScope(body *hclsyntax.Body) (*core.ManifestdScope, hcl.Diagnostics) {
+func parseScope(body *hclsyntax.Body) (core.ManifestScope, hcl.Diagnostics) {
 	var diags hcl.Diagnostics
 
 	installPath, d := decodeInstallPath(body)
 	diags = append(diags, d...)
 
-	scope := &core.ManifestdScope{InstallPath: installPath}
+	scope := &core.ManifestScope{InstallPath: installPath}
 
 	for _, block := range body.Blocks {
 		b, d := parseBlock(block)
@@ -201,7 +290,7 @@ func parseScope(body *hclsyntax.Body) (*core.ManifestdScope, hcl.Diagnostics) {
 		}
 	}
 
-	return scope, diags
+	return *scope, diags
 }
 
 func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
@@ -239,7 +328,7 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 
 // ---------- block dispatch ----------
 
-func parseBlock(block *hclsyntax.Block) (core.ResolvedBlock, hcl.Diagnostics) {
+func parseBlock(block *hclsyntax.Block) (core.Block, hcl.Diagnostics) {
 
 	id, diags := blockLabel(block)
 
@@ -247,17 +336,15 @@ func parseBlock(block *hclsyntax.Block) (core.ResolvedBlock, hcl.Diagnostics) {
 		return nil, diags
 	}
 
-	c := core.Common{ID: id, Range: block.DefRange()}
-
 	switch block.Type {
 	case "shortcut":
-		s, d := parseShortcut(block, c)
+		s, d := parseShortcut(block, id)
 		return s, d
 	case "command":
-		cmd, d := parseCommand(block, c)
+		cmd, d := parseCommand(block, id)
 		return cmd, d
 	case "add_path":
-		a, d := parseAddPath(block, c)
+		a, d := parseAddPath(block, id)
 		return a, d
 	default:
 		return nil, hcl.Diagnostics{&hcl.Diagnostic{
@@ -304,7 +391,7 @@ func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 
 // ---------- per-type parse: HCL decode shapes live only here ----------
 
-func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Diagnostics) {
+func parseShortcut(block *hclsyntax.Block, id string) (core.Shortcut, hcl.Diagnostics) {
 	var attrs struct {
 		DisplayName *string `hcl:"display_name,optional"`
 		Exe         string  `hcl:"exe"`
@@ -328,7 +415,7 @@ func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Di
 	}
 
 	return core.Shortcut{
-		Common:      c,
+		ID:          id,
 		Exe:         strings.TrimSpace(attrs.Exe),
 		DisplayName: strings.TrimSpace(derefOr(attrs.DisplayName, "")),
 		Icon:        strings.TrimSpace(derefOr(attrs.Icon, "")),
@@ -336,7 +423,7 @@ func parseShortcut(block *hclsyntax.Block, c core.Common) (core.Shortcut, hcl.Di
 	}, diags
 }
 
-func parseCommand(block *hclsyntax.Block, c core.Common) (core.Command, hcl.Diagnostics) {
+func parseCommand(block *hclsyntax.Block, id string) (core.Command, hcl.Diagnostics) {
 
 	var attrs struct {
 		Exe  string  `hcl:"exe"`
@@ -357,13 +444,13 @@ func parseCommand(block *hclsyntax.Block, c core.Common) (core.Command, hcl.Diag
 	}
 
 	return core.Command{
-		Common: c,
-		Exe:    strings.TrimSpace(attrs.Exe),
-		Args:   strings.TrimSpace(derefOr(attrs.Args, "")),
+		ID:   id,
+		Exe:  strings.TrimSpace(attrs.Exe),
+		Args: strings.TrimSpace(derefOr(attrs.Args, "")),
 	}, diags
 }
 
-func parseAddPath(block *hclsyntax.Block, c core.Common) (core.AddPath, hcl.Diagnostics) {
+func parseAddPath(block *hclsyntax.Block, id string) (core.AddPath, hcl.Diagnostics) {
 	var attrs struct {
 		Dir string `hcl:"dir"`
 	}
@@ -379,36 +466,8 @@ func parseAddPath(block *hclsyntax.Block, c core.Common) (core.AddPath, hcl.Diag
 		return core.AddPath{}, diags
 	}
 
-	return core.AddPath{Common: c, Dir: strings.TrimSpace(attrs.Dir)}, diags
+	return core.AddPath{ID: id, Dir: strings.TrimSpace(attrs.Dir)}, diags
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ---------- shared helpers ----------
 
