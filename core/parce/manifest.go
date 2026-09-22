@@ -52,7 +52,7 @@ var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
 type localBlock interface {
 	validate(*hclsyntax.Block) hcl.Diagnostics
 	export() core.Block
-
+	uniqueFields() map[string]string
 	
 
 	setID(string)
@@ -65,18 +65,35 @@ type localBlock interface {
 
 
 
+type meta struct {
+	ID    string
+	Range hcl.Range
+}
+
+func (m *meta) setID(id string)       { m.ID = id }
+func (m *meta) getID() string         { return m.ID }
+func (m *meta) setRange(r hcl.Range)  { m.Range = r }
+func (m *meta) getRange() hcl.Range   { return m.Range }
+
+
+
+
+
+
+
+
 // //////////// local types
 
 
 type shortcut struct {
-	ID string
+	meta
 
 	DisplayName *string `hcl:"display_name,optional"`
 	Exe         string  `hcl:"exe"`
 	Icon        *string `hcl:"icon,optional"`
 	Args        *string `hcl:"args,optional"`
 
-	Range hcl.Range
+
 }
 
 
@@ -85,16 +102,43 @@ type shortcut struct {
 
 
 func (s *shortcut) validate(block *hclsyntax.Block) hcl.Diagnostics {
-	return nil
+
+	var diags hcl.Diagnostics
+
+	diags = append(diags, checkRequired(s.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+	diags = append(diags, checkOptional(s.DisplayName, "display_name", attrRangeOf(block, "display_name"))...)
+	diags = append(diags, checkOptional(s.Icon, "icon", attrRangeOf(block, "icon"))...)
+	diags = append(diags, checkOptional(s.Args, "args", attrRangeOf(block, "args"))...)
+
+	return diags
+
 }
+
+
+
+
 func (s *shortcut) export() core.Block {
-	return nil
+
+		return core.Shortcut{
+		ID:          s.ID,
+		Exe:         strings.TrimSpace(s.Exe),
+		DisplayName: strings.TrimSpace(derefOr(s.DisplayName, "")),
+		Icon:        strings.TrimSpace(derefOr(s.Icon, "")),
+		Args:        strings.TrimSpace(derefOr(s.Args, "")),
+	}
 }
-func (s *shortcut) setID(id string) {
-	s.ID = id
-}
-func (s *shortcut) setRange(r hcl.Range) {
-	s.Range = r
+
+
+
+
+func (s *shortcut) uniqueFields() map[string]string {
+	m := map[string]string{}
+
+	if v := strings.TrimSpace(derefOr(s.DisplayName, "")); v != "" {
+		m["display_name"] = v
+	}
+
+	return m
 }
 
 
@@ -105,44 +149,39 @@ func (s *shortcut) setRange(r hcl.Range) {
 
 
 type command struct {
-	ID   string
+	meta
+
 	Exe  string  `hcl:"exe"`
 	Args *string `hcl:"args,optional"`
 
-	Range hcl.Range
 }
 
 func (c *command) validate(block *hclsyntax.Block) hcl.Diagnostics {
-	return nil
+
+	var diags hcl.Diagnostics
+
+	diags = append(diags, checkRequired(c.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+	diags = append(diags, checkOptional(c.Args, "args", attrRangeOf(block, "args"))...)
+
+	return diags
 }
+
+
+
 func (c *command) export() core.Block {
-	return nil
+		return core.Command{
+		ID:   c.ID,
+		Exe:  strings.TrimSpace(c.Exe),
+		Args: strings.TrimSpace(derefOr(c.Args, "")),
+	}
 }
 
 
 func (c *command) uniqueFields() map[string]string {
-
-	m := map[string]string{}
-
-	m["exe"] = strings.TrimSpace(c.Exe)
-
-
-	
-	return m
+	return map[string]string{
+		"exe": strings.TrimSpace(c.Exe),
+	}
 }
-
-
-
-
-
-
-func (c *command) setID(id string) {
-	c.ID = id
-}
-func (c *command) setRange(r hcl.Range) {
-	c.Range = r
-}
-
 
 
 
@@ -156,12 +195,12 @@ func (c *command) setRange(r hcl.Range) {
 
 
 type addPath struct {
-	ID string
-
+	meta
 	Dir string `hcl:"dir"`
 
-	Range hcl.Range
 }
+
+
 
 func (a *addPath) validate(block *hclsyntax.Block) hcl.Diagnostics {
 
@@ -183,12 +222,106 @@ func (a *addPath) export() core.Block {
 }
 
 
-func (a *addPath) setID(id string) {
-	a.ID = id
+func (a *addPath) uniqueFields() map[string]string {
+
+	return nil
 }
-func (a *addPath) setRange(r hcl.Range) {
-	a.Range = r
+
+
+
+
+
+
+type registry struct {
+	// blockType -> id -> block   (id uniqueness, only when id != "")
+	ids map[string]map[string]localBlock
+
+	// blockType -> fieldName -> value -> block   (field uniqueness within same type)
+	fields map[string]map[string]map[string]localBlock
 }
+
+func newRegistry() *registry {
+	return &registry{
+		ids:    map[string]map[string]localBlock{},
+		fields: map[string]map[string]map[string]localBlock{},
+	}
+}
+
+func (r *registry) add(blockType string, b localBlock) hcl.Diagnostics {
+	var diags hcl.Diagnostics
+	rng := b.getRange()
+
+	// --- ID uniqueness, only if id is present ---
+	if id := b.getID(); id != "" {
+		if r.ids[blockType] == nil {
+			r.ids[blockType] = map[string]localBlock{}
+		}
+		if existing, exists := r.ids[blockType][id]; exists {
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  "Duplicate ID",
+				Detail: fmt.Sprintf("%s %q already defined at %s",
+					blockType, id, existing.getRange()),
+				Subject: rng.Ptr(),
+			})
+		} else {
+			r.ids[blockType][id] = b
+		}
+	}
+
+	// --- arbitrary field uniqueness, generic over whatever the type declares ---
+	for field, val := range b.uniqueFields() {
+		if r.fields[blockType] == nil {
+			r.fields[blockType] = map[string]map[string]localBlock{}
+		}
+		if r.fields[blockType][field] == nil {
+			r.fields[blockType][field] = map[string]localBlock{}
+		}
+		if existing, exists := r.fields[blockType][field][val]; exists {
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("Duplicate %s", field),
+				Detail: fmt.Sprintf("%s %q has the same %s (%q) as %s already defined at %s",
+					blockType, b.getID(), field, val, blockType, existing.getRange()),
+				Subject: rng.Ptr(),
+			})
+		} else {
+			r.fields[blockType][field][val] = b
+		}
+	}
+
+	return diags
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
