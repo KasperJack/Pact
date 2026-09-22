@@ -1,10 +1,14 @@
 package core
 
+import (
+	"fmt"
+)
 
 type Block interface {
-	blockID() string
+	BlockID() string
 	Run() error
 	Name() string
+	SuppotedScopes() [2]Scope
 }
 
 
@@ -28,7 +32,13 @@ func (s Shortcut) Run() error {
 func (s Shortcut) Name() string {
 	return "shortcut"
 }
-func (s Shortcut) blockID() string {
+
+func (s Shortcut) SuppotedScopes()[2]Scope{
+	return [2]Scope{ScopeUser,ScopeSystem}
+}
+
+
+func (s Shortcut) BlockID() string {
 	return s.ID
 }
 
@@ -53,7 +63,11 @@ func (c Command) Name() string {
 	return "command"
 }
 
-func (c Command) blockID() string {
+func (c Command) SuppotedScopes()[2]Scope{
+	return [2]Scope{ScopeUser,ScopeSystem}
+}
+
+func (c Command) BlockID() string {
 	return c.ID
 }
 
@@ -67,6 +81,8 @@ type AddPath struct {
 }
 
 func (a AddPath) Run() error {
+
+	fmt.Println("adding path: ", a.Dir)
 	return nil
 }
 
@@ -74,7 +90,11 @@ func (a AddPath) Name() string {
 	return "add_path"
 }
 
-func (a AddPath) blockID() string {
+func (a AddPath) SuppotedScopes()[2]Scope{
+	return [2]Scope{ScopeUser,ScopeSystem}
+}
+
+func (a AddPath) BlockID() string {
 	return a.ID
 }
 

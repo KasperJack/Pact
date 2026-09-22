@@ -131,6 +131,10 @@ func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch
 
 
 
+
+
+	
+
 	manifetFilePath := filepath.Join(r.repoRoot, "packages",packageIdentifier, Version, arch.String() ,strconv.Itoa(revision), "manifest.hcl")
 
 	data, err := os.ReadFile(manifetFilePath)

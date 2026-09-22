@@ -1,7 +1,7 @@
 package core
 
 type Option struct {
-	Common
+	ID 		string
 	Default     bool
 	Label       string // optional, trim
 	Description string // optional, trim

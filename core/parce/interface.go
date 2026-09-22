@@ -205,7 +205,6 @@ func parseOption(block *hclsyntax.Block) (core.Option, hcl.Diagnostics) {
 	if diags.HasErrors() {
 		return core.Option{}, diags
 	}
-	c := core.Common{ID: id, Range: block.DefRange()}
 
 	var attrs struct {
 		Default     bool     `hcl:"default"`
@@ -234,7 +233,7 @@ func parseOption(block *hclsyntax.Block) (core.Option, hcl.Diagnostics) {
 	}
 
 	return core.Option{
-		Common:      c,
+		ID:          id,
 		Default:     attrs.Default,
 		Label:       strings.TrimSpace(derefOr(attrs.Label, "")),
 		Description: strings.TrimSpace(derefOr(attrs.Description, "")),

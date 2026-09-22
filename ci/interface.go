@@ -14,4 +14,4 @@ type ValidatedInterface struct {
 
 
 
-func ValidateInterface(m *core.Interface) (*ValidatedInterface, hcl.Diagnostics) {}
+func ValidateInterface(m *core.Interface) (*ValidatedInterface, hcl.Diagnostics) {return nil,nil}

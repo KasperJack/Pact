@@ -19,30 +19,55 @@ var (
 
 	//numbers = [5]core.Block{}
 )
-
-var m = map[string]func() localBlock{
-	core.Shortcut{}.Name(): func() localBlock { return &shortcut{} },
-	core.AddPath{}.Name():  func() localBlock { return &addPath{} },
-	core.Command{}.Name():  func() localBlock { return &command{} },
-}
-
 /*
 var m = map[string]localBlock{
     core.Shortcut{}.Name(): &shortcut{},
     core.AddPath{}.Name():  &addPath{},
     core.Command{}.Name():  &command{},
-}
+} // using reflect ? 
 */
 
-type localBlock interface {
-	validate() error
-	export() core.Block
-
-	setID(string)
-	setRange(hcl.Range)
+var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
+    core.Shortcut{}.Name(): func(id string, rng hcl.Range) localBlock {
+        b := &shortcut{}
+        b.setID(id)
+        b.setRange(rng)
+        return b
+    },
+    core.AddPath{}.Name(): func(id string, rng hcl.Range) localBlock {
+        b := &addPath{}
+        b.setID(id)
+        b.setRange(rng)
+        return b
+    },
+    core.Command{}.Name(): func(id string, rng hcl.Range) localBlock {
+        b := &command{}
+        b.setID(id)
+        b.setRange(rng)
+        return b
+    },
 }
 
+
+type localBlock interface {
+	validate(*hclsyntax.Block) hcl.Diagnostics
+	export() core.Block
+
+	
+
+	setID(string)
+	getID() string
+	setRange(hcl.Range)
+	getRange() hcl.Range
+
+}
+
+
+
+
 // //////////// local types
+
+
 type shortcut struct {
 	ID string
 
@@ -54,7 +79,12 @@ type shortcut struct {
 	Range hcl.Range
 }
 
-func (s *shortcut) validate() error {
+
+
+
+
+
+func (s *shortcut) validate(block *hclsyntax.Block) hcl.Diagnostics {
 	return nil
 }
 func (s *shortcut) export() core.Block {
@@ -67,6 +97,13 @@ func (s *shortcut) setRange(r hcl.Range) {
 	s.Range = r
 }
 
+
+
+
+
+
+
+
 type command struct {
 	ID   string
 	Exe  string  `hcl:"exe"`
@@ -75,18 +112,48 @@ type command struct {
 	Range hcl.Range
 }
 
-func (c *command) validate() error {
+func (c *command) validate(block *hclsyntax.Block) hcl.Diagnostics {
 	return nil
 }
 func (c *command) export() core.Block {
 	return nil
 }
+
+
+func (c *command) uniqueFields() map[string]string {
+
+	m := map[string]string{}
+
+	m["exe"] = strings.TrimSpace(c.Exe)
+
+
+	
+	return m
+}
+
+
+
+
+
+
 func (c *command) setID(id string) {
 	c.ID = id
 }
 func (c *command) setRange(r hcl.Range) {
 	c.Range = r
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 type addPath struct {
 	ID string
@@ -96,18 +163,42 @@ type addPath struct {
 	Range hcl.Range
 }
 
-func (a *addPath) validate() error {
-	return nil
+func (a *addPath) validate(block *hclsyntax.Block) hcl.Diagnostics {
+
+	var diags hcl.Diagnostics
+
+	diags = append(diags, checkRequired(a.Dir, "dir", block.Body.Attributes["dir"].Expr.Range())...)
+
+
+	return diags
 }
+
+
+
 func (a *addPath) export() core.Block {
-	return nil
+	return core.AddPath{
+		ID:  a.ID,
+		Dir: strings.TrimSpace(a.Dir),
+	}
 }
+
+
 func (a *addPath) setID(id string) {
 	a.ID = id
 }
 func (a *addPath) setRange(r hcl.Range) {
 	a.Range = r
 }
+
+
+
+
+
+
+
+
+
+
 
 func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnostics) {
 	parser := hclparse.NewParser()
@@ -138,10 +229,16 @@ func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Man
 
 	var diags hcl.Diagnostics
 
-	for _, block := range body.Blocks {
-		switch block.Type {
-		case "shortcut", "command", "add_path":
+	for _, block := range body.Blocks { // top level blocks check
+
+		if _, ok := localBlockConstructors[block.Type]; ok {
 			// handled below via parseScope
+			continue
+		}	
+
+
+		switch block.Type {
+
 		case "user", "system":
 			diags = append(diags, &hcl.Diagnostic{
 				Severity: hcl.DiagError,
@@ -158,9 +255,13 @@ func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Man
 			})
 		}
 	}
+
+
 	if diags.HasErrors() {
 		return nil, diags
 	}
+
+
 
 	resolved, d := parseScope(body)
 	diags = append(diags, d...)
@@ -168,7 +269,10 @@ func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Man
 		return nil, diags
 	}
 
-	m := &core.Manifest{}
+	m := &core.Manifest{
+    Scope: make(map[core.Scope]core.ManifestScope),
+	}
+
 	switch scope {
 	case core.ScopeUser:
 		m.Scope[core.ScopeUser] = resolved
@@ -275,6 +379,7 @@ func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 // ---------- scope-level parse (shared by both paths) ----------
 
 func parseScope(body *hclsyntax.Body) (core.ManifestScope, hcl.Diagnostics) {
+
 	var diags hcl.Diagnostics
 
 	installPath, d := decodeInstallPath(body)
@@ -326,8 +431,11 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 	return strings.TrimSpace(installPath), nil
 }
 
-// ---------- block dispatch ----------
 
+
+
+// ---------- block dispatch ----------
+				// change name to hclBlock
 func parseBlock(block *hclsyntax.Block) (core.Block, hcl.Diagnostics) {
 
 	id, diags := blockLabel(block)
@@ -336,17 +444,9 @@ func parseBlock(block *hclsyntax.Block) (core.Block, hcl.Diagnostics) {
 		return nil, diags
 	}
 
-	switch block.Type {
-	case "shortcut":
-		s, d := parseShortcut(block, id)
-		return s, d
-	case "command":
-		cmd, d := parseCommand(block, id)
-		return cmd, d
-	case "add_path":
-		a, d := parseAddPath(block, id)
-		return a, d
-	default:
+	create, ok := localBlockConstructors[block.Type]
+
+	if !ok {
 		return nil, hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  fmt.Sprintf("unknown block type %q", block.Type),
@@ -354,13 +454,41 @@ func parseBlock(block *hclsyntax.Block) (core.Block, hcl.Diagnostics) {
 			Subject:  block.DefRange().Ptr(),
 		}}
 	}
+
+	localBlock := create(id,block.DefRange())
+
+
+	diags = gohcl.DecodeBody(block.Body, nil, localBlock)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	//localBlock.setID(id)
+	//localBlock.setRange(block.DefRange())
+
+
+	diags = localBlock.validate(block)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+
+
+
+	return localBlock.export(), diags
+
 }
+
+
+
+
 
 // blockLabel enforces the 0-or-1-label rule and rejects whitespace-only labels.
 func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 	switch len(block.Labels) {
 	case 0:
 		return "", nil
+
 	case 1:
 		label := block.Labels[0]
 		if strings.TrimSpace(label) == "" {
@@ -388,6 +516,16 @@ func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 		}}
 	}
 }
+
+
+
+
+
+
+
+
+
+
 
 // ---------- per-type parse: HCL decode shapes live only here ----------
 
@@ -451,6 +589,8 @@ func parseCommand(block *hclsyntax.Block, id string) (core.Command, hcl.Diagnost
 }
 
 func parseAddPath(block *hclsyntax.Block, id string) (core.AddPath, hcl.Diagnostics) {
+
+
 	var attrs struct {
 		Dir string `hcl:"dir"`
 	}

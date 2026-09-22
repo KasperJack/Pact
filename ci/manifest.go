@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"fmt"
 	"strings"
@@ -160,4 +161,6 @@ func checkValidPath(value, field string, rng hcl.Range) hcl.Diagnostics {
 	}
 	return nil
 }
+
+*/
 

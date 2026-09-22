@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/hcl/v2"
 
 	"log"
-	"github.com/kasperjack/pact/core/parce"
 	"os"
 	"path/filepath"
 
+	"github.com/kasperjack/pact/core"
+	"github.com/kasperjack/pact/core/parce"
 )
 
 
@@ -29,6 +31,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("reading package.hcl: %v", err)
 	}
+
+
 	pkg, diags := parce.PackageInfo(packageSrc)
 
 	if diags.HasErrors() {
@@ -37,9 +41,7 @@ func main() {
 	}
 
 	
-
-
-
+	/*
 	
 	interfaceSrc, err := os.ReadFile(filepath.Join(archRelease, "interface.hcl"))
 	if err != nil {
@@ -51,12 +53,10 @@ func main() {
 		printDiags(diags)
 		log.Fatal("interface parse failed")
 	}
+	*/
 
+	fmt.Println(pkg.Scopes)
 
-
-
-
-	
 
 	manifestSrc, err := os.ReadFile(filepath.Join(archRelease, "manifest.hcl"))
 	if err != nil {
@@ -69,21 +69,21 @@ func main() {
 		log.Fatal("parse failed")
 	}
 
-	vm, diags := ValidateManifest(m)
-	if diags.HasErrors() {
-		printDiags(diags)
-		log.Fatal("validation failed")
+	s,ok  :=m.Scope[core.ScopeUser]
+
+	if !ok {
+		log.Fatal("user scope not found")
+	}
+
+	fmt.Println(len(s.Blocks))
+
+	for _, b := range s.Blocks {
+		fmt.Println(b.Name())
+		fmt.Println(b.BlockID())
+		b.Run()
 	}
 
 
-
-
-
-
-
-
-	_ = vm
-	_ = inter
 }
 
 func printDiags(diags hcl.Diagnostics) {
