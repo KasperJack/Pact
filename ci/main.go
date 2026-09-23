@@ -78,8 +78,8 @@ func main() {
 	fmt.Println(len(s.Blocks))
 
 	for _, b := range s.Blocks {
-		fmt.Println(b.Name())
-		fmt.Println(b.BlockID())
+		//fmt.Println(b.Name())
+		//fmt.Println(b.BlockID())
 		b.Run()
 	}
 

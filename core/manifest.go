@@ -26,8 +26,29 @@ type Shortcut struct {
 
 
 func (s Shortcut) Run() error {
+	fmt.Println("=== Running Shortcut ===")
+
+	if s.ID != "" {
+		fmt.Println("ID:", s.ID)
+	}
+	if s.DisplayName != "" {
+		fmt.Println("DisplayName:", s.DisplayName)
+	}
+	if s.Exe != "" {
+		fmt.Println("Exe:", s.Exe)
+	}
+	if s.Icon != "" {
+		fmt.Println("Icon:", s.Icon)
+	}
+	if s.Args != "" {
+		fmt.Println("Args:", s.Args)
+	}
 	return nil
 }
+
+
+
+
 
 func (s Shortcut) Name() string {
 	return "shortcut"
@@ -49,15 +70,35 @@ func (s Shortcut) BlockID() string {
 
 
 
+
+
+
+
+
+
 type Command struct {
 	ID   string
 	Exe  string  // required // trim tarling and ending spacse  //check in path
 	Args string //optianl // // trim tarling and ending spacse 
 }
 
+
 func (c Command) Run() error {
+	fmt.Println("=== Running Command ===")
+	if c.ID != "" {
+		fmt.Println("ID:", c.ID)
+	}
+	if c.Exe != "" {
+		fmt.Println("Exe:", c.Exe)
+	}
+	if c.Args != "" {
+		fmt.Println("Args:", c.Args)
+	}
 	return nil
 }
+
+
+
 
 func (c Command) Name() string {
 	return "command"
@@ -75,14 +116,30 @@ func (c Command) BlockID() string {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 type AddPath struct {
 	ID string
 	Dir string // required // trim tarling and ending spacse  //check in path
 }
 
 func (a AddPath) Run() error {
-
-	fmt.Println("adding path: ", a.Dir)
+	fmt.Println("=== Running AddPath ===")
+	if a.ID != "" {
+		fmt.Println("ID:", a.ID)
+	}
+	if a.Dir != "" {
+		fmt.Println("Dir:", a.Dir)
+	}
 	return nil
 }
 

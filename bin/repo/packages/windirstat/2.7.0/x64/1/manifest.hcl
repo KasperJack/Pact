@@ -2,47 +2,44 @@
   install_path = "home"
 
 
-  shortcut  "ass" {
-    exe    = "ff"
-  }
-
   shortcut  {
-    exe    = "gg"
+    display_name = "gg"
+    exe    = "/home/.cong/gg.exe"
   }
 
-  shortcut   {
-    exe    = "tt"
-    args = "--ass --hole"
 
+  shortcut "desktop" {
+    exe    = "/home/.var/ff.exe"
   }
+
+
+
 
 
   command {
-    exe = "wtf"
+    exe = "ss"
 
   }
+
+  command {
+    exe = "ttt"
+
+  }
+
+
 
 
 
   add_path "hole"{
 
-    dir = "home/test/gg"
+    dir = ""
   }
 
 
   add_path "ass" {
 
-    dir = "home/gg/gg"
+    dir = "  "
   }
-
-
-
-
-  add_path {
-
-    dir = "home/ff/gg"
-  }
-
 
 
 

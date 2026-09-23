@@ -27,6 +27,15 @@ var m = map[string]localBlock{
 } // using reflect ? 
 */
 
+
+
+//TODO:
+// ADD id regex check
+// add scope check per block type to local types 
+
+// Add table-driven tests 
+
+
 var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
     core.Shortcut{}.Name(): func(id string, rng hcl.Range) localBlock {
         b := &shortcut{}
@@ -518,18 +527,38 @@ func parseScope(body *hclsyntax.Body) (core.ManifestScope, hcl.Diagnostics) {
 	installPath, d := decodeInstallPath(body)
 	diags = append(diags, d...)
 
+
+
+
+
 	scope := &core.ManifestScope{InstallPath: installPath}
 
+	reg := newRegistry()
+	var parsed []localBlock
+
 	for _, block := range body.Blocks {
-		b, d := parseBlock(block)
+		lb, d := parseBlock(block) // now returns localBlock not core.Block
 		diags = append(diags, d...)
-		if b != nil {
-			scope.Blocks = append(scope.Blocks, b) // single append point = order preserved
+		if lb == nil {
+			continue
 		}
+
+		diags = append(diags, reg.add(block.Type, lb)...) // catches ID + field dupes
+		parsed = append(parsed, lb)                        // single append point = order preserved
+	}
+
+	if diags.HasErrors() {
+		return core.ManifestScope{}, diags
+	}
+
+	for _, lb := range parsed {
+		scope.Blocks = append(scope.Blocks, lb.export()) // export only after everything's clean
 	}
 
 	return *scope, diags
 }
+
+
 
 func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 	attr, ok := body.Attributes["install_path"]
@@ -567,49 +596,35 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 
 
 
-// ---------- block dispatch ----------
-				// change name to hclBlock
-func parseBlock(block *hclsyntax.Block) (core.Block, hcl.Diagnostics) {
-
-	id, diags := blockLabel(block)
-
+func parseBlock(hclBlock *hclsyntax.Block) (localBlock, hcl.Diagnostics) {
+	id, diags := blockLabel(hclBlock)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	create, ok := localBlockConstructors[block.Type]
-
+	create, ok := localBlockConstructors[hclBlock.Type]
 	if !ok {
 		return nil, hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
-			Summary:  fmt.Sprintf("unknown block type %q", block.Type),
+			Summary:  fmt.Sprintf("unknown block type %q", hclBlock.Type),
 			Detail:   `expected "shortcut", "command", or "add_path"`,
-			Subject:  block.DefRange().Ptr(),
+			Subject:  hclBlock.DefRange().Ptr(),
 		}}
 	}
 
-	localBlock := create(id,block.DefRange())
+	lb := create(id, hclBlock.DefRange())
 
-
-	diags = gohcl.DecodeBody(block.Body, nil, localBlock)
+	diags = gohcl.DecodeBody(hclBlock.Body, nil, lb)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	//localBlock.setID(id)
-	//localBlock.setRange(block.DefRange())
-
-
-	diags = localBlock.validate(block)
+	diags = lb.validate(hclBlock)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-
-
-
-	return localBlock.export(), diags
-
+	return lb, diags
 }
 
 
