@@ -11,29 +11,19 @@ import (
 
 	"regexp"
 	"strings"
+	"slices"
+	// "stings" 💀
 	//"/github.com/zclconf/go-cty/cty"
 )
 
 var (
 	validIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
-	//numbers = [5]core.Block{}
 )
-/*
-var m = map[string]localBlock{
-    core.Shortcut{}.Name(): &shortcut{},
-    core.AddPath{}.Name():  &addPath{},
-    core.Command{}.Name():  &command{},
-} // using reflect ? 
-*/
-
-
 
 //TODO:
-// ADD id regex check
-// add scope check per block type to local types 
+// Add table-driven tests
 
-// Add table-driven tests 
 
 
 var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
@@ -41,18 +31,21 @@ var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
         b := &shortcut{}
         b.setID(id)
         b.setRange(rng)
+		b.setScope(core.Shortcut{}.SuppotedScopes())
         return b
     },
     core.AddPath{}.Name(): func(id string, rng hcl.Range) localBlock {
         b := &addPath{}
         b.setID(id)
         b.setRange(rng)
+		b.setScope(core.AddPath{}.SuppotedScopes())
         return b
     },
     core.Command{}.Name(): func(id string, rng hcl.Range) localBlock {
         b := &command{}
         b.setID(id)
         b.setRange(rng)
+		b.setScope(core.Command{}.SuppotedScopes())
         return b
     },
 }
@@ -65,25 +58,29 @@ type localBlock interface {
 	
 
 	setID(string)
-	getID() string
 	setRange(hcl.Range)
+	setScope([]core.Scope)
+
+	
+
+	getID() string
 	getRange() hcl.Range
+	supportedScopes() []core.Scope
 
 }
-
-
-
 
 type meta struct {
 	ID    string
 	Range hcl.Range
+	Scope []core.Scope
 }
 
 func (m *meta) setID(id string)       { m.ID = id }
 func (m *meta) getID() string         { return m.ID }
 func (m *meta) setRange(r hcl.Range)  { m.Range = r }
 func (m *meta) getRange() hcl.Range   { return m.Range }
-
+func (m *meta) setScope(s []core.Scope) { m.Scope = s }
+func (m *meta) supportedScopes() []core.Scope { return m.Scope }
 
 
 
@@ -114,7 +111,9 @@ func (s *shortcut) validate(block *hclsyntax.Block) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
-	diags = append(diags, checkRequired(s.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+	//diags = append(diags, checkRequired(s.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+
+	diags = append(diags, checkRequired(s.Exe, "exe", attrRangeOf(block, "exe"))...)
 	diags = append(diags, checkOptional(s.DisplayName, "display_name", attrRangeOf(block, "display_name"))...)
 	diags = append(diags, checkOptional(s.Icon, "icon", attrRangeOf(block, "icon"))...)
 	diags = append(diags, checkOptional(s.Args, "args", attrRangeOf(block, "args"))...)
@@ -122,8 +121,6 @@ func (s *shortcut) validate(block *hclsyntax.Block) hcl.Diagnostics {
 	return diags
 
 }
-
-
 
 
 func (s *shortcut) export() core.Block {
@@ -136,7 +133,6 @@ func (s *shortcut) export() core.Block {
 		Args:        strings.TrimSpace(derefOr(s.Args, "")),
 	}
 }
-
 
 
 
@@ -169,12 +165,11 @@ func (c *command) validate(block *hclsyntax.Block) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
-	diags = append(diags, checkRequired(c.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+	diags = append(diags, checkRequired(c.Exe, "exe", attrRangeOf(block, "exe"))...)
 	diags = append(diags, checkOptional(c.Args, "args", attrRangeOf(block, "args"))...)
 
 	return diags
 }
-
 
 
 func (c *command) export() core.Block {
@@ -184,7 +179,6 @@ func (c *command) export() core.Block {
 		Args: strings.TrimSpace(derefOr(c.Args, "")),
 	}
 }
-
 
 func (c *command) uniqueFields() map[string]string {
 	return map[string]string{
@@ -215,7 +209,7 @@ func (a *addPath) validate(block *hclsyntax.Block) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
-	diags = append(diags, checkRequired(a.Dir, "dir", block.Body.Attributes["dir"].Expr.Range())...)
+	diags = append(diags, checkRequired(a.Dir, "dir", attrRangeOf(block, "dir"))...)
 
 
 	return diags
@@ -370,6 +364,8 @@ func Manifest(src []byte, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnos
 func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Manifest, hcl.Diagnostics) {
 
 	var diags hcl.Diagnostics
+	//check no top level attributes exist 
+
 
 	for _, block := range body.Blocks { // top level blocks check
 
@@ -405,35 +401,26 @@ func parseSingleScopeManifest(body *hclsyntax.Body, scope core.Scope) (*core.Man
 
 
 
-	resolved, d := parseScope(body)
+	resolved, d := parseScope(body,scope)
 	diags = append(diags, d...)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	m := &core.Manifest{
-    Scope: make(map[core.Scope]core.ManifestScope),
-	}
-
-	switch scope {
-	case core.ScopeUser:
-		m.Scope[core.ScopeUser] = resolved
-	case core.ScopeSystem:
-		m.Scope[core.ScopeSystem] = resolved
-	default:
-		return nil, hcl.Diagnostics{&hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  fmt.Sprintf("unknown scope %v", scope),
-		}}
-	}
+	m := &core.Manifest{Scope: make(map[core.Scope]core.ManifestScope)}
+	m.Scope[scope] = resolved
 
 	return m, diags
+
+
 }
 
 // ---------- dual-scope manifest (user{}/system{} required) ----------
 
 func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*core.Manifest, hcl.Diagnostics) {
-	m := &core.Manifest{}
+
+	m := &core.Manifest{Scope: map[core.Scope]core.ManifestScope{}}
+
 	var diags hcl.Diagnostics
 	seenUser := false
 	seenSystem := false
@@ -446,8 +433,10 @@ func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*co
 				diags = append(diags, dupTopLevelErr("user", block.DefRange()))
 				continue
 			}
+
+
 			seenUser = true
-			scope, d := parseScope(block.Body)
+			scope, d := parseScope(block.Body,core.ScopeUser)
 			diags = append(diags, d...)
 			m.Scope[core.ScopeUser] = scope
 
@@ -457,25 +446,39 @@ func parseDualScopeManifest(body *hclsyntax.Body, acceptScope []core.Scope) (*co
 				continue
 			}
 			seenSystem = true
-			scope, d := parseScope(block.Body)
+			scope, d := parseScope(block.Body,core.ScopeSystem)
 			diags = append(diags, d...)
 			m.Scope[core.ScopeSystem] = scope
 
-		case "shortcut", "command", "add_path":
-			diags = append(diags, &hcl.Diagnostic{
+
+
+		default:
+
+			if _, ok := localBlockConstructors[block.Type]; ok {
+				diags = append(diags, &hcl.Diagnostic{
 				Severity: hcl.DiagError,
 				Summary:  fmt.Sprintf("unexpected top-level %q block", block.Type),
 				Detail:   "this package supports multiple scopes — wrap actions in user{} and/or system{}",
 				Subject:  block.DefRange().Ptr(),
-			})
+				})
 
-		default:
-			diags = append(diags, &hcl.Diagnostic{
+				return nil, diags
+
+
+
+			}else{
+
+				diags = append(diags, &hcl.Diagnostic{
 				Severity: hcl.DiagError,
 				Summary:  fmt.Sprintf("unknown top-level block type %q", block.Type),
 				Detail:   `only "user" and "system" blocks are allowed at the top level`,
 				Subject:  block.DefRange().Ptr(),
-			})
+				})
+
+				return nil, diags
+			}
+
+
 		}
 	}
 
@@ -520,7 +523,7 @@ func dupTopLevelErr(blockType string, rng hcl.Range) *hcl.Diagnostic {
 
 // ---------- scope-level parse (shared by both paths) ----------
 
-func parseScope(body *hclsyntax.Body) (core.ManifestScope, hcl.Diagnostics) {
+func parseScope(body *hclsyntax.Body, mScope core.Scope) (core.ManifestScope, hcl.Diagnostics) {
 
 	var diags hcl.Diagnostics
 
@@ -537,7 +540,7 @@ func parseScope(body *hclsyntax.Body) (core.ManifestScope, hcl.Diagnostics) {
 	var parsed []localBlock
 
 	for _, block := range body.Blocks {
-		lb, d := parseBlock(block) // now returns localBlock not core.Block
+		lb, d := parseBlock(block,mScope) // now returns a valid localBlock not core.Block
 		diags = append(diags, d...)
 		if lb == nil {
 			continue
@@ -596,7 +599,7 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 
 
 
-func parseBlock(hclBlock *hclsyntax.Block) (localBlock, hcl.Diagnostics) {
+func parseBlock(hclBlock *hclsyntax.Block, mScope core.Scope) (localBlock, hcl.Diagnostics) {
 	id, diags := blockLabel(hclBlock)
 	if diags.HasErrors() {
 		return nil, diags
@@ -614,10 +617,23 @@ func parseBlock(hclBlock *hclsyntax.Block) (localBlock, hcl.Diagnostics) {
 
 	lb := create(id, hclBlock.DefRange())
 
+
+
 	diags = gohcl.DecodeBody(hclBlock.Body, nil, lb)
 	if diags.HasErrors() {
 		return nil, diags
 	}
+
+
+	if !slices.Contains(lb.supportedScopes(), mScope) {
+		return nil, hcl.Diagnostics{&hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  fmt.Sprintf("block %q does not support %s scope", hclBlock.Type, mScope),
+			Detail:   fmt.Sprintf("%s scope is not supported for this block type", mScope),
+			Subject:  hclBlock.DefRange().Ptr(),
+		}}
+	}
+
 
 	diags = lb.validate(hclBlock)
 	if diags.HasErrors() {
@@ -631,7 +647,7 @@ func parseBlock(hclBlock *hclsyntax.Block) (localBlock, hcl.Diagnostics) {
 
 
 
-// blockLabel enforces the 0-or-1-label rule and rejects whitespace-only labels.
+// blockLabel enforces the 0-or-1-label rule and validates a single label.
 func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 	switch len(block.Labels) {
 	case 0:
@@ -675,136 +691,5 @@ func blockLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 
 
 
-// ---------- per-type parse: HCL decode shapes live only here ----------
-
-func parseShortcut(block *hclsyntax.Block, id string) (core.Shortcut, hcl.Diagnostics) {
-	var attrs struct {
-		DisplayName *string `hcl:"display_name,optional"`
-		Exe         string  `hcl:"exe"`
-		Icon        *string `hcl:"icon,optional"`
-		Args        *string `hcl:"args,optional"`
-	}
-
-	if diags := gohcl.DecodeBody(block.Body, nil, &attrs); diags.HasErrors() {
-		return core.Shortcut{}, diags
-	}
-
-	var diags hcl.Diagnostics
-
-	diags = append(diags, checkRequired(attrs.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
-	diags = append(diags, checkOptional(attrs.DisplayName, "display_name", attrRangeOf(block, "display_name"))...)
-	diags = append(diags, checkOptional(attrs.Icon, "icon", attrRangeOf(block, "icon"))...)
-	diags = append(diags, checkOptional(attrs.Args, "args", attrRangeOf(block, "args"))...)
-
-	if diags.HasErrors() {
-		return core.Shortcut{}, diags
-	}
-
-	return core.Shortcut{
-		ID:          id,
-		Exe:         strings.TrimSpace(attrs.Exe),
-		DisplayName: strings.TrimSpace(derefOr(attrs.DisplayName, "")),
-		Icon:        strings.TrimSpace(derefOr(attrs.Icon, "")),
-		Args:        strings.TrimSpace(derefOr(attrs.Args, "")),
-	}, diags
-}
-
-func parseCommand(block *hclsyntax.Block, id string) (core.Command, hcl.Diagnostics) {
-
-	var attrs struct {
-		Exe  string  `hcl:"exe"`
-		Args *string `hcl:"args,optional"`
-	}
-
-	if diags := gohcl.DecodeBody(block.Body, nil, &attrs); diags.HasErrors() {
-		return core.Command{}, diags
-	}
-
-	var diags hcl.Diagnostics
-
-	diags = append(diags, checkRequired(attrs.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
-	diags = append(diags, checkOptional(attrs.Args, "args", attrRangeOf(block, "args"))...)
-
-	if diags.HasErrors() {
-		return core.Command{}, diags
-	}
-
-	return core.Command{
-		ID:   id,
-		Exe:  strings.TrimSpace(attrs.Exe),
-		Args: strings.TrimSpace(derefOr(attrs.Args, "")),
-	}, diags
-}
-
-func parseAddPath(block *hclsyntax.Block, id string) (core.AddPath, hcl.Diagnostics) {
 
 
-	var attrs struct {
-		Dir string `hcl:"dir"`
-	}
-	if diags := gohcl.DecodeBody(block.Body, nil, &attrs); diags.HasErrors() {
-		return core.AddPath{}, diags
-	}
-
-	var diags hcl.Diagnostics
-
-	diags = append(diags, checkRequired(attrs.Dir, "dir", block.Body.Attributes["dir"].Expr.Range())...)
-
-	if diags.HasErrors() {
-		return core.AddPath{}, diags
-	}
-
-	return core.AddPath{ID: id, Dir: strings.TrimSpace(attrs.Dir)}, diags
-}
-
-// ---------- shared helpers ----------
-
-func derefOr(p *string, def string) string {
-	if p == nil {
-		return def
-	}
-	return *p
-}
-
-func requiredErr(field string, rng hcl.Range) *hcl.Diagnostic {
-	return &hcl.Diagnostic{
-		Severity: hcl.DiagError,
-		Summary:  fmt.Sprintf("%s must not be empty", field),
-		Subject:  rng.Ptr(),
-	}
-}
-
-func checkRequired(value, field string, attrRange hcl.Range) hcl.Diagnostics {
-	var diags hcl.Diagnostics
-
-	if strings.TrimSpace(value) == "" {
-		diags = append(diags, requiredErr(field, attrRange))
-		return diags
-	}
-	return diags
-}
-
-func checkOptional(value *string, field string, attrRange hcl.Range) hcl.Diagnostics {
-	var diags hcl.Diagnostics
-	if value == nil {
-		return diags
-	}
-	if strings.TrimSpace(*value) == "" {
-		diags = append(diags, &hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  fmt.Sprintf("%s must not be empty if provided", field),
-			Detail:   fmt.Sprintf("omit %s entirely to use the default, or provide a non-empty value", field),
-			Subject:  attrRange.Ptr(),
-		})
-		return diags
-	}
-
-	return diags
-}
-
-func attrRangeOf(block *hclsyntax.Block, name string) hcl.Range {
-	if attr, ok := block.Body.Attributes[name]; ok {
-		return attr.Expr.Range()
-	}
-	return block.DefRange()
-}

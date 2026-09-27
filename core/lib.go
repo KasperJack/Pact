@@ -1,12 +1,9 @@
 package core
 
 import (
-	//"github.com/kasperjack/pact/core/model"
-
 	"errors"
     "runtime"
     "fmt"
-    "github.com/hashicorp/hcl/v2"
 
 )
 
@@ -40,7 +37,8 @@ reorganize packages into core and manager to fix import cycles
 */
 
 
-
+//TODO:
+// move all hcl related types and validation functions to the parser 
 
 type InstallArgs struct {
     PackageIdentifier string
@@ -122,6 +120,8 @@ type LockManager interface {
 
 }
 
+
+
 type LockManagers struct {
     System LockManager
     User   LockManager
@@ -156,15 +156,7 @@ type LockFileC struct {
 ////////////////////////
 
 
-
-type FileInfo struct {
-	Range hcl.Range
-}
-
-func (f FileInfo) FileRange() hcl.Range { return f.Range }
-
 type PackageInfo struct {
-	FileInfo
 	Package       string
 	Name          string
 	Description   string

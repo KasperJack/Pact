@@ -63,7 +63,7 @@ func main() {
 		log.Fatalf("reading manifest.hcl: %v", err)
 	}
 
-	m, diags := parce.Manifest(manifestSrc,pkg.Scopes)
+	m, diags := parce.Manifest(manifestSrc,[]core.Scope{core.ScopeUser,core.ScopeSystem})
 	if diags.HasErrors() {
 		printDiags(diags)
 		log.Fatal("parse failed")
@@ -77,12 +77,13 @@ func main() {
 
 	fmt.Println(len(s.Blocks))
 
-	for _, b := range s.Blocks {
-		//fmt.Println(b.Name())
-		//fmt.Println(b.BlockID())
-		b.Run()
-	}
+	var v core.Visitor = core.DryRunner{}
 
+	for _, b := range s.Blocks {
+		if err := b.Accept(v); err != nil {
+			log.Fatal(err)
+		}
+	}
 
 }
 

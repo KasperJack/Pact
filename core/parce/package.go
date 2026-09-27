@@ -2,7 +2,6 @@ package parce
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
@@ -18,10 +17,136 @@ var validPackageNamePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 
 
+type lPackage struct {
+	Range 	  hcl.Range
+
+	Package       string   `hcl:"package"`
+	Name          string   `hcl:"name"`
+	Description   *string  `hcl:"description,optional"`
+	Homepage      *string  `hcl:"homepage,optional"`
+	License       *string  `hcl:"license,optional"`
+	RawArchitectures []string `hcl:"architectures"`
+	RawScopes        []string `hcl:"scopes"`
+
+	Scopes        []core.Scope
+	Architectures []core.Arch
+}
+
+
+
+
+func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
+
+
+	var allDiags hcl.Diagnostics
+
+
+
+	rangeOf := func(field string) hcl.Range {
+
+        return tempattrRangeOf(body, field)
+    }
+
+
+
+
+	allDiags = append(allDiags, checkField(p.Package, "package", rangeOf("package"))...)
+    allDiags = append(allDiags, checkValidPackageName(p.Package, rangeOf("package"))...)
+
+
+    allDiags = append(allDiags, checkField(p.Name, "name", rangeOf("name"))...)
+    allDiags = append(allDiags, checkField(p.Description, "description", rangeOf("description"))...)
+    allDiags = append(allDiags, checkField(p.Homepage, "homepage", rangeOf("homepage"))...)
+    allDiags = append(allDiags, checkField(p.License, "license", rangeOf("license"))...)
+
+
+
+
+	if len(p.RawArchitectures) == 0 {
+		allDiags = append(allDiags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "architectures must not be empty",
+			Detail:   "a package must declare at least one supported architecture",
+			Subject:  rangeOf("architectures").Ptr(),
+		})
+	}
+
+
+	if len(p.RawScopes) == 0 {
+		allDiags = append(allDiags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "scopes must not be empty",
+			Detail:   `a package must declare at least one of "user" or "system"`,
+			Subject:  rangeOf("scopes").Ptr(),
+		})
+	}
+
+
+
+
+
+
+	for _, raw := range p.RawArchitectures {
+
+		_, err := core.ParseArch(raw)
+
+		if err != nil {
+			allDiags = append(allDiags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("invalid architecture %q", raw),
+				Detail:   err.Error(),
+				Subject:  rangeOf("architectures").Ptr(),
+			})
+			continue
+		}
+
+	}
+
+
+	for _, raw := range p.RawScopes {
+		_, err := core.ParseScope(raw)
+		if err != nil {
+			allDiags = append(allDiags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("invalid scope %q", raw),
+				Detail:   err.Error(),
+				Subject:  rangeOf("scopes").Ptr(),
+			})
+			continue
+		}
+
+	}
+
+
+
+	allDiags = append(allDiags, checkDuplicateArchs(p.RawArchitectures, rangeOf("architectures"))...)
+	allDiags = append(allDiags, checkDuplicateScopes(p.RawScopes, rangeOf("scopes"))...)
+
+
+
+	return allDiags
+}
+
+
+
+
+
+
+
+func (p *lPackage) export() (*core.PackageInfo) {return nil}
+	
+
+
+
+
+
+
+
 func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 
 	parser := hclparse.NewParser()
 	f, diags := parser.ParseHCL(src, "package.hcl")
+
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -35,117 +160,43 @@ func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 		}}
 	}
 
-	var attrs struct {
-		Package       string   `hcl:"package"`
-		Name          string   `hcl:"name"`
-		Description   *string  `hcl:"description,optional"`
-		Homepage      *string  `hcl:"homepage,optional"`
-		License       *string  `hcl:"license,optional"`
-		Architectures []string `hcl:"architectures"`
-		Scopes        []string `hcl:"scopes"`
-	}
-	if d := gohcl.DecodeBody(f.Body, nil, &attrs); d.HasErrors() {
+
+
+	pkg := &lPackage{}
+
+
+
+
+	if d := gohcl.DecodeBody(f.Body, nil, pkg); d.HasErrors() {
 		return nil, d
 	}
 
-	var allDiags hcl.Diagnostics
-
-	allDiags = append(allDiags, checkRequired(attrs.Package, "package", attrRangeOfBody(syntaxBody, "package"))...)
-
-	allDiags = append(allDiags, checkValidPackageName(attrs.Package, attrRangeOfBody(syntaxBody, "package"))...)
-
-	allDiags = append(allDiags, checkRequired(attrs.Name, "name", attrRangeOfBody(syntaxBody, "name"))...)
-	allDiags = append(allDiags, checkOptional(attrs.Description, "description", attrRangeOfBody(syntaxBody, "description"))...)
-	allDiags = append(allDiags, checkOptional(attrs.Homepage, "homepage", attrRangeOfBody(syntaxBody, "homepage"))...)
-	allDiags = append(allDiags, checkOptional(attrs.License, "license", attrRangeOfBody(syntaxBody, "license"))...)
-
-
+	diags = pkg.validate(syntaxBody) //syntaxBody ? 
 
 	
-	if len(attrs.Architectures) == 0 {
-		allDiags = append(allDiags, &hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  "architectures must not be empty",
-			Detail:   "a package must declare at least one supported architecture",
-			Subject:  attrRangeOfBody(syntaxBody, "architectures").Ptr(),
-		})
-	}
-	if len(attrs.Scopes) == 0 {
-		allDiags = append(allDiags, &hcl.Diagnostic{
-			Severity: hcl.DiagError,
-			Summary:  "scopes must not be empty",
-			Detail:   `a package must declare at least one of "user" or "system"`,
-			Subject:  attrRangeOfBody(syntaxBody, "scopes").Ptr(),
-		})
-	}
 
-	archs := make([]core.Arch, 0, len(attrs.Architectures))
-	for _, raw := range attrs.Architectures {
-		a, err := core.ParseArch(raw)
-		if err != nil {
-			allDiags = append(allDiags, &hcl.Diagnostic{
-				Severity: hcl.DiagError,
-				Summary:  fmt.Sprintf("invalid architecture %q", raw),
-				Detail:   err.Error(),
-				Subject:  attrRangeOfBody(syntaxBody, "architectures").Ptr(),
-			})
-			continue
-		}
-		archs = append(archs, a)
-	}
 
-	scopes := make([]core.Scope, 0, len(attrs.Scopes))
-	for _, raw := range attrs.Scopes {
-		s, err := core.ParseScope(raw)
-		if err != nil {
-			allDiags = append(allDiags, &hcl.Diagnostic{
-				Severity: hcl.DiagError,
-				Summary:  fmt.Sprintf("invalid scope %q", raw),
-				Detail:   err.Error(),
-				Subject:  attrRangeOfBody(syntaxBody, "scopes").Ptr(),
-			})
-			continue
-		}
-		scopes = append(scopes, s)
+
+	if diags.HasErrors() {
+		return nil, diags
 	}
 
 
-	allDiags = append(allDiags, checkDuplicateArchs(archs, attrRangeOfBody(syntaxBody, "architectures"))...)
-	allDiags = append(allDiags, checkDuplicateScopes(scopes, attrRangeOfBody(syntaxBody, "scopes"))...)
-
-
-	if allDiags.HasErrors() {
-		return nil, allDiags
-	}
-
-	return &core.PackageInfo{
-		FileInfo:      core.FileInfo{Range: syntaxBody.SrcRange},
-		Package:       strings.TrimSpace(attrs.Package),
-		Name:          strings.TrimSpace(attrs.Name),
-		Description:   strings.TrimSpace(derefOr(attrs.Description, "")),
-		Homepage:      strings.TrimSpace(derefOr(attrs.Homepage, "")),
-		License:       strings.TrimSpace(derefOr(attrs.License, "")),
-		Architectures: archs,
-		Scopes:        scopes,
-	}, allDiags
+	return pkg.export(),diags
 }
 
-// attrRangeOfBody mirrors attrRangeOf but works on a *hclsyntax.Body directly
-// (top-level file attributes) instead of a block's body.
-func attrRangeOfBody(body *hclsyntax.Body, name string) hcl.Range {
-	if attr, ok := body.Attributes[name]; ok {
-		return attr.Expr.Range()
-	}
-	return body.SrcRange
-}
 
+
+
+
+
+
+//pkg parce helpers
 
 
 
 func checkValidPackageName(value string, rng hcl.Range) hcl.Diagnostics {
-	if value == "" {
-		return nil // required-ness handled by checkRequired separately
-	}
+
 	if !validPackageNamePattern.MatchString(value) {
 		return hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
@@ -163,9 +214,11 @@ func checkValidPackageName(value string, rng hcl.Range) hcl.Diagnostics {
 
 
 
-func checkDuplicateArchs(archs []core.Arch, rng hcl.Range) hcl.Diagnostics {
+
+func checkDuplicateArchs(archs []string, rng hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
-	seen := map[core.Arch]bool{}
+
+	seen := map[string]bool{}
 
 	for _, a := range archs {
 		if seen[a] {
@@ -183,9 +236,13 @@ func checkDuplicateArchs(archs []core.Arch, rng hcl.Range) hcl.Diagnostics {
 	return diags
 }
 
-func checkDuplicateScopes(scopes []core.Scope, rng hcl.Range) hcl.Diagnostics {
+
+
+
+
+func checkDuplicateScopes(scopes []string, rng hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
-	seen := map[core.Scope]bool{}
+	seen := map[string]bool{}
 
 	for _, s := range scopes {
 		if seen[s] {

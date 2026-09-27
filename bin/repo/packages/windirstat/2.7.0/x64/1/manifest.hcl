@@ -1,4 +1,5 @@
-
+system {
+  
   install_path = "home"
 
 
@@ -15,9 +16,8 @@
 
 
 
-
-  command {
-    exe = "ss"
+  command "ass" {
+    exe = "ss   "
 
   }
 
@@ -25,36 +25,7 @@
     exe = "ttt"
 
   }
-
-
-
-
-
-  add_path "hole"{
-
-    dir = ""
-  }
-
-
-  add_path "ass" {
-
-    dir = "  "
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 

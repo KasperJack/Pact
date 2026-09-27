@@ -4,12 +4,25 @@ import (
 	"fmt"
 )
 
+
+
+type Visitor interface {
+	VisitShortcut(Shortcut) error
+	VisitCommand(Command) error
+	VisitAddPath(AddPath) error
+}
+
+
 type Block interface {
 	BlockID() string
-	Run() error
+	//Run() error
+	Accept(Visitor) error
 	Name() string
-	SuppotedScopes() [2]Scope
+	SuppotedScopes() []Scope
 }
+
+
+
 
 
 
@@ -24,28 +37,7 @@ type Shortcut struct {
 	Args        string //optianl // // trim tarling and ending spacse 
 }
 
-
-func (s Shortcut) Run() error {
-	fmt.Println("=== Running Shortcut ===")
-
-	if s.ID != "" {
-		fmt.Println("ID:", s.ID)
-	}
-	if s.DisplayName != "" {
-		fmt.Println("DisplayName:", s.DisplayName)
-	}
-	if s.Exe != "" {
-		fmt.Println("Exe:", s.Exe)
-	}
-	if s.Icon != "" {
-		fmt.Println("Icon:", s.Icon)
-	}
-	if s.Args != "" {
-		fmt.Println("Args:", s.Args)
-	}
-	return nil
-}
-
+func (s Shortcut) Accept(v Visitor) error { return v.VisitShortcut(s) }
 
 
 
@@ -54,8 +46,8 @@ func (s Shortcut) Name() string {
 	return "shortcut"
 }
 
-func (s Shortcut) SuppotedScopes()[2]Scope{
-	return [2]Scope{ScopeUser,ScopeSystem}
+func (s Shortcut) SuppotedScopes() []Scope{
+	return []Scope{ScopeUser,ScopeSystem}
 }
 
 
@@ -83,35 +75,19 @@ type Command struct {
 }
 
 
-func (c Command) Run() error {
-	fmt.Println("=== Running Command ===")
-	if c.ID != "" {
-		fmt.Println("ID:", c.ID)
-	}
-	if c.Exe != "" {
-		fmt.Println("Exe:", c.Exe)
-	}
-	if c.Args != "" {
-		fmt.Println("Args:", c.Args)
-	}
-	return nil
-}
-
-
-
-
 func (c Command) Name() string {
 	return "command"
 }
 
-func (c Command) SuppotedScopes()[2]Scope{
-	return [2]Scope{ScopeUser,ScopeSystem}
+func (c Command) SuppotedScopes() []Scope{
+	return []Scope{ScopeUser,ScopeSystem}
 }
 
 func (c Command) BlockID() string {
 	return c.ID
 }
 
+func (c Command) Accept(v Visitor) error  { return v.VisitCommand(c) }
 
 
 
@@ -132,28 +108,53 @@ type AddPath struct {
 	Dir string // required // trim tarling and ending spacse  //check in path
 }
 
-func (a AddPath) Run() error {
-	fmt.Println("=== Running AddPath ===")
-	if a.ID != "" {
-		fmt.Println("ID:", a.ID)
-	}
-	if a.Dir != "" {
-		fmt.Println("Dir:", a.Dir)
-	}
-	return nil
-}
-
 func (a AddPath) Name() string {
 	return "add_path"
 }
 
-func (a AddPath) SuppotedScopes()[2]Scope{
-	return [2]Scope{ScopeUser,ScopeSystem}
+func (a AddPath) SuppotedScopes() []Scope{
+	return []Scope{ScopeSystem}
 }
 
 func (a AddPath) BlockID() string {
 	return a.ID
 }
+
+func (a AddPath) Accept(v Visitor) error  { return v.VisitAddPath(a) }
+
+
+
+
+
+
+
+
+
+type DryRunner struct{}
+
+func (DryRunner) VisitShortcut(s Shortcut) error {
+	fmt.Printf("[dry-run] would create shortcut %q -> %s\n", s.ID, s.Exe)
+	return nil
+}
+func (DryRunner) VisitCommand(c Command) error {
+	fmt.Printf("[dry-run] would run command: %s\n", c.Exe)
+	return nil
+}
+func (DryRunner) VisitAddPath(a AddPath) error {
+	fmt.Printf("[dry-run] would add to PATH: %s\n", a.Dir)
+	return nil
+}
+
+
+
+type DryRemover struct{}
+
+
+
+
+
+
+
 
 
 
