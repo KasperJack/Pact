@@ -12,3 +12,7 @@ Install software from an archive-based package format, per-user or system-wide, 
 
 
 
+If the package manager delegates installation to the EXE, the EXE is still the package manager.
+
+
+

@@ -157,11 +157,13 @@ type LockFileC struct {
 
 
 type PackageInfo struct {
-	Package       string
+	PackageIdentifier       string
 	Name          string
-	Description   string
-	Homepage      string
-	License       string
+
+	Description   string //op
+	Homepage      string //op
+	License       string //op
+    
 	Architectures []Arch
 	Scopes        []Scope
 }
@@ -249,7 +251,7 @@ type ArchRelease struct {
 
 
 type Release struct {
-    Package         string `hcl:"package"`
+    PackageIdentifier         string `hcl:"package"`
     UpstreamVersion string `hcl:"upstream_version"` 
     Revision        int     `hcl:"revision"` 
     URL             string  `hcl:"url"` 
@@ -262,15 +264,6 @@ type Release struct {
 }
 
 
-func (r *Release) Validate() error {
-    a, err := ParseArch(r.ArchitectureRaw)
-
-    if err != nil {
-        return fmt.Errorf("release %q: %w", r.Package, err)
-    }
-    r.Architecture = a 
-    return nil
-}
 
 
 

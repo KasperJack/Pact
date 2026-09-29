@@ -88,7 +88,7 @@ func checkOptional(value *string, field string, attrRange hcl.Range) hcl.Diagnos
 
 
 
-func tempattrRangeOf(body *hclsyntax.Body, name string) hcl.Range {
+func attrRangeOf(body *hclsyntax.Body, name string) hcl.Range {
     if attr, ok := body.Attributes[name]; ok {
         return attr.Expr.Range()
     }
@@ -96,12 +96,7 @@ func tempattrRangeOf(body *hclsyntax.Body, name string) hcl.Range {
 }
 
 
-func attrRangeOf(block *hclsyntax.Block, name string) hcl.Range {
-	if attr, ok := block.Body.Attributes[name]; ok {
-		return attr.Expr.Range()
-	}
-	return block.DefRange()
-}
+
 
 func derefOr(p *string, def string) string {
 	if p == nil {

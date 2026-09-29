@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
 	"regexp"
+	"strings"
+
 
 )
 
@@ -44,7 +46,7 @@ func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 	rangeOf := func(field string) hcl.Range {
 
-        return tempattrRangeOf(body, field)
+        return attrRangeOf(body, field)
     }
 
 
@@ -129,12 +131,33 @@ func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 
 
+func (p *lPackage) export() (*core.PackageInfo) {
+
+	return &core.PackageInfo{
+		PackageIdentifier: p.Package,
+		Name: strings.TrimSpace(p.Name),
+		Description: strings.TrimSpace(derefOr(p.Description,"")),
+		Homepage: strings.TrimSpace(derefOr(p.Homepage,"")),
+		License: strings.TrimSpace(derefOr(p.License,"")),
+
+		Architectures: mustMapParsed(p.RawArchitectures, core.ParseArch),
+        Scopes:        mustMapParsed(p.RawScopes, core.ParseScope),
+
+
+	}
 
 
 
-
-func (p *lPackage) export() (*core.PackageInfo) {return nil}
+}
 	
+
+
+
+
+
+
+
+
 
 
 
@@ -258,4 +281,19 @@ func checkDuplicateScopes(scopes []string, rng hcl.Range) hcl.Diagnostics {
 	}
 
 	return diags
+}
+
+
+
+
+func mustMapParsed[T any](raw []string, parse func(string) (T, error)) []T {
+    out := make([]T, len(raw))
+    for i, r := range raw {
+        v, err := parse(r)
+        if err != nil {
+            panic(fmt.Sprintf("mapParsed: unexpected invalid value %q (was validate() called first?): %v", r, err))
+        }
+        out[i] = v
+    }
+    return out
 }

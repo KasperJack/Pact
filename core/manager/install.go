@@ -2,16 +2,8 @@ package manager
 
 import (
 
-	//"path"
-	//"os"
-
-	//"path/filepath"
-
-	//"github.com/kasperjack/pact/core/model"
-	//"runtime"
 	"github.com/kasperjack/pact/core"
 	//"github.com/kasperjack/pact/core/internal/runtime"
-	//"github.com/nyaosorg/go-windows-junction"
 	//"github.com/kasperjack/pact/core/internal/win"
 	"github.com/kasperjack/pact/core/internal/install"
 )

@@ -23,6 +23,7 @@ var (
 
 //TODO:
 // Add table-driven tests
+// Add a source composition layer (repo -> composition -> parser) 
 
 
 
@@ -52,7 +53,7 @@ var localBlockConstructors = map[string]func(string, hcl.Range) localBlock{
 
 
 type localBlock interface {
-	validate(*hclsyntax.Block) hcl.Diagnostics
+	validate(*hclsyntax.Body) hcl.Diagnostics
 	export() core.Block
 	uniqueFields() map[string]string
 	
@@ -107,16 +108,23 @@ type shortcut struct {
 
 
 
-func (s *shortcut) validate(block *hclsyntax.Block) hcl.Diagnostics {
+func (s *shortcut) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
+
+	rangeOf := func(field string) hcl.Range {
+
+        return attrRangeOf(body, field)
+    }
+
+
 	//diags = append(diags, checkRequired(s.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
 
-	diags = append(diags, checkRequired(s.Exe, "exe", attrRangeOf(block, "exe"))...)
-	diags = append(diags, checkOptional(s.DisplayName, "display_name", attrRangeOf(block, "display_name"))...)
-	diags = append(diags, checkOptional(s.Icon, "icon", attrRangeOf(block, "icon"))...)
-	diags = append(diags, checkOptional(s.Args, "args", attrRangeOf(block, "args"))...)
+	diags = append(diags, checkRequired(s.Exe, "exe", rangeOf("exe"))...)
+	diags = append(diags, checkOptional(s.DisplayName, "display_name", rangeOf("display_name"))...)
+	diags = append(diags, checkOptional(s.Icon, "icon", rangeOf("icon"))...)
+	diags = append(diags, checkOptional(s.Args, "args", rangeOf("args"))...)
 
 	return diags
 
@@ -161,15 +169,28 @@ type command struct {
 
 }
 
-func (c *command) validate(block *hclsyntax.Block) hcl.Diagnostics {
+func (c *command) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
-	diags = append(diags, checkRequired(c.Exe, "exe", attrRangeOf(block, "exe"))...)
-	diags = append(diags, checkOptional(c.Args, "args", attrRangeOf(block, "args"))...)
+
+	rangeOf := func(field string) hcl.Range {
+
+        return attrRangeOf(body, field)
+    }
+
+
+
+
+
+
+	diags = append(diags, checkRequired(c.Exe, "exe", rangeOf("exe"))...)
+	diags = append(diags, checkOptional(c.Args, "args", rangeOf("args"))...)
 
 	return diags
 }
+
+
 
 
 func (c *command) export() core.Block {
@@ -194,9 +215,6 @@ func (c *command) uniqueFields() map[string]string {
 
 
 
-
-
-
 type addPath struct {
 	meta
 	Dir string `hcl:"dir"`
@@ -205,15 +223,23 @@ type addPath struct {
 
 
 
-func (a *addPath) validate(block *hclsyntax.Block) hcl.Diagnostics {
+func (a *addPath) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
 
-	diags = append(diags, checkRequired(a.Dir, "dir", attrRangeOf(block, "dir"))...)
+	rangeOf := func(field string) hcl.Range {
+
+        return attrRangeOf(body, field)
+    }
+
+
+	diags = append(diags, checkRequired(a.Dir, "dir", rangeOf("dir"))...)
 
 
 	return diags
 }
+
+
 
 
 
@@ -229,6 +255,15 @@ func (a *addPath) uniqueFields() map[string]string {
 
 	return nil
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -635,7 +670,7 @@ func parseBlock(hclBlock *hclsyntax.Block, mScope core.Scope) (localBlock, hcl.D
 	}
 
 
-	diags = lb.validate(hclBlock)
+	diags = lb.validate(hclBlock.Body)
 	if diags.HasErrors() {
 		return nil, diags
 	}

@@ -40,20 +40,7 @@ func main() {
 		log.Fatal("package info parse failed")
 	}
 
-	
-	/*
-	
-	interfaceSrc, err := os.ReadFile(filepath.Join(archRelease, "interface.hcl"))
-	if err != nil {
-		log.Fatalf("reading interface.hcl: %v", err)
-	}
 
-	inter, diags := parce.Interface(interfaceSrc,pkg.Scopes)
-	if diags.HasErrors() {
-		printDiags(diags)
-		log.Fatal("interface parse failed")
-	}
-	*/
 
 	fmt.Println(pkg.Scopes)
 
@@ -63,7 +50,7 @@ func main() {
 		log.Fatalf("reading manifest.hcl: %v", err)
 	}
 
-	m, diags := parce.Manifest(manifestSrc,[]core.Scope{core.ScopeUser,core.ScopeSystem})
+	m, diags := parce.Manifest(manifestSrc,pkg.Scopes)
 	if diags.HasErrors() {
 		printDiags(diags)
 		log.Fatal("parse failed")

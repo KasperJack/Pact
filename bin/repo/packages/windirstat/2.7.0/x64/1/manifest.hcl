@@ -1,11 +1,11 @@
-system {
+
   
   install_path = "home"
 
 
-  shortcut  {
+  shortcut "ass" {
     display_name = "gg"
-    exe    = "/home/.cong/gg.exe"
+    exe    = "ff"
   }
 
 
@@ -21,11 +21,11 @@ system {
 
   }
 
-  command {
-    exe = "ttt"
+  command  "ass"{
+    exe = "ff"
 
   }
-}
+
 
 
 
