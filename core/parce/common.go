@@ -7,39 +7,87 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"reflect"
+
  )
 
 
 
+ 
+func validateStringFields(target any, body *hclsyntax.Body) hcl.Diagnostics {
+    var diags hcl.Diagnostics
 
-
-
-
-
-func checkField(value any, field string, rng hcl.Range) hcl.Diagnostics {
-    v := reflect.ValueOf(value)
-
+    v := reflect.ValueOf(target)
     if v.Kind() == reflect.Ptr {
-        if v.IsNil() {
-            return nil // not provided that's fine
-        }
-        v = v.Elem() // dereference to get the actual string
-        if strings.TrimSpace(v.String()) == "" {
-            return hcl.Diagnostics{&hcl.Diagnostic{
-                Severity: hcl.DiagError,
-                Summary:  fmt.Sprintf("%s must not be empty if provided", field),
-                Detail:   fmt.Sprintf("omit %s entirely to use the default, or provide a non-empty value", field),
-                Subject:  rng.Ptr(),
-            }}
-        }
-        return nil
+        v = v.Elem()
     }
+    t := v.Type()
 
-    if strings.TrimSpace(v.String()) == "" {
-        return hcl.Diagnostics{requiredErr(field, rng)}
+    for i := 0; i < t.NumField(); i++ {
+        f := t.Field(i)
+        if !f.IsExported() || f.Tag.Get("validate") != "nonempty" {
+            continue
+        }
+
+        // "mirror,optional" -> "mirror"
+        name, _, _ := strings.Cut(f.Tag.Get("hcl"), ",")
+        rng := attrRangeOf(body, name)
+
+        switch fv := v.Field(i).Interface().(type) {
+        case string:
+            diags = append(diags, checkStringField(fv, name, rng)...)
+        case *string:
+            diags = append(diags, checkStringField(fv, name, rng)...)
+        default:
+            panic(fmt.Sprintf("field %s: validate:\"nonempty\" only supports string or *string", f.Name))
+        }
+    }
+    return diags
+}
+
+
+
+
+func checkStringField[T string | *string](value T, field string, rng hcl.Range) hcl.Diagnostics {
+
+
+
+    switch v := any(value).(type) {
+
+    case *string:
+        if v == nil {
+            return nil
+        }
+        if strings.TrimSpace(*v) == "" {
+            return hcl.Diagnostics{optionalEmptyErr(field, rng)}
+        }
+    case string:
+        if strings.TrimSpace(v) == "" {
+            return hcl.Diagnostics{requiredErr(field, rng)}
+        }
     }
     return nil
 }
+
+
+
+
+
+
+
+
+func optionalEmptyErr(field string, rng hcl.Range) *hcl.Diagnostic {
+
+	return &hcl.Diagnostic{
+		Severity: hcl.DiagError,
+		Summary:  fmt.Sprintf("%s must not be empty if provided", field),
+		Detail:   fmt.Sprintf(
+			"omit %s entirely to use the default, or provide a non-empty value",
+			field,
+		),
+		Subject: rng.Ptr(),
+	}
+}
+
 
 
 func requiredErr(field string, rng hcl.Range) *hcl.Diagnostic {
@@ -51,7 +99,10 @@ func requiredErr(field string, rng hcl.Range) *hcl.Diagnostic {
 }
 
 
-func checkRequired(value, field string, attrRange hcl.Range) hcl.Diagnostics {
+
+
+
+func checkRequiredString(value, field string, attrRange hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
 
 	if strings.TrimSpace(value) == "" {
@@ -61,7 +112,10 @@ func checkRequired(value, field string, attrRange hcl.Range) hcl.Diagnostics {
 	return diags
 }
 
-func checkOptional(value *string, field string, attrRange hcl.Range) hcl.Diagnostics {
+
+
+
+func checkOptionalString(value *string, field string, attrRange hcl.Range) hcl.Diagnostics {
 	var diags hcl.Diagnostics
 
 	if value == nil {

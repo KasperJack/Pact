@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/gohcl"
+	//"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/kasperjack/pact/core"
-	"strings"
+	//"strings"
 )
 
 
@@ -201,6 +201,10 @@ func parseOptionScope(body *hclsyntax.Body) ([]core.Option, hcl.Diagnostics) {
 }
 
 func parseOption(block *hclsyntax.Block) (core.Option, hcl.Diagnostics) {
+
+
+
+	/*
 	id, diags := optionLabel(block) // same 0-or-1-label + validIDPattern rule as blockLabel
 	if diags.HasErrors() {
 		return core.Option{}, diags
@@ -216,8 +220,8 @@ func parseOption(block *hclsyntax.Block) (core.Option, hcl.Diagnostics) {
 		return core.Option{}, d
 	}
 
-	diags = append(diags, checkOptional(attrs.Label, "label", attrRangeOf(block, "label"))...)
-	diags = append(diags, checkOptional(attrs.Description, "description", attrRangeOf(block, "description"))...)
+	diags = append(diags, checkStringField(attrs.Label, "label", attrRangeOf(block, "label"))...)
+	diags = append(diags, checkStringField(attrs.Description, "description", attrRangeOf(block, "description"))...)
 
 	if len(attrs.Binding) == 0 {
 		diags = append(diags, &hcl.Diagnostic{
@@ -269,5 +273,6 @@ func optionLabel(block *hclsyntax.Block) (string, hcl.Diagnostics) {
 			Subject:  block.DefRange().Ptr(),
 		}}
 	}
-	return label, nil
+	*/
+	return core.Option{}, nil
 }

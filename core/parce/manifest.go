@@ -18,7 +18,6 @@ import (
 
 var (
 	validIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
-
 )
 
 //TODO:
@@ -119,12 +118,14 @@ func (s *shortcut) validate(body *hclsyntax.Body) hcl.Diagnostics {
     }
 
 
-	//diags = append(diags, checkRequired(s.Exe, "exe", block.Body.Attributes["exe"].Expr.Range())...)
+	//diags = append(diags, validateStringFields(s, body)...)
 
-	diags = append(diags, checkRequired(s.Exe, "exe", rangeOf("exe"))...)
-	diags = append(diags, checkOptional(s.DisplayName, "display_name", rangeOf("display_name"))...)
-	diags = append(diags, checkOptional(s.Icon, "icon", rangeOf("icon"))...)
-	diags = append(diags, checkOptional(s.Args, "args", rangeOf("args"))...)
+	diags = append(diags, checkStringField(s.Exe, "exe", rangeOf("exe"))...)
+	diags = append(diags, checkStringField(s.DisplayName, "display_name", rangeOf("display_name"))...)
+	diags = append(diags, checkStringField(s.Icon, "icon", rangeOf("icon"))...)
+	diags = append(diags, checkStringField(s.Args, "args", rangeOf("args"))...)
+
+
 
 	return diags
 
@@ -169,6 +170,8 @@ type command struct {
 
 }
 
+
+
 func (c *command) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 	var diags hcl.Diagnostics
@@ -181,11 +184,10 @@ func (c *command) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 
 
+	//diags = append(diags, validateStringFields(c, body)...)
 
-
-
-	diags = append(diags, checkRequired(c.Exe, "exe", rangeOf("exe"))...)
-	diags = append(diags, checkOptional(c.Args, "args", rangeOf("args"))...)
+	diags = append(diags, checkStringField(c.Exe, "exe", rangeOf("exe"))...)
+	diags = append(diags, checkStringField(c.Args, "args", rangeOf("args"))...)
 
 	return diags
 }
@@ -233,7 +235,10 @@ func (a *addPath) validate(body *hclsyntax.Body) hcl.Diagnostics {
     }
 
 
-	diags = append(diags, checkRequired(a.Dir, "dir", rangeOf("dir"))...)
+
+	//diags = append(diags, validateStringFields(a, body)...)
+
+	diags = append(diags, checkStringField(a.Dir, "dir", rangeOf("dir"))...)
 
 
 	return diags
@@ -623,7 +628,7 @@ func decodeInstallPath(body *hclsyntax.Body) (string, hcl.Diagnostics) {
 
 	installPath := val.AsString()
 
-	checkDiags := checkRequired(installPath, "install_path", attr.Expr.Range())
+	checkDiags := checkStringField(installPath, "install_path", attr.Expr.Range())
 	if checkDiags.HasErrors() {
 		return "", checkDiags
 	}

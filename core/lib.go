@@ -39,11 +39,14 @@ reorganize packages into core and manager to fix import cycles
 
 //TODO:
 // move all hcl related types and validation functions to the parser 
+// creater a parser interface 
+
 
 type InstallArgs struct {
     PackageIdentifier string
     Version    Version
 	TargetArch  Arch
+    Scope      Scope
 }
 
 
@@ -251,16 +254,15 @@ type ArchRelease struct {
 
 
 type Release struct {
-    PackageIdentifier         string `hcl:"package"`
-    UpstreamVersion string `hcl:"upstream_version"` 
-    Revision        int     `hcl:"revision"` 
-    URL             string  `hcl:"url"` 
-    SHA256          string `hcl:"sha256"` 
-    SizeMB          int  `hcl:"size_mb"` 
+    PackageIdentifier  string 
+    UpstreamVersion string 
+    Revision        int     
+    URL             string  
+    SHA256          string  
+    SizeMB          int  
 
-    ArchitectureRaw string `hcl:"architecture"`
     
-    Architecture Arch //RT:V
+    Architecture Arch 
 }
 
 
@@ -443,6 +445,7 @@ var (
 type Scope string
 
 const (
+    ScopeUndefined Scope = "undefined"
 	ScopeUser   Scope = "user"
 	ScopeSystem Scope = "system"
 )
@@ -454,6 +457,6 @@ func ParseScope(raw string) (Scope, error) {
 	case string(ScopeSystem):
 		return ScopeSystem, nil
 	default:
-		return "", fmt.Errorf("unknown scope %q, expected \"user\" or \"system\"", raw)
+		return ScopeUndefined, fmt.Errorf("unknown scope %q, expected \"user\" or \"system\"", raw)
 	}
 }

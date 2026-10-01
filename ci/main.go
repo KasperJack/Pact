@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kasperjack/pact/core"
+	//"github.com/kasperjack/pact/core"
 	"github.com/kasperjack/pact/core/parce"
 )
 
@@ -20,12 +20,27 @@ import (
 
 func main() {
 
+
+
+
 	pkgPath := "C:/Users/kasper/Documents/projects/pact/bin/repo/packages/windirstat"
 
 	archRelease := filepath.Join(pkgPath, "2.7.0", "x64", "1")
 
 
 
+
+
+	checkRelease(filepath.Join(archRelease, "release.hcl"))
+
+
+
+
+
+
+
+
+/*
 	packageSrc, err := os.ReadFile(filepath.Join(pkgPath, "package.hcl"))
 
 	if err != nil {
@@ -46,6 +61,7 @@ func main() {
 
 
 	manifestSrc, err := os.ReadFile(filepath.Join(archRelease, "manifest.hcl"))
+
 	if err != nil {
 		log.Fatalf("reading manifest.hcl: %v", err)
 	}
@@ -72,7 +88,11 @@ func main() {
 		}
 	}
 
+
+	*/
+
 }
+
 
 func printDiags(diags hcl.Diagnostics) {
 	for _, d := range diags {
@@ -80,3 +100,28 @@ func printDiags(diags hcl.Diagnostics) {
 	}
 }
 
+
+
+
+func checkRelease (path string){
+
+	fmt.Println(path)
+	releaseSrc, err := os.ReadFile(path)
+	
+	if err != nil {
+		log.Fatalf("reading release.hcl: %v", err)
+	}
+
+
+	_, diags := parce.Release(releaseSrc)
+
+
+
+	if diags.HasErrors() {
+		printDiags(diags)
+		log.Fatal("package info parse failed")
+	}
+
+
+
+}

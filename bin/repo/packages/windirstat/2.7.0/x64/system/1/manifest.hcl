@@ -1,30 +1,19 @@
 
   
-  install_path = "home"
+  install_path = "%LOCALAPPDATA%\\windirstat"
 
 
-  shortcut "ass" {
-    display_name = "gg"
-    exe    = "ff"
-  }
-
-
-  shortcut "desktop" {
-    exe    = "/home/.var/ff.exe"
-  }
-
-
-
-
-  command "ass" {
-    exe = "ss   "
+  shortcut {
+    exe    = "WinDirStat.exe"
 
   }
 
-  command  "ass"{
-    exe = "ff"
+
+  command "cli_tool" {
+    exe = "cli\\wds.exe"
 
   }
+
 
 
 

@@ -14,7 +14,7 @@ import (
 
 )
 
-var validPackageNamePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+var validPackageIdentifierPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 
 
@@ -52,14 +52,11 @@ func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 
 
-	allDiags = append(allDiags, checkField(p.Package, "package", rangeOf("package"))...)
-    allDiags = append(allDiags, checkValidPackageName(p.Package, rangeOf("package"))...)
+    allDiags = append(allDiags, checkValidPackageIdentifier(p.Package, rangeOf("package"))...)
+	
 
+	allDiags = append(allDiags, validateStringFields(p, body)...)
 
-    allDiags = append(allDiags, checkField(p.Name, "name", rangeOf("name"))...)
-    allDiags = append(allDiags, checkField(p.Description, "description", rangeOf("description"))...)
-    allDiags = append(allDiags, checkField(p.Homepage, "homepage", rangeOf("homepage"))...)
-    allDiags = append(allDiags, checkField(p.License, "license", rangeOf("license"))...)
 
 
 
@@ -99,7 +96,6 @@ func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
 				Detail:   err.Error(),
 				Subject:  rangeOf("architectures").Ptr(),
 			})
-			continue
 		}
 
 	}
@@ -114,7 +110,6 @@ func (p *lPackage) validate(body *hclsyntax.Body) hcl.Diagnostics {
 				Detail:   err.Error(),
 				Subject:  rangeOf("scopes").Ptr(),
 			})
-			continue
 		}
 
 	}
@@ -218,9 +213,9 @@ func PackageInfo(src []byte) (*core.PackageInfo, hcl.Diagnostics) {
 
 
 
-func checkValidPackageName(value string, rng hcl.Range) hcl.Diagnostics {
+func checkValidPackageIdentifier(value string, rng hcl.Range) hcl.Diagnostics {
 
-	if !validPackageNamePattern.MatchString(value) {
+	if !validPackageIdentifierPattern.MatchString(value) {
 		return hcl.Diagnostics{&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  fmt.Sprintf("invalid package name %q", value),

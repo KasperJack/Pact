@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
+	"fmt"
 
 )
 
@@ -16,29 +17,19 @@ type release struct {
 
 
     Package         string `hcl:"package"`
-    UpstreamVersion string `hcl:"upstream_version"` 
+
+    UpstreamVersion string `hcl:"upstream_version" validate:"nonempty"` 
+
     Revision        int     `hcl:"revision"` 
-    URL             string  `hcl:"url"` 
-    SHA256          string `hcl:"sha256"` 
+
+    URL             string  `hcl:"url" validate:"nonempty"` 
+    SHA256          string `hcl:"sha256" validate:"nonempty"` 
     SizeMB          int  `hcl:"size_mb"` 
 
+	
     ArchitectureRaw string `hcl:"architecture"`
-    
-    Architecture core.Arch 
-}
+    Architecture core.Arch
 
-
-
-
-
-func (*release) export () *core.Release {
-
-	return nil
-}
-
-
-func (*release) validate(body *hclsyntax.Body) hcl.Diagnostics {
-	return nil
 }
 
 
@@ -47,12 +38,71 @@ func (*release) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
 
 
+func (r *release) validate(body *hclsyntax.Body) hcl.Diagnostics {
 
-func Release(src []byte) (*core.Release,error) {
+	var allDiags hcl.Diagnostics
+
+
+
+	rangeOf := func(field string) hcl.Range {
+
+        return attrRangeOf(body, field)
+    }
+
+
+	allDiags = append(allDiags, checkValidPackageIdentifier(r.Package, rangeOf("package"))...)
+	allDiags = append(allDiags, validateStringFields(r, body)...)
+	
+
+
+
+	_, err := core.ParseArch(r.ArchitectureRaw)
+
+		if err != nil {
+			allDiags = append(allDiags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("invalid architecture %q", r.ArchitectureRaw),
+				Detail:   err.Error(),
+				Subject:  rangeOf("architecture").Ptr(),
+			})
+		}
+
+
+
+
+
+	return allDiags
+}
+
+
+
+
+
+func (r *release) export() *core.Release {
+	arch, _ := core.ParseArch(r.ArchitectureRaw)
+
+	return &core.Release{
+		PackageIdentifier: r.Package,
+		UpstreamVersion:   r.UpstreamVersion,
+		Revision:          r.Revision,
+		URL:               r.URL,
+		SHA256:             r.SHA256,
+		SizeMB:             r.SizeMB,
+		Architecture:      arch,
+	}
+}
+
+
+
+
+
+
+
+func Release(src []byte) (*core.Release, hcl.Diagnostics) {
 
 
 	parser := hclparse.NewParser()
-	f, diags := parser.ParseHCL(src, "package.hcl")
+	f, diags := parser.ParseHCL(src, "release.hcl")
 
 	if diags.HasErrors() {
 		return nil, diags
@@ -78,7 +128,12 @@ func Release(src []byte) (*core.Release,error) {
 		return nil, d
 	}
 
-	diags = release.validate(syntaxBody) //syntaxBody ? 
+
+
+
+	fmt.Println("calling vlidate")
+	diags = release.validate(syntaxBody) 
+	fmt.Println("vlidate done")
 
 	
 
@@ -87,6 +142,8 @@ func Release(src []byte) (*core.Release,error) {
 	if diags.HasErrors() {
 		return nil, diags
 	}
+
+
 
 
 	return release.export(),diags

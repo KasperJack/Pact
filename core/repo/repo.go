@@ -125,7 +125,7 @@ func (r *repo) LoadPackageIndex(packageIdentifier string) (core.PackageIndex, er
 
 
 
-func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch, revision int) (*core.ArchRelease, error) {
+func (r *repo) LoadArchRelease(packageIdentifier, Version string, arch core.Arch, scope core.Scope, revision int) (*core.ArchRelease, error) {
 
 
 
