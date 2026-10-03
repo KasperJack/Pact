@@ -8,6 +8,7 @@ import (
 	"slices"
 	//"errors"
 	"github.com/kasperjack/pact/core"
+	"github.com/kasperjack/pact/core/internal/win"
 	
 )
 
@@ -32,6 +33,35 @@ func resolveArchRelease(args core.InstallArgs, repo core.Repo) (*core.PackageInf
 
 		return nil,nil,err
 	}
+
+
+
+	switch args.Scope {
+
+		case core.ScopeUser,core.ScopeSystem:
+	
+			if !slices.Contains(md.Scopes,args.Scope) {
+				return nil,nil,fmt.Errorf("package %s does not support scope %s", args.PackageIdentifier, args.Scope)
+			}
+
+			if args.Scope == core.ScopeSystem && !win.IsElevated() {
+				return nil,nil,fmt.Errorf("package %s requires elevated privileges to install in system scope", args.PackageIdentifier)
+			}
+
+
+		case core.ScopeUndefined:
+
+			if len(md.Scopes) == 1 {
+				if md.Scopes[0] == core.ScopeSystem && !win.IsElevated() {
+					return nil,nil,fmt.Errorf("package %s requires elevated privileges to install in system scope", args.PackageIdentifier)
+				}
+
+			}
+		
+
+	}
+
+
 
 
 
@@ -123,7 +153,7 @@ func resolveReleaseLatestVersion(args core.InstallArgs, repo core.Repo) (*core.A
 			archInfo,ok := archMap[arch]
 
 			if ok{
-
+				// load user then try system scope if not found
 				return repo.LoadArchRelease(args.PackageIdentifier,archInfo.Version,arch,archInfo.Revision)
 
 			}

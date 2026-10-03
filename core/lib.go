@@ -94,7 +94,7 @@ type Repo interface {
     PackageExists(packageIdentifier string) (bool, error)
     LoadPackageIndex(packageIdentifier string) (PackageIndex, error)
     LoadArchStatus(packageIdentifier, Version string, arch Arch) (ArchStatus, error)
-    LoadArchRelease(packageIdentifier, Version string, arch Arch, revision int) (*ArchRelease, error) 
+    LoadArchRelease(packageIdentifier, Version string, arch Arch, scope Scope, revision int) (*ArchRelease, error)
 }
 
 type Package interface {
