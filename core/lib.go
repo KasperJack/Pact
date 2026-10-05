@@ -90,13 +90,20 @@ type LocalState struct {
 
 type Repo interface {
 
-    LoadPackageInfo(packageIdentifier string) (*PackageInfo,error)
+    LoadPackageDefinition(packageIdentifier string) (*PackageDefinition,error)
     PackageExists(packageIdentifier string) (bool, error)
     LoadPackageIndex(packageIdentifier string) (PackageIndex, error)
     LoadArchStatus(packageIdentifier, Version string, arch Arch) (ArchStatus, error)
-    LoadArchRelease(packageIdentifier, Version string, arch Arch, scope Scope, revision int) (*ArchRelease, error)
+    LoadArchRelease(packageIdentifier, Version string, arch Arch, scope Scope, revision int) (*Release, error)
 }
 
+
+
+
+
+
+
+/*
 type Package interface {
 
     Info() (PackageInfo, error)
@@ -106,7 +113,25 @@ type Package interface {
     UpstreamVersions() []string
     LatestReleaseForUpstream(upstreamVersion string) string
     Release(releaseVersion string) (Release, error)
+
 }
+*/
+
+
+
+type Package struct {
+    
+    Identifier    string
+    Version  string
+    Revision int
+    Arch     Arch
+    Scope    Scope
+}
+
+
+
+
+
 
 
 
@@ -159,20 +184,18 @@ type LockFileC struct {
 ////////////////////////
 
 
-type PackageInfo struct {
-	PackageIdentifier       string
-	Name          string
+type PackageDefinition struct {
 
-	Description   string //op
-	Homepage      string //op
-	License       string //op
-    
-	Architectures []Arch
-	Scopes        []Scope
+    Identifier    string
+    Name          string
+    Description   string
+    Homepage      string
+    License       string
+
+    Architectures []Arch
+    Scopes        []Scope
+
 }
-
-
-
 
 
 
@@ -239,32 +262,55 @@ type ArchStatus struct {
 }
 
 
-type ArchRelease struct {
 
-    Manifest *Manifest
-    Release   *Release
-    Interface *Interface
+
+
+
+
+
+
+
+type SourceType string
+ 
+const SourceZip SourceType = "zip"
+
+
+
+
+type Source struct {
+
+	Type   SourceType
+	URL    string
+	SHA256 string 
+	Size   int64  
 }
-
-
-
-
-
-
+ 
 
 
 type Release struct {
-    PackageIdentifier  string 
-    UpstreamVersion string 
-    Revision        int     
-    URL             string  
-    SHA256          string  
-    SizeMB          int  
 
+	Package Package
+	Source    Source
+	Resources []Resource 
     
-    Architecture Arch 
 }
+ 
 
+
+
+
+//remove this this should be checked in the parser
+func (r *Release) BoundOptions() []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, res := range r.Resources {
+		if o := res.BoundOption(); o != "" && !seen[o] {
+			seen[o] = true
+			out = append(out, o)
+		}
+	}
+	return out
+}
 
 
 

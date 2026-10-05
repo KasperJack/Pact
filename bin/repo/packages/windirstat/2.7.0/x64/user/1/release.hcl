@@ -1,18 +1,23 @@
 release {
 
-  package  = "windirstat"
-  version  = "2.7.0"
-  revision = 1
-  arch     = "x64"
-  scope    = "user"
 
 
-  source {
-    type   = "zip"
+
+  package "windirstat" {
+    version  = "2.7.0"
+    revision = 1
+    arch     = "x64"
+    scope    = "user"
+  }
+
+
+
+  source "zip" {
     url    = "https://github.com/windirstat/windirstat/releases/download/release%2Fv2.7.0/WinDirStat.zip"
     sha256 = "3aad34ab..."
     size   = 5242880
   }
+
 
 
 
@@ -44,58 +49,6 @@ release {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-manifest {
-
-  
-  shortcut {
-    exe    = "WinDirStat.exe"
-
-  }
-
-
-  command "cli_tool" {
-    exe = "cli\\wds.exe"
-
-  }
-
-
-}
-
-
-
-
-
-
-
-
-
-interface {
-
-  bind "cli_tool" {
-    blocks = ["command.cli_tool"]
-  }
-}
 
 
 

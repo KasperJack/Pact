@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"reflect"
 
@@ -12,7 +13,107 @@ import (
 
 
 
+ type BlockLabels interface {
+    SetLabels([]string) hcl.Diagnostics
+}
+
+
+
+
+func DecodeBlock[T any](block *hclsyntax.Block,dst *T,) (*T, hcl.Diagnostics) {
+    var diags hcl.Diagnostics
+
+    if d := gohcl.DecodeBody(block.Body, nil, dst); d.HasErrors() {
+        diags = append(diags, d...)
+        return nil, diags
+    }
+
+    if labeled, ok := any(dst).(BlockLabels); ok {
+        diags = append(diags, labeled.SetLabels(block.Labels)...)
+    }
+
+    if diags.HasErrors() {
+        return nil, diags
+    }
+
+    return dst, diags
+}
+
  
+
+
+
+func DecodeBlocks[T any](block *hclsyntax.Block, constructors map[string]func() T,) ([]T, hcl.Diagnostics) {
+    resources := make([]T, 0, len(block.Body.Blocks))
+    var diags hcl.Diagnostics
+
+    for _, block := range block.Body.Blocks {
+        constructor, ok := constructors[block.Type]
+        if !ok {
+            diags = append(diags, &hcl.Diagnostic{
+                Severity: hcl.DiagError,
+                Summary:  "unknown block type " + block.Type,
+                Subject:  block.TypeRange.Ptr(),
+            })
+            continue
+        }
+
+        resource := constructor()
+
+        if d := gohcl.DecodeBody(block.Body, nil, resource); d.HasErrors() {
+            diags = append(diags, d...)
+            continue
+        }
+
+        resources = append(resources, resource)
+    }
+
+    if diags.HasErrors() {
+        return nil, diags
+    }
+
+    return resources, nil
+}
+
+
+/*
+/// use 
+
+	resources, diags := parseBlocks(
+    block,
+    localResourceConstructors,
+)
+
+
+
+*/
+
+func derefOr(p *string, def string) string {
+	if p == nil {
+		return def
+	}
+	return *p
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// move  ci/validation
 func validateStringFields(target any, body *hclsyntax.Body) hcl.Diagnostics {
     var diags hcl.Diagnostics
 
@@ -151,11 +252,4 @@ func attrRangeOf(body *hclsyntax.Body, name string) hcl.Range {
 
 
 
-
-func derefOr(p *string, def string) string {
-	if p == nil {
-		return def
-	}
-	return *p
-}
 

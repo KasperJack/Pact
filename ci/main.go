@@ -25,7 +25,7 @@ func main() {
 
 	pkgPath := "C:/Users/kasper/Documents/projects/pact/bin/repo/packages/windirstat"
 
-	archRelease := filepath.Join(pkgPath, "2.7.0", "x64", "1")
+	archRelease := filepath.Join(pkgPath, "2.7.0", "x64", "user" ,"1")
 
 
 
@@ -113,15 +113,17 @@ func checkRelease (path string){
 	}
 
 
-	_, diags := parce.Release(releaseSrc)
+	r, diags := parce.Release(releaseSrc)
 
 
 
 	if diags.HasErrors() {
 		printDiags(diags)
 		log.Fatal("package info parse failed")
-	}
 
+	}else{
+		fmt.Println(r)
+	}
 
 
 }
